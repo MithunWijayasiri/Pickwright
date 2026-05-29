@@ -82,9 +82,9 @@ function checkUniqueness(candidate: LocatorCandidate, el: Element): boolean {
   try {
     const root = el.getRootNode() as Document | ShadowRoot;
     const matches = root.querySelectorAll(selector);
-    return matches.length === 1 || (matches.length > 0 && Array.from(matches).includes(el));
+    return matches.length === 1 && matches[0] === el;
   } catch {
-    return true;
+    return false;
   }
 }
 

@@ -9,13 +9,10 @@ import { LocatorCandidate } from './types';
  */
 export function generateCandidates(el: Element, meta: ElementMetadata): LocatorCandidate[] {
   const candidates: LocatorCandidate[] = [];
-  const prefix = meta.frameSelector ? `frameLocator('${meta.frameSelector}').` : '';
+  const prefix = meta.frameSelector ? `frameLocator('${esc(meta.frameSelector)}').` : '';
 
-  // 1. getByTestId
-  const testId =
-    meta.dataAttributes['data-testid'] ||
-    meta.dataAttributes['data-test-id'] ||
-    meta.dataAttributes['data-cy'];
+  // 1. getByTestId (only for data-testid; data-test-id/data-cy use CSS locator)
+  const testId = meta.dataAttributes['data-testid'];
   if (testId) {
     candidates.push({
       strategy: 'getByTestId',
@@ -23,7 +20,20 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       score: 0,
       reason: 'data-testid is the most stable selector',
       unique: true,
-      cssEquivalent: `${cssAttr('data-testid', testId)},${cssAttr('data-test-id', testId)},${cssAttr('data-cy', testId)}`,
+      cssEquivalent: cssAttr('data-testid', testId),
+    });
+  }
+  // data-test-id / data-cy — emit as CSS locator (getByTestId only matches data-testid by default)
+  const altTestId = meta.dataAttributes['data-test-id'] || meta.dataAttributes['data-cy'];
+  const altTestAttr = meta.dataAttributes['data-test-id'] ? 'data-test-id' : 'data-cy';
+  if (!testId && altTestId) {
+    candidates.push({
+      strategy: 'locator',
+      value: `${prefix}locator('${esc(cssAttr(altTestAttr, altTestId))}')`,
+      score: 0,
+      reason: `${altTestAttr} as CSS selector (configure testIdAttribute for getByTestId)`,
+      unique: true,
+      cssEquivalent: cssAttr(altTestAttr, altTestId),
     });
   }
 

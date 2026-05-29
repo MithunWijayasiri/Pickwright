@@ -1,5 +1,7 @@
 # Pickwright
 
+![Pickwright banner](docs/pickwright-banner.png)
+
 A Manifest V3 Chrome extension that lets you pick any element on a page and generates a Playwright-friendly locator, ready to paste into your test code.
 
 ## Features
@@ -33,8 +35,6 @@ This produces a `dist/` folder — that's what you load into Chrome.
 3. Click **Load unpacked**
 4. Select the **`dist/`** folder inside the project (e.g. `C:\Github\Pickwright\dist`)
 5. Pickwright appears in your extensions list — pin it via the puzzle-piece icon in the toolbar for easy access
-
-![Load unpacked screenshot](docs/load-unpacked.png)
 
 > **Note:** You must reload the extension (`chrome://extensions` → refresh icon) and refresh the target page any time you rebuild.
 
@@ -134,10 +134,12 @@ pickwright/
 
 ### Supported Test ID Attributes
 
-The extension recognizes these as test IDs (highest priority):
-- `data-testid`
+The extension recognizes these as stable "test id"-style attributes:
+- `data-testid` (generated as `getByTestId(...)` by default)
 - `data-test-id`
 - `data-cy`
+
+> **Note:** `data-test-id` and `data-cy` are emitted as `locator('[data-test-id="..."]')` CSS selectors. To use `getByTestId(...)` for these, configure [`testIdAttribute`](https://playwright.dev/docs/api/class-playwrightassertions) in your Playwright config.
 
 ## Troubleshooting
 
