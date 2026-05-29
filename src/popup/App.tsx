@@ -9,6 +9,7 @@ import {
   CheckIcon,
   HistoryIcon,
   LogoMark,
+  GitHubIcon,
 } from './icons';
 
 const MAX_HISTORY = 20;
@@ -77,6 +78,16 @@ const App = () => {
           Pick<span className="w">w</span>right
         </span>
         <span className="hd-ver">v1.0</span>
+        <a
+          className="hd-gh"
+          href="https://github.com/MithunWijayasiri/Pickwright"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="View on GitHub"
+          aria-label="View on GitHub"
+        >
+          <GitHubIcon />
+        </a>
       </header>
 
       <div className="body">

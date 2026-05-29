@@ -92,6 +92,22 @@ body {
   color: var(--text-faint);
 }
 
+.hd-gh {
+  display: flex;
+  align-items: center;
+  color: var(--text-faint);
+  transition: color 150ms ease;
+}
+
+.hd-gh .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.hd-gh:hover {
+  color: var(--text-primary);
+}
+
 /* ---------- Body ---------- */
 .body {
   padding: 14px;
