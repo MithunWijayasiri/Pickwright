@@ -45,7 +45,8 @@ const App = () => {
         setLastLocator(message.payload.locator);
         setLastTag(message.payload.tag);
         setPickerActive(false);
-        getHistory().then(setHistory);
+        // Delay to let the background worker finish writing to storage before reading.
+        setTimeout(() => getHistory().then(setHistory), 200);
       }
     };
     chrome.runtime.onMessage.addListener(listener);
@@ -77,7 +78,7 @@ const App = () => {
         <span className="hd-name">
           Pick<span className="w">w</span>right
         </span>
-        <span className="hd-ver">v1.0</span>
+        <span className="hd-ver">v{chrome.runtime.getManifest().version}</span>
         <a
           className="hd-gh"
           href="https://github.com/MithunWijayasiri/Pickwright"
@@ -143,7 +144,14 @@ const App = () => {
                 const strat = getStrategy(entry.locator);
                 const isCopied = copiedTs === entry.timestamp;
                 return (
-                  <div key={entry.timestamp} className="row" onClick={() => copyRow(entry)}>
+                  <div
+                    key={entry.timestamp}
+                    className="row"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => copyRow(entry)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') copyRow(entry); }}
+                  >
                     <span className={`pill pill-${strat.pill}`}>{strat.pill}</span>
                     <div className="row-main">
                       <div
