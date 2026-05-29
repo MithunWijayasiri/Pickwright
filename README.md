@@ -42,14 +42,14 @@ This produces a `dist/` folder — that's what you load into Chrome.
 
 1. Navigate to any webpage (does **not** work on `chrome://` or `chrome-extension://` pages)
 2. Click the **Pickwright** icon in the toolbar
-3. Click **Start Picking** — the button turns red and your cursor changes to a crosshair
+3. Click **Pick element** — the button switches to **Stop picking** and your cursor changes to a crosshair
 4. Hover over elements — a blue highlight box follows your cursor with a tag/class tooltip
 5. **Click any element** to:
    - Generate the best Playwright locator
    - Copy it to clipboard automatically
    - See a toast confirmation in the bottom-right corner
 6. Press **Esc** at any time to cancel picking mode
-7. Reopen the popup to view your **recent locators** — click any entry to recopy, or × to remove it
+7. Reopen the popup to see the **last captured locator** plus your **recent history** (scrollable, last 20) — click any entry to recopy it
 
 ### Generated Locator Priority
 
@@ -86,42 +86,6 @@ Locators are generated and scored in this order (highest priority first):
 2. Edit files in `src/`
 3. Go to `chrome://extensions` and click the **refresh icon** on Pickwright
 4. Refresh the target page and test
-
-## Project Structure
-
-```
-pickwright/
-├── src/
-│   ├── background/
-│   │   └── index.ts          # Service worker — relays popup↔content messages
-│   ├── content/
-│   │   ├── picker.ts         # Orchestrator — document-level capture listeners, clipboard, toast
-│   │   ├── overlay.ts        # Visual highlight box + tooltip (pointer-events: none)
-│   │   ├── inspect.ts        # Metadata, shadow DOM traversal, iframe/Angular detection
-│   │   └── locator/
-│   │       ├── generate.ts   # Candidate generation (6 strategies)
-│   │       ├── score.ts      # Scoring, uniqueness validation, deduplication
-│   │       └── types.ts      # LocatorCandidate, LocatorResult types
-│   ├── popup/
-│   │   ├── index.tsx         # React entry point
-│   │   ├── App.tsx           # Popup UI — toggle, last locator, history list
-│   │   └── popup.html        # HTML shell
-│   ├── shared/
-│   │   ├── messaging.ts      # Message type definitions
-│   │   ├── storage.ts        # chrome.storage.local helpers
-│   │   └── types.ts          # ElementMetadata interface
-│   └── manifest.json         # MV3 manifest
-├── dist/                     # Built extension — load this folder in Chrome
-├── docs/
-│   ├── Pickwright_Plan.md    # Full implementation plan
-│   └── Build_Progress.md     # Phase completion tracker
-├── webpack.config.js
-├── tsconfig.json
-├── package.json
-├── .eslintrc.js
-├── .prettierrc
-└── .gitignore
-```
 
 ## Configuration
 
