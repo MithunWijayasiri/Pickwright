@@ -23,7 +23,23 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+            options: {
+              // Drop legacy .woff fallbacks — Chrome only needs .woff2.
+              url: { filter: (url) => !url.endsWith('.woff') },
+            },
+          },
+        ],
+      },
+      {
+        test: /\.woff2$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'fonts/[name][ext]',
+        },
       },
     ],
   },
