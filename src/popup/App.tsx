@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MESSAGE_TYPES, ElementSelectedMessage } from '../shared/messaging';
+import { MESSAGE_TYPES, Message } from '../shared/messaging';
 import { getHistory, addToHistory, removeFromHistory, HistoryEntry } from '../shared/storage';
 
 const App = () => {
@@ -16,8 +16,11 @@ const App = () => {
     // Load history
     getHistory().then(setHistory);
 
-    // Listen for element selection from content script
-    const listener = (message: ElementSelectedMessage) => {
+    // Listen for messages from content script
+    const listener = (message: Message) => {
+      if (message.type === MESSAGE_TYPES.PICKER_STATE_CHANGED) {
+        setPickerActive(message.payload.active);
+      }
       if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
         setLastLocator(message.payload.locator);
         setPickerActive(false);
@@ -48,11 +51,14 @@ const App = () => {
     });
   };
 
-  const copyLocator = (locator: string) => {
-    navigator.clipboard.writeText(locator).then(() => {
+  const copyLocator = async (locator: string) => {
+    try {
+      await navigator.clipboard.writeText(locator);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    } catch {
+      // Clipboard might be unavailable; ignore.
+    }
   };
 
   const handleRemoveHistory = (timestamp: number) => {
