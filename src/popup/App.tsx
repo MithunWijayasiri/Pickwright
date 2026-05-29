@@ -1,44 +1,50 @@
 import { useState, useEffect } from 'react';
 import { MESSAGE_TYPES, Message } from '../shared/messaging';
-import { getHistory, addToHistory, removeFromHistory, HistoryEntry } from '../shared/storage';
+import { getHistory, HistoryEntry } from '../shared/storage';
+import { getStrategy, highlight } from './locatorUtils';
+import {
+  CrosshairsIcon,
+  StopIcon,
+  CopyIcon,
+  CheckIcon,
+  HistoryIcon,
+  LogoMark,
+} from './icons';
+
+const MAX_HISTORY = 20;
 
 const App = () => {
   const [pickerActive, setPickerActive] = useState(false);
   const [lastLocator, setLastLocator] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [lastTag, setLastTag] = useState<string>('');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [copiedTs, setCopiedTs] = useState<number | null>(null);
 
   useEffect(() => {
-    // Get current picker state
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_PICKER_STATE }, (response) => {
       if (response?.active) setPickerActive(true);
     });
-    // Load history
-    getHistory().then(setHistory);
+    // Restore history and the most-recent pick as the result card (the popup is
+    // usually closed when the pick happens, so this rebuilds the result state).
+    getHistory().then((h) => {
+      setHistory(h);
+      if (h[0]) {
+        setLastLocator(h[0].locator);
+        setLastTag(h[0].tag);
+      }
+    });
 
-    // Listen for messages from content script
     const listener = (message: Message) => {
       if (message.type === MESSAGE_TYPES.PICKER_STATE_CHANGED) {
         setPickerActive(message.payload.active);
       }
       if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
+        // Live update if the popup happens to be open. The background worker
+        // owns persistence — re-read storage to stay in sync.
         setLastLocator(message.payload.locator);
+        setLastTag(message.payload.tag);
         setPickerActive(false);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-        // Add to history
-        const entry: HistoryEntry = {
-          url: '', // will be filled below
-          timestamp: Date.now(),
-          locator: message.payload.locator,
-          score: message.payload.score,
-          tag: message.payload.tag,
-          textSnippet: message.payload.textSnippet,
-        };
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          entry.url = tabs[0]?.url ?? '';
-          addToHistory(entry).then(() => getHistory().then(setHistory));
-        });
+        getHistory().then(setHistory);
       }
     };
     chrome.runtime.onMessage.addListener(listener);
@@ -51,105 +57,109 @@ const App = () => {
     });
   };
 
-  const copyLocator = async (locator: string) => {
+  const copyRow = async (entry: HistoryEntry) => {
     try {
-      await navigator.clipboard.writeText(locator);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(entry.locator);
+      setCopiedTs(entry.timestamp);
+      setTimeout(() => setCopiedTs((cur) => (cur === entry.timestamp ? null : cur)), 1000);
     } catch {
-      // Clipboard might be unavailable; ignore.
+      // Clipboard may be unavailable; ignore.
     }
   };
 
-  const handleRemoveHistory = (timestamp: number) => {
-    removeFromHistory(timestamp).then(() => getHistory().then(setHistory));
-  };
+  const result = lastLocator ? getStrategy(lastLocator) : null;
 
   return (
-    <div style={{ width: 340, padding: 16, fontFamily: 'system-ui, sans-serif' }}>
-      <h1 style={{ fontSize: 18, margin: '0 0 12px' }}>Pickwright</h1>
+    <div className="pw">
+      <header className="hd">
+        <LogoMark />
+        <span className="hd-name">
+          Pick<span className="w">w</span>right
+        </span>
+        <span className="hd-ver">v1.0</span>
+      </header>
 
-      <button
-        onClick={togglePicker}
-        style={{
-          width: '100%',
-          padding: '10px 16px',
-          fontSize: 14,
-          fontWeight: 600,
-          border: 'none',
-          borderRadius: 6,
-          cursor: 'pointer',
-          background: pickerActive ? '#ef4444' : '#2563eb',
-          color: '#fff',
-        }}
-      >
-        {pickerActive ? 'Stop Picking' : 'Start Picking'}
-      </button>
+      <div className="body">
+        {pickerActive ? (
+          <button className="btn btn-stop" onClick={togglePicker}>
+            <StopIcon />
+            Stop picking
+          </button>
+        ) : (
+          <button className="btn btn-primary" onClick={togglePicker}>
+            <CrosshairsIcon />
+            Pick element
+          </button>
+        )}
 
-      {lastLocator && (
-        <div style={{ marginTop: 12, padding: 10, background: '#f0fdf4', borderRadius: 6 }}>
-          <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600 }}>
-            {copied ? '✓ Copied!' : 'Last locator:'}
-          </div>
-          <code
-            onClick={() => copyLocator(lastLocator)}
-            style={{
-              display: 'block',
-              marginTop: 4,
-              fontSize: 12,
-              wordBreak: 'break-all',
-              cursor: 'pointer',
-            }}
-          >
-            {lastLocator}
-          </code>
-        </div>
-      )}
-
-      {history.length > 0 && (
-        <div style={{ marginTop: 16 }}>
-          <h2 style={{ fontSize: 13, margin: '0 0 8px', color: '#666' }}>Recent</h2>
-          <div style={{ maxHeight: 200, overflowY: 'auto' }}>
-            {history.map((entry) => (
-              <div
-                key={entry.timestamp}
-                style={{
-                  padding: '6px 8px',
-                  marginBottom: 4,
-                  background: '#f8fafc',
-                  borderRadius: 4,
-                  fontSize: 11,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                <code
-                  onClick={() => copyLocator(entry.locator)}
-                  style={{ flex: 1, cursor: 'pointer', wordBreak: 'break-all' }}
-                  title={`${entry.tag} — ${entry.textSnippet}`}
-                >
-                  {entry.locator}
-                </code>
-                <button
-                  onClick={() => handleRemoveHistory(entry.timestamp)}
-                  style={{
-                    border: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
-                    color: '#999',
-                    fontSize: 14,
-                    padding: '0 4px',
-                  }}
-                  title="Remove"
-                >
-                  ×
-                </button>
+        {pickerActive && (
+          <div className="banner">
+            <span className="banner-dot" />
+            <div>
+              <div className="banner-title">Pick mode active</div>
+              <div className="banner-hint">
+                Hover any element on the page, then click to capture.
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {lastLocator && result && (
+          <div className="result">
+            <div className="result-top">
+              <span className="badge">{result.badge}</span>
+              <span className="result-tag">
+                &lt;<span className="tag">{lastTag}</span>&gt;
+              </span>
+            </div>
+            <div
+              className="result-code"
+              dangerouslySetInnerHTML={{ __html: highlight(lastLocator) }}
+            />
+          </div>
+        )}
+
+        {history.length > 0 ? (
+          <div>
+            <div className="history-head">
+              <span className="history-label">HISTORY</span>
+              <span className="history-count">
+                {history.length} / {MAX_HISTORY}
+              </span>
+            </div>
+            <div className="history-list">
+              {history.map((entry) => {
+                const strat = getStrategy(entry.locator);
+                const isCopied = copiedTs === entry.timestamp;
+                return (
+                  <div key={entry.timestamp} className="row" onClick={() => copyRow(entry)}>
+                    <span className={`pill pill-${strat.pill}`}>{strat.pill}</span>
+                    <div className="row-main">
+                      <div
+                        className="row-locator"
+                        dangerouslySetInnerHTML={{ __html: highlight(entry.locator) }}
+                      />
+                      <div className="row-tag">
+                        &lt;{entry.tag}&gt;
+                      </div>
+                    </div>
+                    {isCopied ? (
+                      <CheckIcon className="row-copy copied" />
+                    ) : (
+                      <CopyIcon className="row-copy" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="empty">
+            <HistoryIcon />
+            <p>No locators yet — pick an element to capture its Playwright locator.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

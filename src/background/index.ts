@@ -1,17 +1,33 @@
 // Pickwright background service worker
 
 import { MESSAGE_TYPES, Message } from '../shared/messaging';
+import { addToHistory, HistoryEntry } from '../shared/storage';
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Pickwright extension installed');
 });
 
-// Relay messages from popup to active tab content script
 chrome.runtime.onMessage.addListener(
   (message: Message, sender, sendResponse) => {
-    // Only handle messages from the popup (no sender.tab means it's from extension UI)
-    if (sender.tab) return;
+    // Messages from a content script carry sender.tab.
+    if (sender.tab) {
+      // Persist picked elements here — the popup is usually closed by the time
+      // the user clicks the page, so it can't reliably write history itself.
+      if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
+        const entry: HistoryEntry = {
+          url: sender.tab.url ?? '',
+          timestamp: Date.now(),
+          locator: message.payload.locator,
+          score: message.payload.score,
+          tag: message.payload.tag,
+          textSnippet: message.payload.textSnippet,
+        };
+        addToHistory(entry);
+      }
+      return;
+    }
 
+    // Relay popup commands to the active tab's content script.
     if (
       message.type === MESSAGE_TYPES.TOGGLE_PICKER ||
       message.type === MESSAGE_TYPES.GET_PICKER_STATE

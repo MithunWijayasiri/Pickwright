@@ -1,0 +1,407 @@
+/* Pickwright popup — DevTools dark theme */
+
+:root {
+  /* Surfaces */
+  --surface-base: #1e1e1e;
+  --surface-raised: #252526;
+  --surface-row: #232323;
+  --surface-row-hover: #2d2d2d;
+  /* Borders */
+  --border: #333333;
+  --border-subtle: #3a3a3a;
+  --border-result: #094771;
+  /* Text */
+  --text-primary: #f3f3f3;
+  --text-body: #d4d4d4;
+  --text-muted: #8a8a8a;
+  --text-faint: #6a6a6a;
+  /* Actions */
+  --blue: #0077d3;
+  --blue-hover: #0063cc;
+  --destructive-bg: #3a1e22;
+  --destructive-text: #ff6b6b;
+  --destructive-border: #5a2a2f;
+  --success-bg: #1f7a33;
+  --success-text: #6bd68a;
+  /* Brand */
+  --brand-magenta: #8b1a83;
+  --brand-pink: #e60f53;
+  --banner-title: #4fc1ff;
+
+  --font-sans: 'Mulish', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 360px;
+  background: var(--surface-base);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  letter-spacing: 0.217px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pw {
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header ---------- */
+.hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+}
+
+.hd-mark {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: block;
+}
+
+.hd-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.217px;
+}
+
+.hd-name .w {
+  color: #4fc34f;
+}
+
+.hd-ver {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* ---------- Body ---------- */
+.body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.217px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--blue-hover);
+}
+
+.btn-stop {
+  background: var(--destructive-bg);
+  color: var(--destructive-text);
+  box-shadow: inset 0 0 0 1px var(--destructive-border);
+}
+
+.btn-stop:hover {
+  background: #45232a;
+}
+
+/* ---------- Empty history placeholder ---------- */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 26px 18px;
+  border: 1px dashed var(--border-subtle);
+  border-radius: 6px;
+  text-align: center;
+  color: var(--text-faint);
+}
+
+.empty .icon {
+  width: 22px;
+  height: 22px;
+  opacity: 0.8;
+}
+
+.empty p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ---------- Live banner ---------- */
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.banner-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 3px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--blue);
+  animation: pw-pulse 1.4s ease infinite;
+}
+
+@keyframes pw-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 119, 211, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.banner-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--banner-title);
+}
+
+.banner-hint {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ---------- Result card ---------- */
+.result {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-result);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.result-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 8px;
+}
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #1f3a2e;
+  color: var(--success-text);
+}
+
+.result-tag {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.result-tag .tag {
+  color: #c586c0;
+}
+
+.result-code {
+  padding: 4px 12px 12px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  word-break: break-all;
+  color: var(--text-body);
+}
+
+/* ---------- Syntax highlight ---------- */
+.tok-fn {
+  color: #dcdcaa;
+}
+.tok-str {
+  color: #ce9178;
+}
+.tok-key {
+  color: #569cd6;
+}
+
+/* ---------- History ---------- */
+.history-head {
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.history-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-faint);
+}
+
+.history-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  /* Show ~3 rows; the rest scroll within this list (not the whole popup). */
+  max-height: 156px;
+  overflow-y: auto;
+  /* Room so rows don't sit under the scrollbar. */
+  padding-right: 4px;
+}
+
+/* Thin dark scrollbar for the history list */
+.history-list::-webkit-scrollbar {
+  width: 8px;
+}
+.history-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.history-list::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 4px;
+}
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--surface-row);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.row:hover {
+  background: var(--surface-row-hover);
+}
+
+.pill {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.pill-role {
+  background: #2a2440;
+  color: #c586c0;
+}
+.pill-testId {
+  background: #11324a;
+  color: #4fc1ff;
+}
+.pill-label {
+  background: #1f3a2e;
+  color: #6bd68a;
+}
+.pill-text {
+  background: #3a2e18;
+  color: #d7a85a;
+}
+.pill-css {
+  background: #2d2d2d;
+  color: #9a9a9a;
+}
+
+.row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.row-locator {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #cfcfcf;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-tag {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+.row-copy {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: #5a5a5a;
+  opacity: 0;
+  transition: opacity 150ms ease, color 150ms ease;
+}
+
+.row:hover .row-copy {
+  opacity: 1;
+}
+
+.row-copy.copied {
+  opacity: 1;
+  color: var(--success-text);
+}
