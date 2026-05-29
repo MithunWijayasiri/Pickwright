@@ -21,12 +21,10 @@ export function scoreAndSelect(candidates: LocatorCandidate[], el: Element): Loc
     const unique = checkUniqueness(c, el);
     const candidateWithUnique = { ...c, unique };
     const score = computeScore(candidateWithUnique);
-    const finalCandidate: LocatorCandidate = {
+    return {
       ...candidateWithUnique,
       score,
     };
-    finalCandidate.reasons = getLocatorReasons(finalCandidate, el);
-    return finalCandidate;
   });
 
   // Prefer unique candidates
@@ -37,6 +35,11 @@ export function scoreAndSelect(candidates: LocatorCandidate[], el: Element): Loc
 
   // Deduplicate: if we have role+name and role-only, drop role-only
   const deduped = deduplicateRoleCandidates(pool);
+
+  // Only generate reasons for the chosen best candidate (lazy/deferred computation)
+  if (deduped[0]) {
+    deduped[0].reasons = getLocatorReasons(deduped[0], el);
+  }
 
   return {
     best: deduped[0],

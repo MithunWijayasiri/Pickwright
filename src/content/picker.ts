@@ -100,6 +100,7 @@ function onClick(e: MouseEvent): void {
       tag: meta.tagName,
       textSnippet: meta.textContent.slice(0, 40),
       score: result.best.score,
+      // TODO: Pass result.best.reasons to payload for explainability feature
     },
   });
 
@@ -160,7 +161,10 @@ function copyToClipboard(text: string): void {
     Object.assign(textarea.style, { position: 'fixed', opacity: '0', left: '-9999px' });
     document.body.appendChild(textarea);
     textarea.select();
-    document.execCommand('copy');
+    // execCommand is deprecated but remains the only synchronous clipboard
+    // fallback when the async Clipboard API rejects. Cast through a local type
+    // so the editor's deprecation marker doesn't flag this intentional fallback.
+    (document as unknown as { execCommand(commandId: string): boolean }).execCommand('copy');
     textarea.remove();
   });
 }
