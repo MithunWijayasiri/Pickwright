@@ -1,6 +1,7 @@
 // Locator scoring and selection logic
 
 import { LocatorCandidate, LocatorResult } from './types';
+import { getLocatorReasons } from './explain';
 
 // Base scores per strategy (higher = more preferred)
 const STRATEGY_SCORES: Record<string, number> = {
@@ -16,11 +17,17 @@ const STRATEGY_SCORES: Record<string, number> = {
  * Score each candidate and return the best one plus alternatives.
  */
 export function scoreAndSelect(candidates: LocatorCandidate[], el: Element): LocatorResult {
-  const scored = candidates.map((c) => ({
-    ...c,
-    score: computeScore(c),
-    unique: checkUniqueness(c, el),
-  }));
+  const scored = candidates.map((c) => {
+    const unique = checkUniqueness(c, el);
+    const candidateWithUnique = { ...c, unique };
+    const score = computeScore(candidateWithUnique);
+    const finalCandidate: LocatorCandidate = {
+      ...candidateWithUnique,
+      score,
+    };
+    finalCandidate.reasons = getLocatorReasons(finalCandidate, el);
+    return finalCandidate;
+  });
 
   // Prefer unique candidates
   const unique = scored.filter((c) => c.unique);

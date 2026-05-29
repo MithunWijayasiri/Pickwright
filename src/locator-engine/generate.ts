@@ -1,6 +1,6 @@
 // Locator candidate generation
 
-import { ElementMetadata } from '../../shared/types';
+import { ElementMetadata } from '../shared/types';
 import { LocatorCandidate } from './types';
 
 /**

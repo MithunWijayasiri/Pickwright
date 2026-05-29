@@ -8,6 +8,11 @@ export type LocatorStrategy =
   | 'getByText'
   | 'locator'; // CSS fallback
 
+export interface LocatorReason {
+  code: string;
+  message: string;
+}
+
 export interface LocatorCandidate {
   strategy: LocatorStrategy;
   value: string;
@@ -19,6 +24,7 @@ export interface LocatorCandidate {
    * null for strategies that can't be verified via the DOM (role/label/text).
    */
   cssEquivalent: string | null;
+  reasons?: LocatorReason[];
 }
 
 export interface LocatorResult {

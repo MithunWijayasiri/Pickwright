@@ -14,8 +14,7 @@ import {
   isAngularDropdownTrigger,
   drillIntoShadow,
 } from './inspect';
-import { generateCandidates } from './locator/generate';
-import { scoreAndSelect } from './locator/score';
+import { getLocator } from '../locator-engine';
 
 let pickerActive = false;
 let lastHoveredElement: Element | null = null;
@@ -69,8 +68,7 @@ function onMouseMove(e: MouseEvent): void {
     lastHoveredElement = el;
     const meta = collectMetadata(el);
     meta.frameSelector = getFrameSelector(el);
-    const candidates = generateCandidates(el, meta);
-    const result = scoreAndSelect(candidates, el);
+    const result = getLocator(el, meta);
     lastLocatorStr = result.best.value;
   }
 
@@ -88,8 +86,7 @@ function onClick(e: MouseEvent): void {
   const meta = collectMetadata(el);
   meta.frameSelector = getFrameSelector(el);
 
-  const candidates = generateCandidates(el, meta);
-  const result = scoreAndSelect(candidates, el);
+  const result = getLocator(el, meta);
   const locatorStr = result.best.value;
 
   copyToClipboard(locatorStr);
