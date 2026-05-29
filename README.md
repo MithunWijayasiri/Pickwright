@@ -13,7 +13,7 @@ A Manifest V3 Chrome extension that lets you pick any element on a page and gene
 - **Recent History** — last 20 locators stored for quick reuse
 - **Angular Support** — detects dropdown triggers, formcontrolname, and ng-reflect-* attributes without triggering UI changes
 - **Shadow DOM** — traverses open shadow roots for accurate element targeting
-- **Iframe Support** — detects same-origin iframe context and includes frameLocator prefix in generated locators
+- **Iframe Support** — highlights the `<iframe>` element itself (selecting elements inside iframes is not yet supported)
 
 ## Installation
 

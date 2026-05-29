@@ -170,8 +170,13 @@ function getAccessibleName(el: Element, meta: ElementMetadata): string | null {
   const labelledBy = meta.ariaAttributes['aria-labelledby'];
   if (labelledBy) {
     const root = el.getRootNode() as Document | ShadowRoot;
-    const labelEl = root.getElementById?.(labelledBy) ?? document.getElementById(labelledBy);
-    if (labelEl?.textContent) return labelEl.textContent.trim().slice(0, 60);
+    const text = labelledBy
+      .trim()
+      .split(/\s+/)
+      .map((id) => root.querySelector?.(`#${CSS.escape(id)}`)?.textContent?.trim() ?? '')
+      .filter(Boolean)
+      .join(' ');
+    if (text) return text.slice(0, 60);
   }
 
   // Associated <label>

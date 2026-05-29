@@ -49,9 +49,10 @@ const App = () => {
   };
 
   const copyLocator = (locator: string) => {
-    navigator.clipboard.writeText(locator);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(locator).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   const handleRemoveHistory = (timestamp: number) => {
