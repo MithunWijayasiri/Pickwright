@@ -69,11 +69,7 @@ export function collectMetadata(el: Element): ElementMetadata {
     }
   }
 
-  let text = getDirectTextContent(el).trim();
-  if (!text) {
-    text = (el.textContent ?? '').trim();
-  }
-  const textContent = text.slice(0, 100);
+  const textContent = getAccessibleText(el).trim().slice(0, 100);
 
   return {
     tagName: el.tagName.toLowerCase(),
@@ -126,12 +122,35 @@ export function buildTooltipLabel(el: Element): string {
   return `${tag}${id}${cls}`;
 }
 
-function getDirectTextContent(el: Element): string {
-  let text = '';
-  for (const node of Array.from(el.childNodes)) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      text += node.textContent ?? '';
-    }
+function getAccessibleText(node: Node): string {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return node.textContent ?? '';
   }
-  return text;
+
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    const el = node as Element;
+
+    // Ignore aria-hidden subtrees
+    if (el.getAttribute('aria-hidden') === 'true') {
+      return '';
+    }
+
+    // Ignore visually hidden subtrees
+    try {
+      const style = window.getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') {
+        return '';
+      }
+    } catch {
+      // Fallback for non-window/test contexts
+    }
+
+    let text = '';
+    for (const child of Array.from(el.childNodes)) {
+      text += getAccessibleText(child);
+    }
+    return text;
+  }
+
+  return '';
 }
