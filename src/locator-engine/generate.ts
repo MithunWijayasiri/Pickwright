@@ -222,7 +222,7 @@ function buildCssSelector(el: Element, meta: ElementMetadata): string {
 
   // Fallback: prepend the nearest stable ancestor (ancestor escalation).
   const withAncestor = augmentWithStableAncestor(base, el);
-  if (withAncestor && isUnique(withAncestor, el)) return withAncestor;
+  if (withAncestor) return withAncestor;
 
   return withDescendant ?? base;
 }
@@ -312,17 +312,20 @@ function findStableDescendantSelector(el: Element): string | null {
   return null;
 }
 
-/** Prepend the nearest stable ancestor (id or class) as a descendant-combinator scope. */
+/** Prepend the nearest stable ancestor (id or class) that makes `base` unique. */
 function augmentWithStableAncestor(base: string, el: Element): string | null {
   let parent = el.parentElement;
   while (parent) {
+    let candidate: string | null = null;
     if (parent.id && isStableId(parent.id)) {
-      return `#${CSS.escape(parent.id)} ${base}`;
+      candidate = `#${CSS.escape(parent.id)} ${base}`;
+    } else {
+      const stableClass = Array.from(parent.classList).filter(isStableClass)[0];
+      if (stableClass) {
+        candidate = `${parent.tagName.toLowerCase()}.${stableClass} ${base}`;
+      }
     }
-    const stableClass = Array.from(parent.classList).filter(isStableClass)[0];
-    if (stableClass) {
-      return `${parent.tagName.toLowerCase()}.${stableClass} ${base}`;
-    }
+    if (candidate && isUnique(candidate, el)) return candidate;
     parent = parent.parentElement;
   }
   return null;
