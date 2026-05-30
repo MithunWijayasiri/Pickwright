@@ -69,7 +69,11 @@ export function collectMetadata(el: Element): ElementMetadata {
     }
   }
 
-  const textContent = getDirectTextContent(el).trim().slice(0, 100);
+  let text = getDirectTextContent(el).trim();
+  if (!text) {
+    text = (el.textContent ?? '').trim();
+  }
+  const textContent = text.slice(0, 100);
 
   return {
     tagName: el.tagName.toLowerCase(),
