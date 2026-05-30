@@ -54,19 +54,29 @@ export const test = base.extend<{
   context: async ({}, use) => {
     const pathToExtension = path.join(__dirname, '../dist');
     if (!fs.existsSync(path.join(pathToExtension, 'manifest.json'))) {
-      throw new Error(`Extension build not found at ${pathToExtension}. Run 'npm run build' first.`);
+      throw new Error(
+        `Extension build not found at ${pathToExtension}. Run 'npm run build' first.`,
+      );
     }
 
     // Create a temporary unique profile directory for the Chromium run
-    const userDataDir = path.join(__dirname, `../.chrome-profile-test-${Math.random().toString(36).substring(7)}`);
+    const userDataDir = path.join(
+      __dirname,
+      `../.chrome-profile-test-${Math.random().toString(36).substring(7)}`,
+    );
+
+    const args = [
+      `--disable-extensions-except=${pathToExtension}`,
+      `--load-extension=${pathToExtension}`,
+    ];
+    if (process.env.CI) {
+      args.push('--headless=new');
+    }
 
     const context = await chromium.launchPersistentContext(userDataDir, {
-      headless: false, // Headed mode is required for extensions to load properly in Chromium
+      headless: false, // Must be false, but '--headless=new' flag in args allows headless extension loading in newer Chromium
       permissions: ['clipboard-read', 'clipboard-write'],
-      args: [
-        `--disable-extensions-except=${pathToExtension}`,
-        `--load-extension=${pathToExtension}`,
-      ],
+      args,
     });
 
     await use(context);

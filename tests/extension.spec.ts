@@ -34,7 +34,7 @@ test.describe('Pickwright Chrome Extension E2E Tests', () => {
     await expect(page.locator('#pickwright-tooltip')).toBeAttached();
 
     // 5. Test locator generation by hovering over various elements
-    
+
     // Test Case A: getByTestId
     await page.locator('[data-testid="submit-btn"]').hover();
     await expect(page.locator('#pickwright-tooltip')).toHaveText("getByTestId('submit-btn')");
@@ -45,38 +45,52 @@ test.describe('Pickwright Chrome Extension E2E Tests', () => {
 
     // Test Case C: getByLabel / getByRole-with-name
     await page.locator('#email-field').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText("getByRole('textbox', { name: 'Email Address' })");
+    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+      "getByRole('textbox', { name: 'Email Address' })",
+    );
 
     // Test Case D: getByRole
     await page.locator('#home-link').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText("getByRole('link', { name: 'Go Home' })");
+    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+      "getByRole('link', { name: 'Go Home' })",
+    );
 
     // Test Case E: frameLocator nested iframe element
     const frame = page.frameLocator('#test-iframe');
     await frame.locator('#iframe-btn').hover();
     await expect(page.locator('#pickwright-tooltip')).toHaveText(
-      "frameLocator('iframe#test-iframe').getByRole('button', { name: 'Click Frame Button' })"
+      "frameLocator('iframe#test-iframe').getByRole('button', { name: 'Click Frame Button' })",
     );
 
     // Test Case F: Custom data-* attribute fallback (long text bypasses getByText)
     await page.locator('#datacy-div').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText("locator('[data-cy=\"container-box\"]')");
+    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+      'locator(\'[data-cy="container-box"]\')',
+    );
 
     // Test Case G: Accessible name via aria-label
     await page.locator('#aria-btn').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText("getByRole('button', { name: 'Close Dialog' })");
+    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+      "getByRole('button', { name: 'Close Dialog' })",
+    );
 
     // Test Case H: Accessible name via title
     await page.locator('#title-btn').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText("getByRole('button', { name: 'Information Details' })");
+    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+      "getByRole('button', { name: 'Information Details' })",
+    );
 
     // Test Case I: Shadow DOM drill-in support
     await page.locator('#shadow-btn').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText("getByRole('button', { name: 'Shadow Button' })");
+    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+      "getByRole('button', { name: 'Shadow Button' })",
+    );
 
     // Test Case J: Angular Dropdown Trigger (hover checks)
     await page.locator('#dropdown-trigger').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText("getByRole('button', { name: 'Select Option' })");
+    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+      "getByRole('button', { name: 'Select Option' })",
+    );
 
     // 6. Test select/click behavior on Angular Dropdown Trigger to verify the toast warning message
     await page.locator('#dropdown-trigger').click();
@@ -88,11 +102,12 @@ test.describe('Pickwright Chrome Extension E2E Tests', () => {
     const toast = page.locator('div:has-text("✓ Copied:")');
     await expect(toast).toBeVisible();
     await expect(toast).toContainText("getByRole('button', { name: 'Select Option' })");
-    await expect(toast).toContainText("⚠ Dropdown trigger — not opened");
+    await expect(toast).toContainText('⚠ Dropdown trigger — not opened');
 
-    // Verify locator has been copied to clipboard
-    const clipboardContent = await page.evaluate(() => navigator.clipboard.readText());
-    expect(clipboardContent).toBe("getByRole('button', { name: 'Select Option' })");
+    // Verify locator has been copied to clipboard (using poll to prevent flakiness)
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toBe("getByRole('button', { name: 'Select Option' })");
 
     // 7. Verify elements are recorded in history
     const popupPage = await context.newPage();
@@ -101,6 +116,8 @@ test.describe('Pickwright Chrome Extension E2E Tests', () => {
     // Verify history section shows 1 recorded item with the exact locator
     const historyRows = popupPage.locator('.row');
     await expect(historyRows).toHaveCount(1);
-    await expect(historyRows.locator('.row-locator')).toContainText("getByRole('button', { name: 'Select Option' })");
+    await expect(historyRows.locator('.row-locator')).toContainText(
+      "getByRole('button', { name: 'Select Option' })",
+    );
   });
 });

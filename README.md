@@ -93,11 +93,11 @@ Locators are generated and scored in this order (highest priority first):
 The project includes an automated End-to-End (E2E) test suite powered by **Playwright** that verifies the React popup, background relay, content script overlay, locator scoring engine, and iframe parsing.
 
 To execute the tests locally:
-1. Compile the extension:
+1. Install Playwright's Chromium browser (required once):
    ```bash
-   npm run build
+   npx playwright install chromium
    ```
-2. Run the test suite:
+2. Run the test suite (this automatically builds the extension first):
    ```bash
    npm run test
    ```

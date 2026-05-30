@@ -255,7 +255,9 @@ function resolveAt(x: number, y: number): Element | null {
       const doc = iframe.contentDocument;
       if (!doc) break;
       const rect = iframe.getBoundingClientRect();
-      const nextEl = doc.elementFromPoint(x - rect.left, y - rect.top);
+      x -= rect.left;
+      y -= rect.top;
+      const nextEl = doc.elementFromPoint(x, y);
       if (!nextEl || nextEl === el) break;
       el = nextEl;
     } catch {

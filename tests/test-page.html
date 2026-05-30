@@ -1,102 +1,109 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Pickwright E2E Test Page</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 40px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .form-group {
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input[type="text"], input[type="email"] {
-      width: 100%;
-      padding: 8px;
-      box-sizing: border-box;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    iframe {
-      width: 100%;
-      height: 150px;
-      border: 1px dashed #ccc;
-      margin-top: 30px;
-    }
-    .shadow-container {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-top: 20px;
-      background: #fdfdfd;
-    }
-  </style>
-</head>
-<body>
-  <h1>Pickwright E2E Mock Test Page</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pickwright E2E Test Page</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 40px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input[type='text'],
+      input[type='email'] {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      iframe {
+        width: 100%;
+        height: 150px;
+        border: 1px dashed #ccc;
+        margin-top: 30px;
+      }
+      .shadow-container {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin-top: 20px;
+        background: #fdfdfd;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pickwright E2E Mock Test Page</h1>
 
-  <!-- 1. data-testid -->
-  <div class="form-group">
-    <button id="testid-button" data-testid="submit-btn">Submit TestID</button>
-  </div>
+    <!-- 1. data-testid -->
+    <div class="form-group">
+      <button id="testid-button" data-testid="submit-btn">Submit TestID</button>
+    </div>
 
-  <!-- 2. getByPlaceholder -->
-  <div class="form-group">
-    <label>Username (No ID label association)</label>
-    <input type="text" id="username-input" placeholder="Enter username" />
-  </div>
+    <!-- 2. getByPlaceholder -->
+    <div class="form-group">
+      <label>Username (No ID label association)</label>
+      <input type="text" id="username-input" placeholder="Enter username" />
+    </div>
 
-  <!-- 3. getByLabel -->
-  <div class="form-group">
-    <label id="email-label" for="email-field">Email Address</label>
-    <input type="email" id="email-field" />
-  </div>
+    <!-- 3. getByLabel -->
+    <div class="form-group">
+      <label id="email-label" for="email-field">Email Address</label>
+      <input type="email" id="email-field" />
+    </div>
 
-  <!-- 4. getByRole (with Accessible Name) -->
-  <div class="form-group">
-    <a href="https://example.com" id="home-link">Go Home</a>
-  </div>
+    <!-- 4. getByRole (with Accessible Name) -->
+    <div class="form-group">
+      <a href="https://example.com" id="home-link">Go Home</a>
+    </div>
 
-  <!-- 5. data-cy attribute on generic element (fallbacks) -->
-  <div class="form-group">
-    <div id="datacy-div" data-cy="container-box" style="padding: 10px; border: 1px solid #eee;">CY Container Box with extremely long text content that exceeds fifty characters limit</div>
-  </div>
+    <!-- 5. data-cy attribute on generic element (fallbacks) -->
+    <div class="form-group">
+      <div id="datacy-div" data-cy="container-box" style="padding: 10px; border: 1px solid #eee">
+        CY Container Box with extremely long text content that exceeds fifty characters limit
+      </div>
+    </div>
 
-  <!-- 6. Aria-label and Title accessible names -->
-  <div class="form-group">
-    <button id="aria-btn" aria-label="Close Dialog">X</button>
-    <button id="title-btn" title="Information Details">Info</button>
-  </div>
+    <!-- 6. Aria-label and Title accessible names -->
+    <div class="form-group">
+      <button id="aria-btn" aria-label="Close Dialog">X</button>
+      <button id="title-btn" title="Information Details">Info</button>
+    </div>
 
-  <!-- 7. Angular Dropdown Warning trigger -->
-  <div class="form-group">
-    <button id="dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">Select Option</button>
-  </div>
+    <!-- 7. Angular Dropdown Warning trigger -->
+    <div class="form-group">
+      <button id="dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+        Select Option
+      </button>
+    </div>
 
-  <!-- 8. Shadow DOM section -->
-  <h2>Shadow DOM Sandbox</h2>
-  <div class="shadow-container">
-    <div id="shadow-host"></div>
-  </div>
+    <!-- 8. Shadow DOM section -->
+    <h2>Shadow DOM Sandbox</h2>
+    <div class="shadow-container">
+      <div id="shadow-host"></div>
+    </div>
 
-  <!-- 9. iframe for frameLocator testing -->
-  <h2>Frame Sandbox</h2>
-  <iframe id="test-iframe" srcdoc="
+    <!-- 9. iframe for frameLocator testing -->
+    <h2>Frame Sandbox</h2>
+    <iframe
+      id="test-iframe"
+      srcdoc="
     <!DOCTYPE html>
     <html>
       <head>
@@ -106,13 +113,14 @@
         <button id='iframe-btn'>Click Frame Button</button>
       </body>
     </html>
-  "></iframe>
+  "
+    ></iframe>
 
-  <script>
-    // Initialize Shadow DOM with content
-    const host = document.getElementById('shadow-host');
-    const shadow = host.attachShadow({ mode: 'open' });
-    shadow.innerHTML = `
+    <script>
+      // Initialize Shadow DOM with content
+      const host = document.getElementById('shadow-host');
+      const shadow = host.attachShadow({ mode: 'open' });
+      shadow.innerHTML = `
       <div>
         <p>Inside Shadow Root:</p>
         <button id="shadow-btn" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; cursor: pointer;">
@@ -120,6 +128,6 @@
         </button>
       </div>
     `;
-  </script>
-</body>
+    </script>
+  </body>
 </html>
