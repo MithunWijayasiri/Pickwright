@@ -85,6 +85,19 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     );
   });
 
+  test('disambiguates a non-unique wrapper via a stable descendant (:has)', async () => {
+    // Two ng-select wrappers share every class; only the descendant input id is
+    // unique. The CSS fallback must scope each one with :has() to stay distinct.
+    await expectLocatorOnHover(
+      'ng-select:has(#tenureType-ctrl)',
+      "locator('ng-select.simp-form-control.simp-select:has(#tenureType-ctrl)')",
+    );
+    await expectLocatorOnHover(
+      'ng-select:has(#holding-ctrl)',
+      "locator('ng-select.simp-form-control.simp-select:has(#holding-ctrl)')",
+    );
+  });
+
   test('drills into open shadow roots', async () => {
     await expectLocatorOnHover('#shadow-btn', "getByRole('button', { name: 'Shadow Button' })");
   });

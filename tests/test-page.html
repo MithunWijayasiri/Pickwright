@@ -46,6 +46,24 @@
         margin-top: 20px;
         background: #fdfdfd;
       }
+      /* ng-select stand-in: a wrapper whose only own classes are framework
+         noise, with the stable handle on a visually-hidden descendant input. */
+      ng-select {
+        display: block;
+        height: 40px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
     </style>
   </head>
   <body>
@@ -91,6 +109,18 @@
       <button id="dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
         Select Option
       </button>
+    </div>
+
+    <!-- 7b. Two ng-select wrappers sharing classes; the only stable, unique
+         handle is a descendant combobox input id. Without descendant scoping
+         both wrappers would generate the identical (non-unique) CSS locator. -->
+    <div class="form-group">
+      <ng-select class="simp-form-control simp-select ng-select ng-pristine ng-invalid">
+        <input role="combobox" type="text" id="tenureType-ctrl" class="visually-hidden" />
+      </ng-select>
+      <ng-select class="simp-form-control simp-select ng-select ng-untouched ng-pristine ng-invalid">
+        <input role="combobox" type="text" id="holding-ctrl" class="visually-hidden" />
+      </ng-select>
     </div>
 
     <!-- 8. Shadow DOM section -->
