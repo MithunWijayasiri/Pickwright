@@ -17,35 +17,27 @@ A Manifest V3 browser extension for **Chrome** and **Firefox** that lets you pic
 
 ## Installation
 
-### Step 1 — Clone and build
+Grab the latest packages from the [**Releases page**](https://github.com/MithunWijayasiri/Pickwright/releases/latest), then follow the steps for your browser.
 
-```bash
-git clone https://github.com/your-org/pickwright.git
-cd pickwright
-npm install
-npm run build
-```
+### Chrome / Edge
 
-This produces a `dist/` folder — that's the unpacked extension you load into your browser. The same `dist/` works in both Chrome and Firefox.
+1. Download **`pickwright-chrome-v<version>.zip`** from the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
+2. Unzip it into a folder you'll keep — the extension loads from this folder, so deleting or moving it removes Pickwright.
+3. Open **`chrome://extensions`** (on Edge, **`edge://extensions`**).
+4. Turn on **Developer mode** with the toggle in the top-right corner.
+5. Click **Load unpacked** and select the unzipped folder.
+6. Pin Pickwright via the puzzle-piece icon in the toolbar for one-click access.
 
-### Step 2 — Load into Chrome
+### Firefox
 
-1. Open Chrome and go to **`chrome://extensions`**
-2. Enable **Developer mode** using the toggle in the top-right corner
-3. Click **Load unpacked**
-4. Select the **`dist/`** folder inside the project (e.g. `C:\Github\Pickwright\dist`)
-5. Pickwright appears in your extensions list — pin it via the puzzle-piece icon in the toolbar for easy access
+1. Download **`pickwright-firefox-v<version>.xpi`** from the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
+2. Open **`about:addons`** in Firefox.
+3. Click the gear icon ⚙ → **Install Add-on From File…** (or simply drag the `.xpi` onto the Firefox window).
+4. Select the downloaded `.xpi` and confirm the prompt.
 
-> **Note:** You must reload the extension (`chrome://extensions` → refresh icon) and refresh the target page any time you rebuild.
+The `.xpi` is signed, so it stays installed across restarts. Requires Firefox 121 or later.
 
-### Step 2 (alt) — Load into Firefox
-
-1. Open Firefox and go to **`about:debugging#/runtime/this-firefox`**
-2. Click **Load Temporary Add-on…**
-3. Select the **`dist/manifest.json`** file (not the folder) inside the project
-4. Pickwright appears under **Temporary Extensions** and is pinned to the toolbar
-
-> **Note:** Temporary add-ons are removed when Firefox restarts — reload them the same way after each restart. After rebuilding, click **Reload** on the add-on in `about:debugging` and refresh the target page. Requires Firefox 121 or later.
+> **Want the latest unreleased changes, or developing the extension?** See [Build From Source](docs/build-from-source.md).
 
 ## Usage
 
