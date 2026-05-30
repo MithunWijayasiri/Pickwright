@@ -123,30 +123,11 @@ The extension recognizes these as stable "test id"-style attributes:
 
 ## Troubleshooting
 
-### Extension fails to load
-- Make sure you selected the `dist/` folder, not the project root
-- Run `npm run build` first and confirm it prints `compiled successfully`
-- Check `chrome://extensions` for error messages
+- **Extension fails to load**: Ensure you loaded the compiled `dist/` directory, not the project root. Run `npm run build` first.
+- **Picker doesn't activate or highlight**: Refresh the page after reloading the extension. Content scripts are blocked on `chrome://` and Chrome Web Store pages.
+- **Wrong element targeted**: Elements inside **closed** shadow roots or cross-origin iframes have restricted access. The picker will target the shadow host or iframe boundary.
+- **Clipboard is empty**: If clipboard copy fails, check the page's console for Content Security Policy (CSP) restriction blocks.
 
-### Picker doesn't respond to clicks
-- **Refresh the target page** after reloading the extension — the old content script stays loaded until the page reloads
-- The page must be a regular HTTP/HTTPS URL — `chrome://`, `chrome-extension://`, and the Chrome Web Store block content scripts
-
-### Hover highlight doesn't appear
-- Some pages use `pointer-events: none` on their body — the highlight should still appear since it's injected at the `<html>` level
-- Check the DevTools console on the page for any CSP errors
-
-### Locator copies but targets wrong element
-- If the element is inside a **closed** shadow root, the picker can't traverse into it and will target the shadow host instead
-- For cross-origin iframes, only the frame boundary is selectable (same-origin iframes work fully)
-
-### Angular dropdown opens during picking
-- This should not happen — all `mousedown`/`pointerdown` events are suppressed at the document capture phase
-- If it does, check the console for errors and file an issue with the Angular component details
-
-### Clipboard paste is empty
-- Some pages block `navigator.clipboard` via CSP; the extension has a `textarea` execCommand fallback but a strict CSP may block both
-- Try pasting immediately after the toast appears
 
 ## Browser Compatibility
 
