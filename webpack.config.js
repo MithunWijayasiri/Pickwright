@@ -3,6 +3,12 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
+// Build target drives manifest shape and output directory.
+//   TARGET=chrome  (default) → service-worker background, no gecko settings → dist/
+//   TARGET=firefox           → scripts background + gecko settings        → dist-firefox/
+const TARGET = process.env.TARGET || 'chrome';
+const OUT_DIR = process.env.OUT_DIR || 'dist';
+
 module.exports = {
   entry: {
     background: './src/background/index.ts',
@@ -10,7 +16,7 @@ module.exports = {
     popup: './src/popup/index.tsx',
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, OUT_DIR),
     filename: '[name].js',
     clean: true,
   },
@@ -49,7 +55,23 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        { from: 'src/manifest.json', to: 'manifest.json' },
+        {
+          from: 'src/manifest.json',
+          to: 'manifest.json',
+          // Emit a browser-specific manifest. Chrome ignores `scripts` and
+          // chokes on store validation if both background keys ship; Firefox
+          // MV3 uses event-page `scripts` and needs `browser_specific_settings`.
+          transform(content) {
+            const manifest = JSON.parse(content.toString());
+            if (TARGET === 'firefox') {
+              manifest.background = { scripts: ['background.js'] };
+            } else {
+              manifest.background = { service_worker: 'background.js' };
+              delete manifest.browser_specific_settings;
+            }
+            return JSON.stringify(manifest, null, 2);
+          },
+        },
         { from: 'src/icons', to: 'icons', noErrorOnMissing: true },
       ],
     }),
