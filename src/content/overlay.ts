@@ -48,7 +48,7 @@ export function removeOverlay(): void {
   tooltip = null;
 }
 
-export function updateHighlight(rect: DOMRect, label: string): void {
+export function updateHighlight(rect: DOMRect, label: string, mouseX?: number, mouseY?: number): void {
   if (!highlight || !tooltip) return;
 
   highlight.style.display = 'block';
@@ -59,8 +59,27 @@ export function updateHighlight(rect: DOMRect, label: string): void {
 
   tooltip.textContent = label;
   tooltip.style.display = 'block';
-  tooltip.style.top = `${Math.max(0, rect.top - 22)}px`;
-  tooltip.style.left = `${rect.left}px`;
+
+  if (mouseX !== undefined && mouseY !== undefined) {
+    let left = mouseX + 15;
+    let top = mouseY + 15;
+
+    const tooltipWidth = tooltip.offsetWidth || 150;
+    const tooltipHeight = tooltip.offsetHeight || 22;
+
+    if (left + tooltipWidth > window.innerWidth) {
+      left = mouseX - tooltipWidth - 10;
+    }
+    if (top + tooltipHeight > window.innerHeight) {
+      top = mouseY - tooltipHeight - 10;
+    }
+
+    tooltip.style.left = `${Math.max(0, left)}px`;
+    tooltip.style.top = `${Math.max(0, top)}px`;
+  } else {
+    tooltip.style.top = `${Math.max(0, rect.top - 22)}px`;
+    tooltip.style.left = `${rect.left}px`;
+  }
 }
 
 export function hideHighlight(): void {

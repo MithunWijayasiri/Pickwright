@@ -55,7 +55,12 @@ const App = () => {
 
   const togglePicker = () => {
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.TOGGLE_PICKER }, (response) => {
-      if (response) setPickerActive(response.active);
+      if (response) {
+        setPickerActive(response.active);
+        if (response.active) {
+          window.close();
+        }
+      }
     });
   };
 

@@ -1,6 +1,6 @@
 // Locator candidate generation
 
-import { ElementMetadata } from '../../shared/types';
+import { ElementMetadata } from '../shared/types';
 import { LocatorCandidate } from './types';
 
 /**
@@ -186,8 +186,9 @@ function getAccessibleName(el: Element, meta: ElementMetadata): string | null {
   // title
   if (meta.title) return meta.title.slice(0, 60);
 
-  // For buttons/links, use visible text
-  if (['button', 'a'].includes(meta.tagName) && meta.textContent) {
+  // For buttons/links/headings (or elements with equivalent roles), use visible text
+  const role = meta.role || getImplicitRole(meta.tagName, el);
+  if (role && ['button', 'link', 'heading'].includes(role) && meta.textContent) {
     return meta.textContent.slice(0, 60);
   }
 

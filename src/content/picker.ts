@@ -10,15 +10,15 @@ import {
 } from './overlay';
 import {
   collectMetadata,
-  buildTooltipLabel,
   getFrameSelector,
   isAngularDropdownTrigger,
   drillIntoShadow,
 } from './inspect';
-import { generateCandidates } from './locator/generate';
-import { scoreAndSelect } from './locator/score';
+import { getLocator } from '../locator-engine';
 
 let pickerActive = false;
+let lastHoveredElement: Element | null = null;
+let lastLocatorStr = '';
 
 // Events to suppress on document so the page never reacts while picking.
 // 'click' has its own dedicated handler and is NOT listed here.
@@ -49,6 +49,8 @@ function deactivatePicker(): void {
   detachListeners();
   removeOverlay();
   document.documentElement.style.cursor = '';
+  lastHoveredElement = null;
+  lastLocatorStr = '';
 }
 
 // --- Event handlers (document capture phase) ---
@@ -56,10 +58,21 @@ function deactivatePicker(): void {
 function onMouseMove(e: MouseEvent): void {
   const el = resolveAt(e.clientX, e.clientY);
   if (!el) {
+    lastHoveredElement = null;
+    lastLocatorStr = '';
     hideHighlight();
     return;
   }
-  updateHighlight(el.getBoundingClientRect(), buildTooltipLabel(el));
+
+  if (el !== lastHoveredElement) {
+    lastHoveredElement = el;
+    const meta = collectMetadata(el);
+    meta.frameSelector = getFrameSelector(el);
+    const result = getLocator(el, meta);
+    lastLocatorStr = result.best.value;
+  }
+
+  updateHighlight(el.getBoundingClientRect(), lastLocatorStr, e.clientX, e.clientY);
 }
 
 function onClick(e: MouseEvent): void {
@@ -73,8 +86,7 @@ function onClick(e: MouseEvent): void {
   const meta = collectMetadata(el);
   meta.frameSelector = getFrameSelector(el);
 
-  const candidates = generateCandidates(el, meta);
-  const result = scoreAndSelect(candidates, el);
+  const result = getLocator(el, meta);
   const locatorStr = result.best.value;
 
   copyToClipboard(locatorStr);
@@ -88,6 +100,7 @@ function onClick(e: MouseEvent): void {
       tag: meta.tagName,
       textSnippet: meta.textContent.slice(0, 40),
       score: result.best.score,
+      // TODO: Pass result.best.reasons to payload for explainability feature
     },
   });
 
@@ -148,7 +161,10 @@ function copyToClipboard(text: string): void {
     Object.assign(textarea.style, { position: 'fixed', opacity: '0', left: '-9999px' });
     document.body.appendChild(textarea);
     textarea.select();
-    document.execCommand('copy');
+    // execCommand is deprecated but remains the only synchronous clipboard
+    // fallback when the async Clipboard API rejects. Cast through a local type
+    // so the editor's deprecation marker doesn't flag this intentional fallback.
+    (document as unknown as { execCommand(commandId: string): boolean }).execCommand('copy');
     textarea.remove();
   });
 }
