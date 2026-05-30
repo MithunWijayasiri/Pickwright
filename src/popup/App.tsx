@@ -155,7 +155,9 @@ const App = () => {
                     role="button"
                     tabIndex={0}
                     onClick={() => copyRow(entry)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') copyRow(entry); }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') copyRow(entry);
+                    }}
                   >
                     <span className={`pill pill-${strat.pill}`}>{strat.pill}</span>
                     <div className="row-main">
@@ -163,9 +165,7 @@ const App = () => {
                         className="row-locator"
                         dangerouslySetInnerHTML={{ __html: highlight(entry.locator) }}
                       />
-                      <div className="row-tag">
-                        &lt;{entry.tag}&gt;
-                      </div>
+                      <div className="row-tag">&lt;{entry.tag}&gt;</div>
                     </div>
                     {isCopied ? (
                       <CheckIcon className="row-copy copied" />

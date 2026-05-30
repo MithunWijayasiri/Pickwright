@@ -199,8 +199,7 @@ function findAssociatedLabel(el: Element): string | null {
   if (el.id) {
     const root = el.getRootNode() as Document | ShadowRoot;
     const selector = `label[for="${CSS.escape(el.id)}"]`;
-    const label =
-      (root as Document).querySelector?.(selector) ?? document.querySelector(selector);
+    const label = (root as Document).querySelector?.(selector) ?? document.querySelector(selector);
     if (label?.textContent) return label.textContent.trim().slice(0, 60);
   }
   const parent = el.closest('label');
@@ -252,9 +251,7 @@ function buildNthChildSelector(el: Element, meta: ElementMetadata): string {
   const parent = el.parentElement;
   if (!parent) return meta.tagName;
 
-  const siblings = Array.from(parent.children).filter(
-    (s) => s.tagName === el.tagName,
-  );
+  const siblings = Array.from(parent.children).filter((s) => s.tagName === el.tagName);
   if (siblings.length === 1) return `${getParentHint(parent)} > ${meta.tagName}`;
 
   const index = siblings.indexOf(el) + 1;
@@ -275,8 +272,10 @@ function isStableId(id: string): boolean {
 
 function isStableClass(cls: string): boolean {
   // Reject Angular/CDK/framework-generated classes
-  return !/^(ng-|cdk-|mat-ripple|_ngcontent|_nghost|mat-mdc-|mdc-|p-|ui-)/.test(cls) &&
-    !/^[a-z]{1,3}-[a-f0-9]{4,}$/i.test(cls);
+  return (
+    !/^(ng-|cdk-|mat-ripple|_ngcontent|_nghost|mat-mdc-|mdc-|p-|ui-)/.test(cls) &&
+    !/^[a-z]{1,3}-[a-f0-9]{4,}$/i.test(cls)
+  );
 }
 
 function esc(s: string): string {

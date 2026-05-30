@@ -33,10 +33,7 @@ export function getStrategy(locator: string): StrategyInfo {
 }
 
 function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /** Wrap function names / strings / option keys in syntax-highlight spans. */

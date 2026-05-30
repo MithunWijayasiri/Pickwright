@@ -7,9 +7,11 @@
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch",
     "lint": "eslint src/ --ext .ts,.tsx",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css,html}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,html}\"",
+    "test": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/chrome": "^0.0.287",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",

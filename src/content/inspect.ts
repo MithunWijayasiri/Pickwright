@@ -81,8 +81,7 @@ export function collectMetadata(el: Element): ElementMetadata {
     placeholder: el.getAttribute('placeholder'),
     title: el.getAttribute('title'),
     name: el.getAttribute('name'),
-    formControlName:
-      el.getAttribute('formcontrolname') || el.getAttribute('ng-reflect-name'),
+    formControlName: el.getAttribute('formcontrolname') || el.getAttribute('ng-reflect-name'),
     dataAttributes,
     frameSelector: null, // set by caller if in iframe
   };
@@ -115,10 +114,7 @@ export function isAngularDropdownTrigger(el: Element): boolean {
 export function buildTooltipLabel(el: Element): string {
   const tag = el.tagName.toLowerCase();
   const id = el.id ? `#${el.id}` : '';
-  const cls =
-    el.classList.length > 0
-      ? `.${Array.from(el.classList).slice(0, 2).join('.')}`
-      : '';
+  const cls = el.classList.length > 0 ? `.${Array.from(el.classList).slice(0, 2).join('.')}` : '';
   return `${tag}${id}${cls}`;
 }
 
