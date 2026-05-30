@@ -208,6 +208,26 @@ function findAssociatedLabel(el: Element): string | null {
 }
 
 function buildCssSelector(el: Element, meta: ElementMetadata): string {
+  const base = buildBaseCssSelector(el, meta);
+
+  // If the base selector already pins exactly this element, we're done.
+  if (isUnique(base, el)) return base;
+
+  // Non-unique (e.g. a component wrapper like ng-select whose own div has only
+  // framework classes). Playwright's generator only walks ancestors and bails to
+  // unstable class chains here — instead, disambiguate via a stable *descendant*
+  // (the combobox input id, a testid, formcontrolname, …) using :has().
+  const withDescendant = augmentWithStableDescendant(base, el);
+  if (withDescendant && isUnique(withDescendant, el)) return withDescendant;
+
+  // Fallback: prepend the nearest stable ancestor (ancestor escalation).
+  const withAncestor = augmentWithStableAncestor(base, el);
+  if (withAncestor) return withAncestor;
+
+  return withDescendant ?? base;
+}
+
+function buildBaseCssSelector(el: Element, meta: ElementMetadata): string {
   // 1. ID (if stable-looking)
   if (meta.id && isStableId(meta.id)) {
     return `#${CSS.escape(meta.id)}`;
@@ -245,6 +265,70 @@ function buildCssSelector(el: Element, meta: ElementMetadata): string {
 
   // 8. Nth-child as last resort (but with parent context)
   return buildNthChildSelector(el, meta);
+}
+
+/** True when `selector` matches exactly `el` within its root node. */
+function isUnique(selector: string, el: Element): boolean {
+  try {
+    const root = el.getRootNode() as Document | ShadowRoot;
+    const matches = root.querySelectorAll(selector);
+    return matches.length === 1 && matches[0] === el;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Append `:has(<stable descendant>)` to the element's own segment so the
+ * selector resolves to this element via something stable nested inside it.
+ */
+function augmentWithStableDescendant(base: string, el: Element): string | null {
+  const descendant = findStableDescendantSelector(el);
+  return descendant ? `${base}:has(${descendant})` : null;
+}
+
+/**
+ * Find a selector for a stable, identifying element nested inside `el`.
+ * Priority mirrors buildBaseCssSelector: id → testid → formcontrolname → name.
+ */
+function findStableDescendantSelector(el: Element): string | null {
+  const stableId = Array.from(el.querySelectorAll('[id]')).find((d) => isStableId(d.id));
+  if (stableId) return `#${CSS.escape(stableId.id)}`;
+
+  for (const attr of ['data-testid', 'data-test-id', 'data-cy']) {
+    const d = el.querySelector(`[${attr}]`);
+    const value = d?.getAttribute(attr);
+    if (value) return cssAttr(attr, value);
+  }
+
+  const fc = el.querySelector('[formcontrolname]');
+  const fcName = fc?.getAttribute('formcontrolname');
+  if (fcName) return cssAttr('formcontrolname', fcName);
+
+  const named = el.querySelector('[name]');
+  const name = named?.getAttribute('name');
+  if (name) return cssAttr('name', name);
+
+  return null;
+}
+
+/** Prepend the nearest stable ancestor (id or class) that makes `base` unique. */
+function augmentWithStableAncestor(base: string, el: Element): string | null {
+  let parent = el.parentElement;
+  while (parent) {
+    let candidate: string | null = null;
+    if (parent.id && isStableId(parent.id)) {
+      candidate = `#${CSS.escape(parent.id)} ${base}`;
+    } else {
+      const stableClass = Array.from(parent.classList).filter(isStableClass)[0];
+      if (stableClass) {
+        candidate = `${parent.tagName.toLowerCase()}.${stableClass} ${base}`;
+      }
+    }
+    if (candidate && isUnique(candidate, el)) return candidate;
+    parent = parent.parentElement;
+  }
+  return null;
 }
 
 function buildNthChildSelector(el: Element, meta: ElementMetadata): string {
