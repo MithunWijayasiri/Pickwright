@@ -65,62 +65,9 @@ Locators are generated and scored in this order (highest priority first):
 | 5 | `getByText` | `getByText('Sign in')` |
 | 6 | CSS fallback | `locator('#login-form > button')` |
 
-## Development
+## Development & Configuration
 
-### Prerequisites
-
-- Node.js 18+
-- npm 9+
-
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `npm run build` | Production build → `dist/` |
-| `npm run dev` | Development build with watch mode |
-| `npm run lint` | Run ESLint on source files |
-| `npm run format` | Format code with Prettier |
-| `npm run test` | Run Playwright E2E tests |
-
-### Development Workflow
-
-1. Run `npm run dev` — webpack watches for changes and rebuilds automatically
-2. Edit files in `src/`
-3. Go to `chrome://extensions` and click the **refresh icon** on Pickwright
-4. Refresh the target page and test
-
-### Automated E2E Testing
-
-The project includes an automated End-to-End (E2E) test suite powered by **Playwright** that verifies the React popup, background relay, content script overlay, locator scoring engine, and iframe parsing.
-
-To execute the tests locally:
-1. Install Playwright's Chromium browser (required once):
-   ```bash
-   npx playwright install chromium
-   ```
-2. Run the test suite (this automatically builds the extension first):
-   ```bash
-   npm run test
-   ```
-The test runs Chromium in headed mode using a persistent profile, mounts the unpacked extension, hosts a local mock HTML test page, and runs all assertions.
-
-## Configuration
-
-### Manifest Permissions
-
-| Permission | Purpose |
-|-----------|---------|
-| `activeTab` | Access the active tab for element picking |
-| `storage` | Persist recent locator history |
-
-### Supported Test ID Attributes
-
-The extension recognizes these as stable "test id"-style attributes:
-- `data-testid` (generated as `getByTestId(...)` by default)
-- `data-test-id`
-- `data-cy`
-
-> **Note:** `data-test-id` and `data-cy` are emitted as `locator('[data-test-id="..."]')` CSS selectors. To use `getByTestId(...)` for these, configure [`testIdAttribute`](https://playwright.dev/docs/api/class-playwrightassertions) in your Playwright config.
+Build commands, the development workflow, E2E testing, and configuration details (manifest permissions, supported test-ID attributes) live in [Build From Source](docs/build-from-source.md).
 
 ## Troubleshooting
 
@@ -136,6 +83,17 @@ The extension recognizes these as stable "test id"-style attributes:
 - Edge 88+ (Chromium-based)
 - Firefox 121+ (Manifest V3)
 - Other Chromium browsers with MV3 support
+
+## Contributing
+
+Contributions are welcome! To get started:
+
+1. Check the [issues](https://github.com/MithunWijayasiri/Pickwright/issues) for something to work on, or open a new one to discuss your idea first.
+2. Fork the repo and set up your dev environment — see [Build From Source](docs/build-from-source.md).
+3. Create a branch off `master`, make your change, and run `npm run lint` and `npm run test` before opening a PR.
+4. Open a pull request against `master` with a clear description of what changed and why.
+
+Please keep PRs focused and follow the existing code style (enforced via ESLint + Prettier).
 
 ## License
 
