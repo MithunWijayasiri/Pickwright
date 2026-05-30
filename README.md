@@ -13,7 +13,7 @@ A Manifest V3 Chrome extension that lets you pick any element on a page and gene
 - **Recent History** — last 20 locators stored for quick reuse
 - **Angular Support** — detects dropdown triggers, formcontrolname, and ng-reflect-* attributes without triggering UI changes
 - **Shadow DOM** — traverses open shadow roots for accurate element targeting
-- **Iframe Support** — highlights the `<iframe>` element itself (selecting elements inside iframes is not yet supported)
+- **Iframe Support** — fully highlights and selects elements inside same-origin frames (prepends `frameLocator('...')` prefix; cross-origin frames fall back to the frame boundary itself)
 
 ## Installation
 
@@ -79,6 +79,7 @@ Locators are generated and scored in this order (highest priority first):
 | `npm run dev` | Development build with watch mode |
 | `npm run lint` | Run ESLint on source files |
 | `npm run format` | Format code with Prettier |
+| `npm run test` | Run Playwright E2E tests |
 
 ### Development Workflow
 
@@ -86,6 +87,21 @@ Locators are generated and scored in this order (highest priority first):
 2. Edit files in `src/`
 3. Go to `chrome://extensions` and click the **refresh icon** on Pickwright
 4. Refresh the target page and test
+
+### Automated E2E Testing
+
+The project includes an automated End-to-End (E2E) test suite powered by **Playwright** that verifies the React popup, background relay, content script overlay, locator scoring engine, and iframe parsing.
+
+To execute the tests locally:
+1. Install Playwright's Chromium browser (required once):
+   ```bash
+   npx playwright install chromium
+   ```
+2. Run the test suite (this automatically builds the extension first):
+   ```bash
+   npm run test
+   ```
+The test runs Chromium in headed mode using a persistent profile, mounts the unpacked extension, hosts a local mock HTML test page, and runs all assertions.
 
 ## Configuration
 

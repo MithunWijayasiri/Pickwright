@@ -131,7 +131,9 @@ body {
   font-weight: 700;
   letter-spacing: 0.217px;
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .btn:disabled {
@@ -410,7 +412,9 @@ body {
   height: 14px;
   color: #5a5a5a;
   opacity: 0;
-  transition: opacity 150ms ease, color 150ms ease;
+  transition:
+    opacity 150ms ease,
+    color 150ms ease;
 }
 
 .row:hover .row-copy {

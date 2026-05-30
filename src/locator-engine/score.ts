@@ -107,7 +107,5 @@ function deduplicateRoleCandidates(candidates: LocatorCandidate[]): LocatorCandi
   );
   if (!hasRoleWithName) return candidates;
 
-  return candidates.filter(
-    (c) => !(c.strategy === 'getByRole' && !c.value.includes('name:')),
-  );
+  return candidates.filter((c) => !(c.strategy === 'getByRole' && !c.value.includes('name:')));
 }

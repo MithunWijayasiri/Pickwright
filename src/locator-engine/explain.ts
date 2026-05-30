@@ -79,7 +79,8 @@ export function getLocatorReasons(candidate: LocatorCandidate, _el: Element): Lo
   if (candidate.strategy === 'getByText') {
     reasons.push({
       code: 'text-fragile',
-      message: 'Text-based locators can be fragile to content and internationalization (i18n) changes',
+      message:
+        'Text-based locators can be fragile to content and internationalization (i18n) changes',
     });
   }
 

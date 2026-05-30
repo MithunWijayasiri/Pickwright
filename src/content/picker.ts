@@ -56,7 +56,18 @@ function deactivatePicker(): void {
 // --- Event handlers (document capture phase) ---
 
 function onMouseMove(e: MouseEvent): void {
-  const el = resolveAt(e.clientX, e.clientY);
+  let clientX = e.clientX;
+  let clientY = e.clientY;
+
+  // Translate coordinates if event originated inside a same-origin iframe
+  const iframe = e.view && e.view !== window ? (e.view.frameElement as HTMLIFrameElement) : null;
+  if (iframe) {
+    const rect = iframe.getBoundingClientRect();
+    clientX += rect.left;
+    clientY += rect.top;
+  }
+
+  const el = resolveAt(clientX, clientY);
   if (!el) {
     lastHoveredElement = null;
     lastLocatorStr = '';
@@ -72,7 +83,23 @@ function onMouseMove(e: MouseEvent): void {
     lastLocatorStr = result.best.value;
   }
 
-  updateHighlight(el.getBoundingClientRect(), lastLocatorStr, e.clientX, e.clientY);
+  // Offset element bounding rect by iframe position if nested
+  let elRect = el.getBoundingClientRect();
+  const elIframe =
+    el.ownerDocument !== document && el.ownerDocument.defaultView?.frameElement
+      ? (el.ownerDocument.defaultView.frameElement as HTMLIFrameElement)
+      : null;
+  if (elIframe) {
+    const iframeRect = elIframe.getBoundingClientRect();
+    elRect = new DOMRect(
+      elRect.left + iframeRect.left,
+      elRect.top + iframeRect.top,
+      elRect.width,
+      elRect.height,
+    );
+  }
+
+  updateHighlight(elRect, lastLocatorStr, clientX, clientY);
 }
 
 function onClick(e: MouseEvent): void {
@@ -80,7 +107,17 @@ function onClick(e: MouseEvent): void {
   e.stopImmediatePropagation();
   e.preventDefault();
 
-  const el = resolveAt(e.clientX, e.clientY);
+  let clientX = e.clientX;
+  let clientY = e.clientY;
+
+  const iframe = e.view && e.view !== window ? (e.view.frameElement as HTMLIFrameElement) : null;
+  if (iframe) {
+    const rect = iframe.getBoundingClientRect();
+    clientX += rect.left;
+    clientY += rect.top;
+  }
+
+  const el = resolveAt(clientX, clientY);
   if (!el) return;
 
   const meta = collectMetadata(el);
@@ -126,12 +163,66 @@ function suppressEvent(e: Event): void {
 
 // --- Listener management ---
 
+function onIframeLoad(e: Event): void {
+  const target = e.target as HTMLElement | null;
+  if (target && target.tagName === 'IFRAME') {
+    bindToIframe(target as HTMLIFrameElement);
+  }
+}
+
+function bindToIframe(frame: HTMLIFrameElement): void {
+  try {
+    const doc = frame.contentDocument;
+    if (doc) {
+      // Ensure we don't double-register listeners if bindToIframe is called multiple times
+      doc.removeEventListener('mousemove', onMouseMove, true);
+      doc.removeEventListener('click', onClick, true);
+      doc.removeEventListener('keydown', onKeyDown, true);
+      for (const evt of SUPPRESSED_EVENTS) {
+        doc.removeEventListener(evt, suppressEvent, true);
+      }
+
+      doc.addEventListener('mousemove', onMouseMove, true);
+      doc.addEventListener('click', onClick, true);
+      doc.addEventListener('keydown', onKeyDown, true);
+      for (const evt of SUPPRESSED_EVENTS) {
+        doc.addEventListener(evt, suppressEvent, true);
+      }
+    }
+  } catch {
+    // Ignore cross-origin frames
+  }
+}
+
+function unbindFromIframe(frame: HTMLIFrameElement): void {
+  try {
+    const doc = frame.contentDocument;
+    if (doc) {
+      doc.removeEventListener('mousemove', onMouseMove, true);
+      doc.removeEventListener('click', onClick, true);
+      doc.removeEventListener('keydown', onKeyDown, true);
+      for (const evt of SUPPRESSED_EVENTS) {
+        doc.removeEventListener(evt, suppressEvent, true);
+      }
+    }
+  } catch {
+    // Ignore cross-origin frames
+  }
+}
+
 function attachListeners(): void {
   document.addEventListener('mousemove', onMouseMove, true);
   document.addEventListener('click', onClick, true);
   document.addEventListener('keydown', onKeyDown, true);
+  document.addEventListener('load', onIframeLoad, true);
   for (const evt of SUPPRESSED_EVENTS) {
     document.addEventListener(evt, suppressEvent, true);
+  }
+
+  // Attach same-origin iframe event handlers for existing iframes
+  const frames = document.querySelectorAll('iframe');
+  for (const frame of Array.from(frames)) {
+    bindToIframe(frame);
   }
 }
 
@@ -139,16 +230,43 @@ function detachListeners(): void {
   document.removeEventListener('mousemove', onMouseMove, true);
   document.removeEventListener('click', onClick, true);
   document.removeEventListener('keydown', onKeyDown, true);
+  document.removeEventListener('load', onIframeLoad, true);
   for (const evt of SUPPRESSED_EVENTS) {
     document.removeEventListener(evt, suppressEvent, true);
+  }
+
+  // Detach same-origin iframe event handlers
+  const frames = document.querySelectorAll('iframe');
+  for (const frame of Array.from(frames)) {
+    unbindFromIframe(frame);
   }
 }
 
 // --- Element resolution ---
 
 function resolveAt(x: number, y: number): Element | null {
-  const el = document.elementFromPoint(x, y);
+  let el = document.elementFromPoint(x, y);
   if (!el || isPickerElement(el)) return null;
+
+  // Drill recursively into same-origin iframes
+  while (el && el.tagName === 'IFRAME') {
+    const iframe = el as HTMLIFrameElement;
+    try {
+      const doc = iframe.contentDocument;
+      if (!doc) break;
+      const rect = iframe.getBoundingClientRect();
+      x -= rect.left;
+      y -= rect.top;
+      const nextEl = doc.elementFromPoint(x, y);
+      // nextEl comes from the inner document, so it can never be the iframe
+      // itself; the `tagName === 'IFRAME'` loop condition handles termination.
+      if (!nextEl) break;
+      el = nextEl;
+    } catch {
+      break; // Cross-origin, cannot drill
+    }
+  }
+
   return drillIntoShadow(el, x, y);
 }
 

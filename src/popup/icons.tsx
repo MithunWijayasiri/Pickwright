@@ -54,12 +54,7 @@ export const GitHubIcon = ({ className }: IconProps) => (
 );
 
 export const LogoMark = ({ className }: IconProps) => (
-  <svg
-    className={className ?? 'hd-mark'}
-    viewBox="0 0 128 128"
-    fill="none"
-    aria-hidden={true}
-  >
+  <svg className={className ?? 'hd-mark'} viewBox="0 0 128 128" fill="none" aria-hidden={true}>
     <defs>
       <linearGradient id="pw-logo-g" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stopColor="#4FC34F" />

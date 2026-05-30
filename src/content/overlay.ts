@@ -48,7 +48,12 @@ export function removeOverlay(): void {
   tooltip = null;
 }
 
-export function updateHighlight(rect: DOMRect, label: string, mouseX?: number, mouseY?: number): void {
+export function updateHighlight(
+  rect: DOMRect,
+  label: string,
+  mouseX?: number,
+  mouseY?: number,
+): void {
   if (!highlight || !tooltip) return;
 
   highlight.style.display = 'block';
