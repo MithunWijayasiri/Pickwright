@@ -12,8 +12,21 @@ export const test = base.extend<{
     // Spin up a simple HTTP static server to bypass Chromium's extension file:// access policies
     const server = http.createServer((req, res) => {
       const reqPath = req.url?.split('?')[0] || '';
-      const filePath = path.join(__dirname, '..', decodeURIComponent(reqPath));
-      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      const rootDir = path.resolve(__dirname, '..');
+      let filePath: string;
+      try {
+        filePath = path.resolve(rootDir, `.${decodeURIComponent(reqPath)}`);
+      } catch {
+        res.writeHead(400);
+        res.end('Bad Request');
+        return;
+      }
+
+      if (
+        filePath.startsWith(`${rootDir}${path.sep}`) &&
+        fs.existsSync(filePath) &&
+        fs.statSync(filePath).isFile()
+      ) {
         const ext = path.extname(filePath);
         const contentType = ext === '.html' ? 'text/html' : 'text/plain';
         res.writeHead(200, { 'Content-Type': contentType });

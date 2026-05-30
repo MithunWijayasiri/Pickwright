@@ -163,30 +163,66 @@ function suppressEvent(e: Event): void {
 
 // --- Listener management ---
 
+function onIframeLoad(e: Event): void {
+  const target = e.target as HTMLElement | null;
+  if (target && target.tagName === 'IFRAME') {
+    bindToIframe(target as HTMLIFrameElement);
+  }
+}
+
+function bindToIframe(frame: HTMLIFrameElement): void {
+  try {
+    const doc = frame.contentDocument;
+    if (doc) {
+      // Ensure we don't double-register listeners if bindToIframe is called multiple times
+      doc.removeEventListener('mousemove', onMouseMove, true);
+      doc.removeEventListener('click', onClick, true);
+      doc.removeEventListener('keydown', onKeyDown, true);
+      for (const evt of SUPPRESSED_EVENTS) {
+        doc.removeEventListener(evt, suppressEvent, true);
+      }
+
+      doc.addEventListener('mousemove', onMouseMove, true);
+      doc.addEventListener('click', onClick, true);
+      doc.addEventListener('keydown', onKeyDown, true);
+      for (const evt of SUPPRESSED_EVENTS) {
+        doc.addEventListener(evt, suppressEvent, true);
+      }
+    }
+  } catch {
+    // Ignore cross-origin frames
+  }
+}
+
+function unbindFromIframe(frame: HTMLIFrameElement): void {
+  try {
+    const doc = frame.contentDocument;
+    if (doc) {
+      doc.removeEventListener('mousemove', onMouseMove, true);
+      doc.removeEventListener('click', onClick, true);
+      doc.removeEventListener('keydown', onKeyDown, true);
+      for (const evt of SUPPRESSED_EVENTS) {
+        doc.removeEventListener(evt, suppressEvent, true);
+      }
+    }
+  } catch {
+    // Ignore cross-origin frames
+  }
+}
+
 function attachListeners(): void {
   document.addEventListener('mousemove', onMouseMove, true);
   document.addEventListener('click', onClick, true);
   document.addEventListener('keydown', onKeyDown, true);
+  document.addEventListener('load', onIframeLoad, true);
   for (const evt of SUPPRESSED_EVENTS) {
     document.addEventListener(evt, suppressEvent, true);
   }
 
-  // Attach same-origin iframe event handlers
+  // Attach same-origin iframe event handlers for existing iframes
   const frames = document.querySelectorAll('iframe');
   for (const frame of Array.from(frames)) {
-    try {
-      const doc = frame.contentDocument;
-      if (doc) {
-        doc.addEventListener('mousemove', onMouseMove, true);
-        doc.addEventListener('click', onClick, true);
-        doc.addEventListener('keydown', onKeyDown, true);
-        for (const evt of SUPPRESSED_EVENTS) {
-          doc.addEventListener(evt, suppressEvent, true);
-        }
-      }
-    } catch {
-      // Ignore cross-origin frames
-    }
+    bindToIframe(frame);
   }
 }
 
@@ -194,6 +230,7 @@ function detachListeners(): void {
   document.removeEventListener('mousemove', onMouseMove, true);
   document.removeEventListener('click', onClick, true);
   document.removeEventListener('keydown', onKeyDown, true);
+  document.removeEventListener('load', onIframeLoad, true);
   for (const evt of SUPPRESSED_EVENTS) {
     document.removeEventListener(evt, suppressEvent, true);
   }
@@ -201,19 +238,7 @@ function detachListeners(): void {
   // Detach same-origin iframe event handlers
   const frames = document.querySelectorAll('iframe');
   for (const frame of Array.from(frames)) {
-    try {
-      const doc = frame.contentDocument;
-      if (doc) {
-        doc.removeEventListener('mousemove', onMouseMove, true);
-        doc.removeEventListener('click', onClick, true);
-        doc.removeEventListener('keydown', onKeyDown, true);
-        for (const evt of SUPPRESSED_EVENTS) {
-          doc.removeEventListener(evt, suppressEvent, true);
-        }
-      }
-    } catch {
-      // Ignore cross-origin frames
-    }
+    unbindFromIframe(frame);
   }
 }
 
