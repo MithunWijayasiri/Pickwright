@@ -2,7 +2,7 @@
 
 ![Pickwright banner](docs/pickwright-banner.png)
 
-A Manifest V3 Chrome extension that lets you pick any element on a page and generates a Playwright-friendly locator, ready to paste into your test code.
+A Manifest V3 browser extension for **Chrome** and **Firefox** that lets you pick any element on a page and generates a Playwright-friendly locator, ready to paste into your test code.
 
 ## Features
 
@@ -26,7 +26,7 @@ npm install
 npm run build
 ```
 
-This produces a `dist/` folder — that's what you load into Chrome.
+This produces a `dist/` folder — that's the unpacked extension you load into your browser. The same `dist/` works in both Chrome and Firefox.
 
 ### Step 2 — Load into Chrome
 
@@ -37,6 +37,15 @@ This produces a `dist/` folder — that's what you load into Chrome.
 5. Pickwright appears in your extensions list — pin it via the puzzle-piece icon in the toolbar for easy access
 
 > **Note:** You must reload the extension (`chrome://extensions` → refresh icon) and refresh the target page any time you rebuild.
+
+### Step 2 (alt) — Load into Firefox
+
+1. Open Firefox and go to **`about:debugging#/runtime/this-firefox`**
+2. Click **Load Temporary Add-on…**
+3. Select the **`dist/manifest.json`** file (not the folder) inside the project
+4. Pickwright appears under **Temporary Extensions** and is pinned to the toolbar
+
+> **Note:** Temporary add-ons are removed when Firefox restarts — reload them the same way after each restart. After rebuilding, click **Reload** on the add-on in `about:debugging` and refresh the target page. Requires Firefox 121 or later.
 
 ## Usage
 
@@ -133,6 +142,7 @@ The extension recognizes these as stable "test id"-style attributes:
 
 - Chrome 88+ (Manifest V3)
 - Edge 88+ (Chromium-based)
+- Firefox 121+ (Manifest V3)
 - Other Chromium browsers with MV3 support
 
 ## License
