@@ -1,5 +1,9 @@
 node_modules/
 dist/
+dist-*/
+web-ext-artifacts/
+release-assets/
+pickwright-*.zip
 *.js.map
 test-results/
 playwright-report/

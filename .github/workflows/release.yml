@@ -1,0 +1,112 @@
+name: Release
+
+# Manually-triggered release. Builds Chrome + Firefox packages, signs the
+# Firefox build via AMO, and publishes a GitHub Release — but only after the
+# E2E suite passes.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. 0.1.0 (a leading "v" is stripped)'
+        required: true
+        type: string
+      release_branch:
+        description: 'Branch to release from'
+        required: true
+        default: 'master'
+        type: string
+      firefox_sign:
+        description: 'Sign the Firefox build via AMO (needs AMO_JWT_ISSUER / AMO_JWT_SECRET secrets)'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_branch }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # Chromium + system deps; the test fixtures auto-add --headless=new when CI is set.
+      - run: npx playwright install --with-deps chromium
+      - name: Run E2E suite
+        run: npm test
+
+  release:
+    name: Build & Release
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_branch }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Apply release version
+        run: node scripts/set-version.js "${{ inputs.version }}"
+
+      - name: Resolve version
+        id: ver
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Build Chrome package
+        run: npm run build:chrome
+      - name: Build Firefox package
+        run: npm run build:firefox
+
+      - name: Zip Chrome package
+        run: cd dist && zip -r "../pickwright-chrome-v${{ steps.ver.outputs.version }}.zip" . && cd ..
+      - name: Zip Firefox package
+        run: cd dist-firefox && zip -r "../pickwright-firefox-v${{ steps.ver.outputs.version }}.zip" . && cd ..
+
+      - name: Sign Firefox build (AMO)
+        if: ${{ inputs.firefox_sign }}
+        run: |
+          npx web-ext sign \
+            --source-dir=dist-firefox \
+            --artifacts-dir=web-ext-artifacts \
+            --channel=unlisted \
+            --api-key="${{ secrets.AMO_JWT_ISSUER }}" \
+            --api-secret="${{ secrets.AMO_JWT_SECRET }}"
+
+      - name: Collect signed .xpi
+        if: ${{ inputs.firefox_sign }}
+        run: |
+          mkdir -p release-assets
+          cp web-ext-artifacts/*.xpi "release-assets/pickwright-firefox-v${{ steps.ver.outputs.version }}.xpi"
+
+      - name: Commit version bump and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json src/manifest.json
+          git commit -m "chore(release): v${{ steps.ver.outputs.version }}" || echo "Nothing to commit"
+          git tag "v${{ steps.ver.outputs.version }}"
+          git push origin HEAD:${{ inputs.release_branch }}
+          git push origin "v${{ steps.ver.outputs.version }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.ver.outputs.version }}"
+          name: "Pickwright v${{ steps.ver.outputs.version }}"
+          generate_release_notes: true
+          files: |
+            pickwright-chrome-v${{ steps.ver.outputs.version }}.zip
+            pickwright-firefox-v${{ steps.ver.outputs.version }}.zip
+            release-assets/*.xpi
