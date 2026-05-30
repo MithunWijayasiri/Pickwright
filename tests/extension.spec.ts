@@ -1,123 +1,129 @@
 import { test, expect } from './fixtures';
+import type { Page } from '@playwright/test';
 
-test.describe('Pickwright Chrome Extension E2E Tests', () => {
-  test('should toggle picker, hover elements for locators, select, copy to clipboard, and display in history', async ({
-    context,
-    extensionId,
-    serverUrl,
-  }) => {
-    // 1. Load the mock test page via the local HTTP server
-    const page = await context.newPage();
-    const testPageUrl = `${serverUrl}/tests/test-page.html`;
-    await page.goto(testPageUrl);
+// The fixtures (extensionContext/serverUrl/extensionId) are worker-scoped, so a
+// single browser is shared across this file. Each test gets a fresh page with
+// the picker freshly activated; only the select/history test actually picks an
+// element, so history stays empty for the hover-only cases regardless of order.
+test.describe('Pickwright Chrome Extension E2E', () => {
+  let page: Page;
+
+  test.beforeEach(async ({ extensionContext, serverUrl }) => {
+    page = await extensionContext.newPage();
+    await page.goto(`${serverUrl}/tests/test-page.html`);
     await page.bringToFront();
 
-    // 2. Retrieve background service worker
-    let [background] = context.serviceWorkers();
+    // Toggle the picker by relaying TOGGLE_PICKER from the background worker to
+    // the active tab — this mirrors clicking the extension button.
+    let [background] = extensionContext.serviceWorkers();
     if (!background) {
-      background = await context.waitForEvent('serviceworker');
+      background = await extensionContext.waitForEvent('serviceworker');
     }
-
-    // 3. Trigger TOGGLE_PICKER message from background directly to the active tab (our test page).
-    // This perfectly mimics clicking the extension button while the test page is focused.
     await background.evaluate(async () => {
       const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (activeTab && activeTab.id) {
-        await chrome.tabs.sendMessage(activeTab.id, { type: 'TOGGLE_PICKER' });
-      } else {
-        throw new Error('Active tab not found via chrome.tabs.query');
-      }
+      if (!activeTab?.id) throw new Error('Active tab not found via chrome.tabs.query');
+      await chrome.tabs.sendMessage(activeTab.id, { type: 'TOGGLE_PICKER' });
     });
 
-    // 4. Verify picker overlays are attached to the test page
     await expect(page.locator('#pickwright-highlight')).toBeAttached();
     await expect(page.locator('#pickwright-tooltip')).toBeAttached();
+  });
 
-    // 5. Test locator generation by hovering over various elements
+  test.afterEach(async () => {
+    await page.close();
+  });
 
-    // Test Case A: getByTestId
-    await page.locator('[data-testid="submit-btn"]').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText("getByTestId('submit-btn')");
+  // Hover a target and assert the tooltip shows the expected generated locator.
+  async function expectLocatorOnHover(
+    selector: string,
+    expected: string,
+    opts?: { frame?: string },
+  ): Promise<void> {
+    const target = opts?.frame
+      ? page.frameLocator(opts.frame).locator(selector)
+      : page.locator(selector);
+    await target.hover();
+    await expect(page.locator('#pickwright-tooltip')).toHaveText(expected);
+  }
 
-    // Test Case B: getByPlaceholder / Role-fallback
-    await page.locator('#username-input').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText("getByRole('textbox')");
+  test('getByTestId for data-testid elements', async () => {
+    await expectLocatorOnHover('[data-testid="submit-btn"]', "getByTestId('submit-btn')");
+  });
 
-    // Test Case C: getByLabel / getByRole-with-name
-    await page.locator('#email-field').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText(
-      "getByRole('textbox', { name: 'Email Address' })",
-    );
+  test('getByRole (role only) when no accessible name', async () => {
+    await expectLocatorOnHover('#username-input', "getByRole('textbox')");
+  });
 
-    // Test Case D: getByRole
-    await page.locator('#home-link').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText(
-      "getByRole('link', { name: 'Go Home' })",
-    );
+  test('getByRole with name from associated label', async () => {
+    await expectLocatorOnHover('#email-field', "getByRole('textbox', { name: 'Email Address' })");
+  });
 
-    // Test Case E: frameLocator nested iframe element
-    const frame = page.frameLocator('#test-iframe');
-    await frame.locator('#iframe-btn').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+  test('getByRole with name for links', async () => {
+    await expectLocatorOnHover('#home-link', "getByRole('link', { name: 'Go Home' })");
+  });
+
+  test('frameLocator prefix for nested same-origin iframe element', async () => {
+    await expectLocatorOnHover(
+      '#iframe-btn',
       "frameLocator('iframe#test-iframe').getByRole('button', { name: 'Click Frame Button' })",
+      { frame: '#test-iframe' },
     );
+  });
 
-    // Test Case F: Custom data-* attribute fallback (long text bypasses getByText)
-    await page.locator('#datacy-div').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText(
-      'locator(\'[data-cy="container-box"]\')',
-    );
+  test('custom data-* CSS fallback when text exceeds the getByText limit', async () => {
+    await expectLocatorOnHover('#datacy-div', 'locator(\'[data-cy="container-box"]\')');
+  });
 
-    // Test Case G: Accessible name via aria-label
-    await page.locator('#aria-btn').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText(
-      "getByRole('button', { name: 'Close Dialog' })",
-    );
+  test('accessible name via aria-label', async () => {
+    await expectLocatorOnHover('#aria-btn', "getByRole('button', { name: 'Close Dialog' })");
+  });
 
-    // Test Case H: Accessible name via title
-    await page.locator('#title-btn').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+  test('accessible name via title', async () => {
+    await expectLocatorOnHover(
+      '#title-btn',
       "getByRole('button', { name: 'Information Details' })",
     );
+  });
 
-    // Test Case I: Shadow DOM drill-in support
-    await page.locator('#shadow-btn').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText(
-      "getByRole('button', { name: 'Shadow Button' })",
-    );
+  test('drills into open shadow roots', async () => {
+    await expectLocatorOnHover('#shadow-btn', "getByRole('button', { name: 'Shadow Button' })");
+  });
 
-    // Test Case J: Angular Dropdown Trigger (hover checks)
-    await page.locator('#dropdown-trigger').hover();
-    await expect(page.locator('#pickwright-tooltip')).toHaveText(
+  test('Angular dropdown trigger generates a locator without opening it', async () => {
+    await expectLocatorOnHover(
+      '#dropdown-trigger',
       "getByRole('button', { name: 'Select Option' })",
     );
+  });
 
-    // 6. Test select/click behavior on Angular Dropdown Trigger to verify the toast warning message
+  test('selects an element: toast, clipboard, and history', async ({
+    extensionContext,
+    extensionId,
+  }) => {
+    const expectedLocator = "getByRole('button', { name: 'Select Option' })";
+
     await page.locator('#dropdown-trigger').click();
 
-    // Verify picker is deactivated
+    // Picker deactivates on selection.
     await expect(page.locator('#pickwright-highlight')).toBeHidden();
 
-    // Verify warning toast notification is displayed on page
+    // Toast confirms the copy and the dropdown-not-opened warning.
     const toast = page.locator('div:has-text("✓ Copied:")');
     await expect(toast).toBeVisible();
-    await expect(toast).toContainText("getByRole('button', { name: 'Select Option' })");
+    await expect(toast).toContainText(expectedLocator);
     await expect(toast).toContainText('⚠ Dropdown trigger — not opened');
 
-    // Verify locator has been copied to clipboard (using poll to prevent flakiness)
+    // Clipboard contents (poll to avoid races with the async write).
     await expect
       .poll(() => page.evaluate(() => navigator.clipboard.readText()))
-      .toBe("getByRole('button', { name: 'Select Option' })");
+      .toBe(expectedLocator);
 
-    // 7. Verify elements are recorded in history
-    const popupPage = await context.newPage();
+    // History records exactly the one element we selected.
+    const popupPage = await extensionContext.newPage();
     await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
-
-    // Verify history section shows 1 recorded item with the exact locator
     const historyRows = popupPage.locator('.row');
     await expect(historyRows).toHaveCount(1);
-    await expect(historyRows.locator('.row-locator')).toContainText(
-      "getByRole('button', { name: 'Select Option' })",
-    );
+    await expect(historyRows.locator('.row-locator')).toContainText(expectedLocator);
+    await popupPage.close();
   });
 });

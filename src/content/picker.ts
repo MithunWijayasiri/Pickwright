@@ -258,7 +258,9 @@ function resolveAt(x: number, y: number): Element | null {
       x -= rect.left;
       y -= rect.top;
       const nextEl = doc.elementFromPoint(x, y);
-      if (!nextEl || nextEl === el) break;
+      // nextEl comes from the inner document, so it can never be the iframe
+      // itself; the `tagName === 'IFRAME'` loop condition handles termination.
+      if (!nextEl) break;
       el = nextEl;
     } catch {
       break; // Cross-origin, cannot drill
