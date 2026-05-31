@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Pickwright — Click any element, get the best Playwright locator. Role, testId, label, or CSS — scored, ranked, and ready to paste.">
+<title>Pickwright — Playwright locators, picked.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── Theme tokens ───────────────────────────────────────────────────────── */
+:root {
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Geist', system-ui, sans-serif;
+  --transition-theme: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+[data-theme="dark"] {
+  --bg:          #0e0e0e;
+  --bg2:         #141414;
+  --bg3:         #1a1a1a;
+  --text:        #f2f2f0;
+  --muted:       #777770;
+  --dim:         #383835;
+  --border:      rgba(255,255,255,0.08);
+  --border2:     rgba(255,255,255,0.13);
+  --accent:      #00d062;
+  --accent-lo:   rgba(0,208,98,0.08);
+  --accent-text: #00d062;
+  --nav-bg:      rgba(14,14,14,0.95);
+  --hero-wm:     rgba(255,255,255,0.022);
+  --code-bg:     #141414;
+  --code-border: rgba(255,255,255,0.08);
+  --code-cm:     #383835;
+  --code-kw:     #79b8ff;
+  --code-fn:     #b392f0;
+}
+
+[data-theme="light"] {
+  --bg:          #f5f4f0;
+  --bg2:         #eceae5;
+  --bg3:         #e4e2dc;
+  --text:        #111110;
+  --muted:       #767268;
+  --dim:         #bbb8b0;
+  --border:      rgba(0,0,0,0.09);
+  --border2:     rgba(0,0,0,0.15);
+  --accent:      #007a3d;
+  --accent-lo:   rgba(0,122,61,0.07);
+  --accent-text: #007a3d;
+  --nav-bg:      rgba(245,244,240,0.95);
+  --hero-wm:     rgba(0,0,0,0.03);
+  --code-bg:     #1a1a1e;
+  --code-border: rgba(255,255,255,0.07);
+  --code-cm:     #444450;
+  --code-kw:     #79b8ff;
+  --code-fn:     #b392f0;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  transition: var(--transition-theme);
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ─── Scroll animation setup ─────────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+/* Stagger delays for rows */
+.stagger-1 { transition-delay: 0.05s; }
+.stagger-2 { transition-delay: 0.10s; }
+.stagger-3 { transition-delay: 0.15s; }
+.stagger-4 { transition-delay: 0.20s; }
+.stagger-5 { transition-delay: 0.25s; }
+.stagger-6 { transition-delay: 0.30s; }
+
+/* ─── Nav ────────────────────────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 50px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2.5rem;
+  background: var(--nav-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition-theme);
+}
+
+/* Scroll progress bar */
+nav::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 0;
+  height: 1px;
+  width: var(--scroll-pct, 0%);
+  background: var(--accent);
+  transition: width 0.1s linear;
+}
+
+.nav-left { display: flex; align-items: center; gap: 2.5rem; }
+.nav-brand { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: lowercase; transition: color 0.2s; }
+.nav-brand em { color: var(--accent); font-style: normal; }
+
+.nav-links {
+  display: flex; gap: 2rem;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--muted); list-style: none;
+  letter-spacing: 0.02em;
+}
+.nav-links a { transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+
+.nav-right { display: flex; align-items: center; gap: 10px; }
+
+/* Theme toggle */
+.theme-toggle {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--border2); border-radius: 3px;
+  padding: 4px 10px; cursor: pointer;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  display: flex; align-items: center; gap: 5px;
+}
+.theme-toggle:hover { color: var(--text); border-color: var(--border2); }
+.theme-toggle .toggle-icon { font-size: 11px; line-height: 1; }
+
+.nav-cta {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  padding: 5px 14px;
+  border: 1px solid var(--accent); color: var(--accent);
+  border-radius: 3px; letter-spacing: 0.04em;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-cta:hover { background: var(--accent); color: var(--bg); }
+
+/* ─── Hero ───────────────────────────────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: flex-start; justify-content: flex-end;
+  padding: 0 2.5rem 4.5rem;
+  border-bottom: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+
+.hero-bg-text {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--mono);
+  font-size: clamp(120px, 22vw, 300px);
+  font-weight: 800;
+  color: var(--hero-wm);
+  white-space: nowrap; pointer-events: none; user-select: none;
+  letter-spacing: -0.05em;
+  transition: color 0.3s ease;
+  /* Subtle float animation */
+  animation: wm-float 12s ease-in-out infinite;
+}
+@keyframes wm-float {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50%       { transform: translate(-50%, calc(-50% - 12px)); }
+}
+
+.hero-content { position: relative; z-index: 1; max-width: 1000px; }
+
+.hero-meta {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  /* Fade in on load */
+  animation: fade-down 0.7s ease 0.1s both;
+}
+
+h1 {
+  font-family: var(--mono);
+  font-size: clamp(3rem, 9vw, 8rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  margin-bottom: 2rem;
+  animation: fade-up 0.7s ease 0.2s both;
+}
+h1 .hl  { color: var(--accent); transition: color 0.3s; }
+h1 .dim { color: var(--muted); transition: color 0.3s; }
+
+.hero-row {
+  display: flex; align-items: flex-end; gap: 3rem; flex-wrap: wrap;
+  animation: fade-up 0.7s ease 0.35s both;
+}
+.hero-sub {
+  font-size: 16px; color: var(--muted); max-width: 420px;
+  font-weight: 300; line-height: 1.7;
+}
+.hero-btns { display: flex; gap: 10px; flex-shrink: 0; }
+
+.btn-fill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 24px;
+  background: var(--accent); color: var(--bg);
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.04em; border-radius: 3px;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.btn-fill:hover { opacity: 0.87; transform: translateY(-1px); }
+.btn-fill:active { transform: translateY(0); }
+
+.btn-border {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 22px;
+  background: transparent; color: var(--muted);
+  font-family: var(--mono); font-size: 12px;
+  border: 1px solid var(--border2); border-radius: 3px;
+  letter-spacing: 0.02em;
+  transition: color 0.2s, border-color 0.2s, transform 0.15s;
+}
+.btn-border:hover { color: var(--text); border-color: var(--border2); transform: translateY(-1px); }
+.btn-border:active { transform: translateY(0); }
+
+/* Load animations */
+@keyframes fade-up   { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fade-down { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ─── Stats ──────────────────────────────────────────────────────────────── */
+.stats {
+  display: flex; align-items: stretch;
+  border-bottom: 1px solid var(--border);
+}
+.stat {
+  flex: 1; padding: 2.5rem;
+  border-right: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.stat:last-child { border-right: none; }
+.stat:hover { background: var(--bg2); }
+
+.stat-n {
+  font-family: var(--mono);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  color: var(--text); letter-spacing: -0.04em; line-height: 1;
+  display: block; margin-bottom: 6px;
+  transition: color 0.3s;
+}
+.stat-n .ac { color: var(--accent); }
+.stat-l {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+/* ─── Section shared ─────────────────────────────────────────────────────── */
+.sec-header {
+  padding: 4rem 2.5rem 3rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: baseline; gap: 2rem; flex-wrap: wrap;
+}
+.sec-header h2 {
+  font-family: var(--mono);
+  font-size: clamp(1.5rem, 4vw, 2.8rem);
+  font-weight: 800; letter-spacing: -0.04em;
+}
+.sec-header p {
+  font-size: 14px; color: var(--muted); font-weight: 300;
+  max-width: 380px; line-height: 1.65;
+}
+
+/* ─── Features ───────────────────────────────────────────────────────────── */
+.feat-section { border-bottom: 1px solid var(--border); }
+
+.feat-rows { display: flex; flex-direction: column; }
+
+.feat-row {
+  display: grid;
+  grid-template-columns: 60px 200px 1fr 140px;
+  align-items: center; gap: 2rem;
+  padding: 1.4rem 2.5rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  cursor: default;
+}
+.feat-row:last-child { border-bottom: none; }
+.feat-row:hover { background: var(--bg2); }
+/* Hover accent line */
+.feat-row::before {
+  content: '';
+  display: block;
+  width: 0; height: 100%;
+  position: absolute; left: 0; top: 0;
+  background: var(--accent);
+  transition: width 0.2s ease;
+  opacity: 0;
+}
+.feat-rows { position: relative; }
+
+.fr-num  { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.fr-tag  { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; transition: color 0.3s; }
+.fr-desc { font-size: 13px; color: var(--muted); font-weight: 300; line-height: 1.6; }
+.fr-badge {
+  justify-self: end;
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); background: var(--bg2);
+  border: 1px solid var(--border); padding: 3px 9px; border-radius: 2px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.feat-row:hover .fr-badge { background: var(--bg3); }
+
+/* ─── Strategies ─────────────────────────────────────────────────────────── */
+.strat-section { border-bottom: 1px solid var(--border); }
+
+.strat-list { display: flex; flex-direction: column; }
+
+.strat-item {
+  display: grid; grid-template-columns: 50px 1fr 1fr;
+  align-items: center; gap: 2rem;
+  padding: 1.5rem 2.5rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s, padding-left 0.2s;
+  cursor: default;
+}
+.strat-item:last-child { border-bottom: none; }
+.strat-item:hover { background: var(--bg2); padding-left: 3rem; }
+
+.si-n    { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+.si-name {
+  font-family: var(--mono);
+  font-size: clamp(13px, 2vw, 17px);
+  font-weight: 700; color: var(--text); letter-spacing: -0.01em;
+  transition: color 0.3s;
+}
+.si-name.top { color: var(--accent); }
+.si-ex {
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ─── Install ────────────────────────────────────────────────────────────── */
+.install-section { border-bottom: 1px solid var(--border); }
+.install-inner {
+  display: grid; grid-template-columns: 1fr 1fr;
+}
+.install-left {
+  padding: 4rem 2.5rem;
+  border-right: 1px solid var(--border);
+}
+.install-right { padding: 4rem 2.5rem; }
+
+.install-left h2 {
+  font-family: var(--mono);
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  font-weight: 800; letter-spacing: -0.04em; margin-bottom: 2rem;
+}
+
+.steps { display: flex; flex-direction: column; }
+.step {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.step:last-child { border-bottom: none; }
+.step:hover { background: var(--bg2); }
+
+.step-n {
+  width: 50px; flex-shrink: 0;
+  padding: 1.1rem 0;
+  display: flex; align-items: flex-start; justify-content: center;
+  font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--dim);
+  border-right: 1px solid var(--border);
+  transition: color 0.2s;
+}
+.step:hover .step-n { color: var(--accent); }
+
+.step-body { padding: 1.1rem 1.25rem; }
+.step-title {
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  margin-bottom: 4px; letter-spacing: 0.02em;
+}
+.step-desc { font-size: 12px; color: var(--muted); font-weight: 300; line-height: 1.65; }
+.step-desc a { color: var(--accent); }
+.step-desc a:hover { text-decoration: underline; }
+
+.install-right h2 {
+  font-family: var(--mono);
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-weight: 700; letter-spacing: -0.02em;
+  margin-bottom: 1.5rem; color: var(--muted);
+}
+
+/* Code block — always dark regardless of theme */
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 4px; overflow: hidden;
+}
+.cb-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--code-border);
+  background: rgba(0,0,0,0.2);
+}
+.cb-name { font-family: var(--mono); font-size: 10px; color: #6a6a7a; }
+.cb-ts   {
+  font-family: var(--mono); font-size: 9px;
+  padding: 2px 7px; background: rgba(121,184,255,0.1);
+  color: #79b8ff; border-radius: 2px;
+}
+.cb-body {
+  padding: 1.1rem 1.25rem;
+  font-family: var(--mono); font-size: 11.5px; line-height: 1.85;
+  color: #d0d0da;
+}
+.cb-body .kw { color: #79b8ff; }
+.cb-body .fn { color: #b392f0; }
+.cb-body .s  { color: #00d062; }
+.cb-body .cm { color: #3a3a48; }
+
+/* ─── CTA strip ──────────────────────────────────────────────────────────── */
+.cta-strip {
+  border-top: 1px solid var(--border);
+  padding: 5rem 2.5rem;
+  display: flex; flex-direction: column;
+  align-items: flex-start; gap: 1.5rem;
+}
+.cta-strip h2 {
+  font-family: var(--mono);
+  font-size: clamp(1.5rem, 4vw, 2.6rem);
+  font-weight: 800; letter-spacing: -0.04em;
+  max-width: 600px;
+}
+.cta-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 2rem 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem;
+}
+.footer-brand {
+  font-family: var(--mono); font-size: 12px; font-weight: 800;
+  color: var(--muted); letter-spacing: 0.02em;
+}
+.footer-brand em { color: var(--accent); font-style: normal; }
+.footer-links {
+  display: flex; gap: 1.75rem;
+  font-family: var(--mono); font-size: 10px;
+  color: var(--dim); list-style: none;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.footer-links a { transition: color 0.2s; }
+.footer-links a:hover { color: var(--muted); }
+.footer-note { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .feat-row { grid-template-columns: 50px 160px 1fr; }
+  .feat-row .fr-badge { display: none; }
+}
+
+@media (max-width: 700px) {
+  h1 { font-size: clamp(2.4rem, 13vw, 4rem); }
+  .hero-row { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+  .stats { flex-wrap: wrap; }
+  .stat { flex: 0 0 50%; }
+  .sec-header { flex-direction: column; gap: 0.75rem; }
+  .feat-row { grid-template-columns: 40px 1fr; gap: 1rem; }
+  .feat-row .fr-badge, .feat-row .fr-desc { display: none; }
+  .strat-item { grid-template-columns: 40px 1fr; }
+  .strat-item .si-ex { display: none; }
+  .strat-item:hover { padding-left: 2.5rem; }
+  .install-inner { grid-template-columns: 1fr; }
+  .install-left { border-right: none; border-bottom: 1px solid var(--border); }
+  nav .nav-links { display: none; }
+  .cta-strip { align-items: flex-start; }
+}
+
+@media (max-width: 400px) {
+  nav { padding: 0 1.25rem; }
+  .hero { padding: 0 1.25rem 3rem; }
+  .stats .stat { padding: 1.75rem 1.25rem; }
+  .sec-header, .feat-row, .strat-item, .install-left, .install-right, .cta-strip, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ── Nav ─────────────────────────────────────────────────────────────────── -->
+<nav id="nav">
+  <div class="nav-left">
+    <div class="nav-brand">pick<em>wright</em></div>
+    <ul class="nav-links">
+      <li><a href="#features">features</a></li>
+      <li><a href="#strategies">locators</a></li>
+      <li><a href="#install">install</a></li>
+      <li><a href="https://github.com/MithunWijayasiri/Pickwright">github</a></li>
+    </ul>
+  </div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode">
+      <span class="toggle-icon" id="toggleIcon">☀</span>
+      <span id="toggleLabel">light</span>
+    </button>
+    <a class="nav-cta" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download</a>
+  </div>
+</nav>
+
+<!-- ── Hero ────────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg-text" aria-hidden="true">PICK</div>
+  <div class="hero-content">
+    <div class="hero-meta">Chrome · Firefox · MIT · Playwright</div>
+    <h1>
+      Pick the<br>
+      <span class="hl">right</span><br>
+      <span class="dim">locator.</span>
+    </h1>
+    <div class="hero-row">
+      <p class="hero-sub">Click any element. Get the highest-ranked Playwright locator — testId, role, label, or CSS — scored and ready to paste.</p>
+      <div class="hero-btns">
+        <a class="btn-fill" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download from GitHub</a>
+        <a class="btn-border" href="https://github.com/MithunWijayasiri/Pickwright">GitHub →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats ────────────────────────────────────────────────────────────────── -->
+<div class="stats">
+  <div class="stat reveal stagger-1">
+    <span class="stat-n" data-count="6">6</span>
+    <div class="stat-l">locator strategies</div>
+  </div>
+  <div class="stat reveal stagger-2">
+    <span class="stat-n" data-count="20">20</span>
+    <div class="stat-l">pick history</div>
+  </div>
+  <div class="stat reveal stagger-3">
+    <span class="stat-n"><span class="ac" data-count="2">2</span></span>
+    <div class="stat-l">browsers</div>
+  </div>
+  <div class="stat reveal stagger-4">
+    <span class="stat-n" data-count="0">0</span>
+    <div class="stat-l">config needed</div>
+  </div>
+</div>
+
+<!-- ── Features ─────────────────────────────────────────────────────────────── -->
+<section class="feat-section" id="features">
+  <div class="sec-header reveal">
+    <h2>What it does.</h2>
+    <p>Surfaces the Playwright locator the framework actually recommends — not just whatever CSS the browser can trace.</p>
+  </div>
+  <div class="feat-rows">
+    <div class="feat-row reveal-left stagger-1">
+      <span class="fr-num">01</span>
+      <span class="fr-tag">click-to-pick</span>
+      <span class="fr-desc">Hover any element to highlight it. Click to generate all locator strategies at once — best ranked first, alternatives listed below.</span>
+      <span class="fr-badge">core</span>
+    </div>
+    <div class="feat-row reveal-left stagger-2">
+      <span class="fr-num">02</span>
+      <span class="fr-tag">6 strategies</span>
+      <span class="fr-desc">getByTestId, getByRole, getByLabel, getByPlaceholder, getByText, and CSS — all scored and ranked per Playwright's own preference order.</span>
+      <span class="fr-badge">locators</span>
+    </div>
+    <div class="feat-row reveal-left stagger-3">
+      <span class="fr-num">03</span>
+      <span class="fr-tag">shadow DOM</span>
+      <span class="fr-desc">Drills through open shadow roots to find the real element under your cursor. No manual shadow selector crafting needed.</span>
+      <span class="fr-badge">DOM</span>
+    </div>
+    <div class="feat-row reveal-left stagger-4">
+      <span class="fr-num">04</span>
+      <span class="fr-tag">iframe support</span>
+      <span class="fr-desc">Detects same-origin iframes and prepends the correct <code style="font-family:var(--mono);color:var(--accent)">frameLocator()</code> chain automatically.</span>
+      <span class="fr-badge">frames</span>
+    </div>
+    <div class="feat-row reveal-left stagger-5">
+      <span class="fr-num">05</span>
+      <span class="fr-tag">pick history</span>
+      <span class="fr-desc">Stores your last 20 picks with the originating page URL. Reopen the popup and copy any previous locator without re-clicking.</span>
+      <span class="fr-badge">storage</span>
+    </div>
+    <div class="feat-row reveal-left stagger-6">
+      <span class="fr-num">06</span>
+      <span class="fr-tag">Chrome + Firefox</span>
+      <span class="fr-desc">One extension, two browsers. Same picking experience and locator quality on Chrome and Firefox.</span>
+      <span class="fr-badge">cross-browser</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Strategies ────────────────────────────────────────────────────────────── -->
+<section class="strat-section" id="strategies">
+  <div class="sec-header reveal">
+    <h2>Playwright's ranking.<br>Strictly.</h2>
+    <p>Fragile CSS selectors rank last. Stable, semantic, accessibility-driven locators surface first — matching Playwright's own recommended order.</p>
+  </div>
+  <div class="strat-list">
+    <div class="strat-item reveal stagger-1">
+      <span class="si-n">01</span>
+      <span class="si-name top">getByTestId</span>
+      <span class="si-ex">getByTestId('submit-btn')</span>
+    </div>
+    <div class="strat-item reveal stagger-2">
+      <span class="si-n">02</span>
+      <span class="si-name top">getByRole</span>
+      <span class="si-ex">getByRole('button', { name: 'Sign in' })</span>
+    </div>
+    <div class="strat-item reveal stagger-3">
+      <span class="si-n">03</span>
+      <span class="si-name">getByLabel</span>
+      <span class="si-ex">getByLabel('Email address')</span>
+    </div>
+    <div class="strat-item reveal stagger-4">
+      <span class="si-n">04</span>
+      <span class="si-name">getByPlaceholder</span>
+      <span class="si-ex">getByPlaceholder('Search…')</span>
+    </div>
+    <div class="strat-item reveal stagger-5">
+      <span class="si-n">05</span>
+      <span class="si-name">getByText</span>
+      <span class="si-ex">getByText('Sign in')</span>
+    </div>
+    <div class="strat-item reveal stagger-6">
+      <span class="si-n">06</span>
+      <span class="si-name" style="color:var(--muted)">locator (CSS)</span>
+      <span class="si-ex">locator('button[type="submit"]')</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Install ───────────────────────────────────────────────────────────────── -->
+<section class="install-section" id="install">
+  <div class="install-inner">
+    <div class="install-left reveal">
+      <h2>Up in thirty seconds.</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="step-n">01</span>
+          <div class="step-body">
+            <div class="step-title">Download from GitHub Releases</div>
+            <div class="step-desc">Grab the latest <code style="font-family:var(--mono);color:var(--accent)">.crx</code> or <code style="font-family:var(--mono);color:var(--accent)">.xpi</code> from the <a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">GitHub Releases page</a> and load it unpacked. Chrome Web Store &amp; Firefox Add-ons listings coming soon.</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-n">02</span>
+          <div class="step-body">
+            <div class="step-title">Open your app</div>
+            <div class="step-desc">Navigate to the page under test. Open Pickwright from the browser toolbar.</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-n">03</span>
+          <div class="step-body">
+            <div class="step-title">Click. Copy. Paste.</div>
+            <div class="step-desc">Hover to highlight, click to pick. Copy the locator directly into your Playwright test file.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="install-right reveal">
+      <h2>// example output</h2>
+      <div class="code-block">
+        <div class="cb-head">
+          <span class="cb-name">login.spec.ts</span>
+          <span class="cb-ts">TypeScript</span>
+        </div>
+        <div class="cb-body">
+<span class="cm">// locators picked with Pickwright</span>
+<span class="kw">import</span> { test, expect } <span class="kw">from</span>
+  <span class="s">'@playwright/test'</span>;
+
+<span class="fn">test</span>(<span class="s">'user signs in'</span>, async ({ page }) => {
+  <span class="kw">await</span> page.<span class="fn">goto</span>(<span class="s">'/'</span>);
+
+  <span class="cm">// ↓ picked — getByLabel</span>
+  <span class="kw">await</span> page
+    .<span class="fn">getByLabel</span>(<span class="s">'Email'</span>)
+    .<span class="fn">fill</span>(<span class="s">'user@example.com'</span>);
+
+  <span class="cm">// ↓ picked — getByRole</span>
+  <span class="kw">await</span> page
+    .<span class="fn">getByRole</span>(<span class="s">'button'</span>, {
+      name: <span class="s">'Sign in'</span>
+    })
+    .<span class="fn">click</span>();
+});</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ────────────────────────────────────────────────────────────────────── -->
+<div class="cta-strip reveal">
+  <h2>Start picking locators<br>in under a minute.</h2>
+  <p style="font-size:14px;color:var(--muted);font-weight:300;max-width:440px">Free, open source, MIT licensed. No account, no API key, no project setup required. Chrome Web Store &amp; Firefox Add-ons listings coming soon.</p>
+  <div class="cta-btns">
+    <a class="btn-fill" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download from GitHub</a>
+    <a class="btn-border" href="https://github.com/MithunWijayasiri/Pickwright">View source on GitHub →</a>
+  </div>
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────────────── -->
+<footer>
+  <span class="footer-brand">pick<em>wright</em></span>
+  <ul class="footer-links">
+    <li><a href="https://github.com/MithunWijayasiri/Pickwright">github</a></li>
+    <li><a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">releases</a></li>
+    <li><a href="https://github.com/MithunWijayasiri/Pickwright" target="_blank" rel="noopener">source</a></li>
+  </ul>
+  <span class="footer-note">MIT · Playwright locator picker</span>
+</footer>
+
+<!-- ── Scripts ────────────────────────────────────────────────────────────────── -->
+<script>
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+const html         = document.documentElement;
+const toggleBtn    = document.getElementById('themeToggle');
+const toggleIcon   = document.getElementById('toggleIcon');
+const toggleLabel  = document.getElementById('toggleLabel');
+
+// Persist across reloads
+const saved = localStorage.getItem('pw-theme');
+if (saved) html.setAttribute('data-theme', saved);
+
+function applyTheme(theme) {
+  html.setAttribute('data-theme', theme);
+  localStorage.setItem('pw-theme', theme);
+  if (theme === 'dark') {
+    toggleIcon.textContent  = '☀';
+    toggleLabel.textContent = 'light';
+  } else {
+    toggleIcon.textContent  = '◑';
+    toggleLabel.textContent = 'dark';
+  }
+}
+
+// Init icon state
+applyTheme(html.getAttribute('data-theme') || 'dark');
+
+toggleBtn.addEventListener('click', () => {
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+});
+
+// ── Scroll progress bar ───────────────────────────────────────────────────────
+const navEl = document.getElementById('nav');
+function updateScroll() {
+  const scrolled  = window.scrollY;
+  const maxScroll = document.body.scrollHeight - window.innerHeight;
+  const pct       = maxScroll > 0 ? (scrolled / maxScroll) * 100 : 0;
+  navEl.style.setProperty('--scroll-pct', pct + '%');
+}
+window.addEventListener('scroll', updateScroll, { passive: true });
+
+// ── Scroll reveal ─────────────────────────────────────────────────────────────
+const revealEls = document.querySelectorAll('.reveal, .reveal-left');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      // Don't unobserve — keep visible once shown
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+revealEls.forEach(el => observer.observe(el));
+
+// ── Stat counter animation ────────────────────────────────────────────────────
+const statNums = document.querySelectorAll('[data-count]');
+
+const statObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el  = entry.target;
+    const end = parseInt(el.dataset.count, 10);
+    if (end === 0) return; // "0" is already correct, no animation needed
+    let start    = 0;
+    const dur    = 700;
+    const step   = 16;
+    const inc    = end / (dur / step);
+    const timer  = setInterval(() => {
+      start += inc;
+      if (start >= end) { start = end; clearInterval(timer); }
+      el.textContent = Math.floor(start).toString();
+    }, step);
+    statObserver.unobserve(el);
+  });
+}, { threshold: 0.5 });
+
+statNums.forEach(el => statObserver.observe(el));
+</script>
+</body>
+</html>
