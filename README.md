@@ -1,6 +1,6 @@
 # Pickwright
 
-![Pickwright banner](docs/pickwright-banner.png)
+<p align="center"><img src="docs/pickwright-banner.png" alt="Pickwright banner" /></p>
 
 A Manifest V3 browser extension for **Chrome** and **Firefox** that lets you pick any element on a page and generates a Playwright-friendly locator, ready to paste into your test code.
 
