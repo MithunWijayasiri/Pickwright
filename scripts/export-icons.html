@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pickwright — Export Icons</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0e0e0e; font-family: 'JetBrains Mono', monospace; padding: 36px; -webkit-font-smoothing: antialiased; }
+h1 { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #00d062; margin-bottom: 4px; }
+p  { font-size: 9px; color: #555; margin-bottom: 32px; letter-spacing: 0.04em; }
+.grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 36px; }
+.tile { background: #141414; border: 1px solid rgba(255,255,255,0.07); padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+canvas { image-rendering: pixelated; display: block; }
+.sz { font-size: 9px; color: #555; letter-spacing: 0.06em; }
+button {
+  font-family: inherit; font-size: 9px; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: #0a0a0a; background: #00d062; border: none;
+  padding: 5px 12px; cursor: pointer;
+}
+button:hover { opacity: 0.85; }
+.all-btn {
+  font-family: inherit; font-size: 10px; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: #0a0a0a; background: #00d062; border: none;
+  padding: 8px 20px; cursor: pointer;
+}
+.all-btn:hover { opacity: 0.85; }
+.note { font-size: 9px; color: #3e3e3a; margin-top: 24px; line-height: 1.8; }
+.note strong { color: #555; }
+</style>
+</head>
+<body>
+<h1>Pickwright — Export Icons</h1>
+<p>Renders the Snap Grid SVG to PNG at each required extension size. Click Download to save each file, then move them to src/icons/.</p>
+
+<!-- The master SVG — serialised to Blob for canvas rendering -->
+<svg id="icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" style="display:none">
+  <rect width="128" height="128" rx="26" fill="#0e0e0e"/>
+  <circle cx="24"  cy="24"  r="5.5" fill="#00d062" opacity="0.22"/>
+  <circle cx="64"  cy="24"  r="5.5" fill="#00d062" opacity="0.22"/>
+  <circle cx="104" cy="24"  r="5.5" fill="#00d062" opacity="0.22"/>
+  <circle cx="24"  cy="64"  r="5.5" fill="#00d062" opacity="0.22"/>
+  <circle cx="104" cy="64"  r="5.5" fill="#00d062" opacity="0.22"/>
+  <circle cx="24"  cy="104" r="5.5" fill="#00d062" opacity="0.22"/>
+  <circle cx="64"  cy="104" r="5.5" fill="#00d062" opacity="0.22"/>
+  <circle cx="104" cy="104" r="5.5" fill="#00d062" opacity="0.22"/>
+  <line x1="64" y1="12"  x2="64"  y2="46"  stroke="#00d062" stroke-width="2"   stroke-linecap="round" opacity="0.28"/>
+  <line x1="64" y1="82"  x2="64"  y2="116" stroke="#00d062" stroke-width="2"   stroke-linecap="round" opacity="0.28"/>
+  <line x1="12" y1="64"  x2="46"  y2="64"  stroke="#00d062" stroke-width="2"   stroke-linecap="round" opacity="0.28"/>
+  <line x1="82" y1="64"  x2="116" y2="64"  stroke="#00d062" stroke-width="2"   stroke-linecap="round" opacity="0.28"/>
+  <circle cx="64" cy="64" r="16" fill="#00d062"/>
+</svg>
+
+<div class="grid">
+  <div class="tile">
+    <canvas id="c128" width="128" height="128"></canvas>
+    <span class="sz">128 × 128</span>
+    <button onclick="download(128)">↓ icon-128.png</button>
+  </div>
+  <div class="tile">
+    <canvas id="c48" width="48" height="48" style="width:96px;height:96px"></canvas>
+    <span class="sz">48 × 48</span>
+    <button onclick="download(48)">↓ icon-48.png</button>
+  </div>
+  <div class="tile">
+    <canvas id="c32" width="32" height="32" style="width:96px;height:96px"></canvas>
+    <span class="sz">32 × 32</span>
+    <button onclick="download(32)">↓ icon-32.png</button>
+  </div>
+  <div class="tile">
+    <canvas id="c16" width="16" height="16" style="width:96px;height:96px"></canvas>
+    <span class="sz">16 × 16</span>
+    <button onclick="download(16)">↓ icon-16.png</button>
+  </div>
+</div>
+
+<button class="all-btn" onclick="downloadAll()">↓ Download all 4 PNGs</button>
+
+<div class="note">
+  <strong>After downloading:</strong><br>
+  Move the 4 PNG files into <strong>src/icons/</strong>, replacing the existing ones.<br>
+  Then run <strong>npm run build</strong> — the new icons will be picked up automatically.
+</div>
+
+<script>
+const sizes = [128, 48, 32, 16];
+
+function getSvgBlob() {
+  const svgEl = document.getElementById('icon-svg');
+  const data = new XMLSerializer().serializeToString(svgEl);
+  return new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+}
+
+function renderToCanvas(size) {
+  return new Promise((resolve) => {
+    const blob = getSvgBlob();
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.getElementById('c' + size);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(canvas);
+    };
+    img.src = url;
+  });
+}
+
+function download(size) {
+  renderToCanvas(size).then((canvas) => {
+    const a = document.createElement('a');
+    a.download = 'icon-' + size + '.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+}
+
+function downloadAll() {
+  // Stagger downloads slightly so browsers don't block them
+  sizes.forEach((size, i) => {
+    setTimeout(() => download(size), i * 250);
+  });
+}
+
+// Render previews on load
+window.addEventListener('load', () => {
+  sizes.forEach(size => renderToCanvas(size));
+});
+</script>
+</body>
+</html>
