@@ -1,5 +1,5 @@
 /* Pickwright popup — Design D "Big Result" (Bold Mono theme) */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+/* JetBrains Mono is bundled locally via @fontsource (see popup/index.tsx). */
 
 :root {
   /* Surfaces */
@@ -152,10 +152,6 @@ body {
   font-family: var(--font-mono);
   font-size: 9px;
   color: var(--text-faint);
-}
-
-.result-tag .tag {
-  /* no separate style needed — parent color applies */
 }
 
 /* Large locator display */
@@ -413,7 +409,6 @@ body {
 .pill-css     { color: var(--text-muted); }
 
 .row-main {
-  flex: 1 1 auto;
   min-width: 0;
 }
 

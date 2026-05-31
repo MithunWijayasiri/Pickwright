@@ -7,6 +7,7 @@ import {
   updateHighlight,
   hideHighlight,
   isPickerElement,
+  TOAST_ID,
 } from './overlay';
 import {
   collectMetadata,
@@ -299,8 +300,11 @@ function highlightToInline(s: string): string {
 }
 
 function showToast(text: string, isDropdown: boolean): void {
+  // Drop any toast still on screen so rapid picks don't stack duplicate IDs.
+  document.getElementById(TOAST_ID)?.remove();
+
   const toast = document.createElement('div');
-  toast.id = 'pickwright-toast';
+  toast.id = TOAST_ID;
   Object.assign(toast.style, {
     position: 'fixed',
     bottom: '24px',

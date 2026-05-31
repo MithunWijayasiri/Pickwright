@@ -19,6 +19,7 @@ const App = () => {
   const [lastTag, setLastTag] = useState<string>('');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [copiedTs, setCopiedTs] = useState<number | null>(null);
+  const [copiedLocator, setCopiedLocator] = useState(false);
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_PICKER_STATE }, (response) => {
@@ -61,6 +62,18 @@ const App = () => {
         }
       }
     });
+  };
+
+  // Copy the locator shown in the result card. Uses lastLocator directly so it
+  // stays correct during the ~200ms window before history catches up after a pick.
+  const copyLocator = async (locator: string) => {
+    try {
+      await navigator.clipboard.writeText(locator);
+      setCopiedLocator(true);
+      setTimeout(() => setCopiedLocator(false), 1000);
+    } catch {
+      // Clipboard may be unavailable; ignore.
+    }
   };
 
   const copyRow = async (entry: HistoryEntry) => {
@@ -111,13 +124,10 @@ const App = () => {
               <span className="result-hint">last picked</span>
               <button
                 className="btn-copy-result"
-                onClick={() =>
-                  history[0] &&
-                  copyRow(history[0])
-                }
+                onClick={() => copyLocator(lastLocator)}
                 title="Copy locator"
               >
-                {history[0] && copiedTs === history[0].timestamp ? (
+                {copiedLocator ? (
                   <><CheckIcon />Copied</>
                 ) : (
                   <><CopyIcon />Copy</>
