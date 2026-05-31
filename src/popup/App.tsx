@@ -8,7 +8,6 @@ import {
   CopyIcon,
   CheckIcon,
   HistoryIcon,
-  LogoMark,
   GitHubIcon,
 } from './icons';
 
@@ -79,7 +78,7 @@ const App = () => {
   return (
     <div className="pw">
       <header className="hd">
-        <LogoMark />
+        <div className="hd-pip" />
         <span className="hd-name">
           Pick<span className="w">w</span>right
         </span>
@@ -97,16 +96,35 @@ const App = () => {
       </header>
 
       <div className="body">
-        {pickerActive ? (
-          <button className="btn btn-stop" onClick={togglePicker}>
-            <StopIcon />
-            Stop picking
-          </button>
-        ) : (
-          <button className="btn btn-primary" onClick={togglePicker}>
-            <CrosshairsIcon />
-            Pick element
-          </button>
+        {lastLocator && result && (
+          <div className="result">
+            <div className="result-top">
+              <span className="badge">{result.badge}</span>
+              <span className="result-sep">·</span>
+              <span className="result-tag">&lt;{lastTag}&gt;</span>
+            </div>
+            <div
+              className="result-code"
+              dangerouslySetInnerHTML={{ __html: highlight(lastLocator) }}
+            />
+            <div className="result-footer">
+              <span className="result-hint">last picked</span>
+              <button
+                className="btn-copy-result"
+                onClick={() =>
+                  history[0] &&
+                  copyRow(history[0])
+                }
+                title="Copy locator"
+              >
+                {history[0] && copiedTs === history[0].timestamp ? (
+                  <><CheckIcon />Copied</>
+                ) : (
+                  <><CopyIcon />Copy</>
+                )}
+              </button>
+            </div>
+          </div>
         )}
 
         {pickerActive && (
@@ -121,25 +139,24 @@ const App = () => {
           </div>
         )}
 
-        {lastLocator && result && (
-          <div className="result">
-            <div className="result-top">
-              <span className="badge">{result.badge}</span>
-              <span className="result-tag">
-                &lt;<span className="tag">{lastTag}</span>&gt;
-              </span>
-            </div>
-            <div
-              className="result-code"
-              dangerouslySetInnerHTML={{ __html: highlight(lastLocator) }}
-            />
-          </div>
-        )}
+        <div className="btn-pick-row">
+          {pickerActive ? (
+            <button className="btn btn-stop" onClick={togglePicker}>
+              <StopIcon />
+              Stop picking
+            </button>
+          ) : (
+            <button className="btn btn-primary" onClick={togglePicker}>
+              <CrosshairsIcon />
+              Pick element
+            </button>
+          )}
+        </div>
 
         {history.length > 0 ? (
           <div>
             <div className="history-head">
-              <span className="history-label">HISTORY</span>
+              <span className="history-label">History</span>
               <span className="history-count">
                 {history.length} / {MAX_HISTORY}
               </span>
