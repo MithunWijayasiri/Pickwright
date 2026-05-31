@@ -7,6 +7,7 @@ import {
   updateHighlight,
   hideHighlight,
   isPickerElement,
+  TOAST_ID,
 } from './overlay';
 import {
   collectMetadata,
@@ -289,45 +290,131 @@ function copyToClipboard(text: string): void {
 
 // --- Toast ---
 
+function highlightToInline(s: string): string {
+  const escapeHtml = (str: string) =>
+    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return escapeHtml(s)
+    .replace(/(getBy[A-Za-z]+)/g, '<span style="color:#79b8ff">$1</span>')
+    .replace(/('[^']*')/g, '<span style="color:#00d062">$1</span>')
+    .replace(/\b(name|exact|hasText|level)\b(?=\s*:)/g, '<span style="color:#ffa657">$1</span>');
+}
+
 function showToast(text: string, isDropdown: boolean): void {
+  // Drop any toast still on screen so rapid picks don't stack duplicate IDs.
+  document.getElementById(TOAST_ID)?.remove();
+
   const toast = document.createElement('div');
+  toast.id = TOAST_ID;
   Object.assign(toast.style, {
     position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    background: '#1e293b',
-    color: '#fff',
-    padding: '10px 16px',
-    borderRadius: '8px',
-    fontSize: '12px',
-    fontFamily: 'monospace',
+    bottom: '24px',
+    right: '24px',
+    width: '320px',
+    background: '#0e0e10',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '4px',
+    overflow: 'hidden',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+    display: 'flex',
+    alignItems: 'stretch',
     zIndex: '2147483647',
-    maxWidth: '350px',
-    wordBreak: 'break-all',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
     opacity: '0',
-    transform: 'translateY(8px)',
-    transition: 'opacity 150ms, transform 150ms',
-    pointerEvents: 'none',
-    whiteSpace: 'pre-wrap',
+    transform: 'translateX(30px) scale(0.96)',
+    transition: 'opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), transform 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+    pointerEvents: 'auto',
   });
 
-  toast.textContent = isDropdown
-    ? `✓ Copied: ${text}\n⚠ Dropdown trigger — not opened`
-    : `✓ Copied: ${text}`;
+  const accentColor = isDropdown ? '#ffa657' : '#00d062';
+
+  const sideBar = document.createElement('div');
+  Object.assign(sideBar.style, {
+    width: '3px',
+    backgroundColor: accentColor,
+    flexShrink: '0',
+  });
+  toast.appendChild(sideBar);
+
+  const innerContent = document.createElement('div');
+  Object.assign(innerContent.style, {
+    padding: '10px 14px 12px', // Add slightly more bottom padding to accommodate progress bar
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    flex: '1',
+    minWidth: '0',
+  });
+
+  const statusRow = document.createElement('div');
+  Object.assign(statusRow.style, {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    fontFamily: "Consolas, Menlo, Monaco, 'JetBrains Mono', monospace",
+    fontSize: '9px',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: accentColor,
+  });
+  statusRow.textContent = isDropdown ? '⚠ Warning' : '✓ Copied';
+  innerContent.appendChild(statusRow);
+
+  const codeRow = document.createElement('div');
+  Object.assign(codeRow.style, {
+    fontFamily: "Consolas, Menlo, Monaco, 'JetBrains Mono', monospace",
+    fontSize: '11px',
+    lineHeight: '1.4',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    color: '#f2f2f0',
+  });
+  codeRow.innerHTML = highlightToInline(text);
+  innerContent.appendChild(codeRow);
+
+  if (isDropdown) {
+    const warnRow = document.createElement('div');
+    Object.assign(warnRow.style, {
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontSize: '9px',
+      color: '#ffa657',
+      marginTop: '2px',
+      fontWeight: '500',
+    });
+    warnRow.textContent = 'Dropdown trigger detected (not opened)';
+    innerContent.appendChild(warnRow);
+  }
+
+  toast.appendChild(innerContent);
+
+  // Add progress bar
+  const progressBar = document.createElement('div');
+  Object.assign(progressBar.style, {
+    position: 'absolute',
+    bottom: '0',
+    left: '0',
+    height: '2px',
+    backgroundColor: accentColor,
+    width: '100%',
+    transition: 'width 2800ms linear',
+  });
+  toast.appendChild(progressBar);
 
   document.documentElement.appendChild(toast);
 
+  // Trigger smooth transition
   requestAnimationFrame(() => {
     toast.style.opacity = '1';
-    toast.style.transform = 'translateY(0)';
+    toast.style.transform = 'translateX(0) scale(1)';
+    progressBar.style.width = '0%';
   });
 
+  // Auto dismiss
   setTimeout(() => {
     toast.style.opacity = '0';
-    toast.style.transform = 'translateY(8px)';
-    setTimeout(() => toast.remove(), 200);
-  }, 2500);
+    toast.style.transform = 'translateX(30px) scale(0.96)';
+    setTimeout(() => toast.remove(), 250);
+  }, 2800);
 }
 
 // --- Message listener ---

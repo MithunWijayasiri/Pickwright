@@ -8,7 +8,6 @@ import {
   CopyIcon,
   CheckIcon,
   HistoryIcon,
-  LogoMark,
   GitHubIcon,
 } from './icons';
 
@@ -20,6 +19,7 @@ const App = () => {
   const [lastTag, setLastTag] = useState<string>('');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [copiedTs, setCopiedTs] = useState<number | null>(null);
+  const [copiedLocator, setCopiedLocator] = useState(false);
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_PICKER_STATE }, (response) => {
@@ -64,6 +64,18 @@ const App = () => {
     });
   };
 
+  // Copy the locator shown in the result card. Uses lastLocator directly so it
+  // stays correct during the ~200ms window before history catches up after a pick.
+  const copyLocator = async (locator: string) => {
+    try {
+      await navigator.clipboard.writeText(locator);
+      setCopiedLocator(true);
+      setTimeout(() => setCopiedLocator(false), 1000);
+    } catch {
+      // Clipboard may be unavailable; ignore.
+    }
+  };
+
   const copyRow = async (entry: HistoryEntry) => {
     try {
       await navigator.clipboard.writeText(entry.locator);
@@ -79,7 +91,7 @@ const App = () => {
   return (
     <div className="pw">
       <header className="hd">
-        <LogoMark />
+        <div className="hd-pip" />
         <span className="hd-name">
           Pick<span className="w">w</span>right
         </span>
@@ -97,16 +109,32 @@ const App = () => {
       </header>
 
       <div className="body">
-        {pickerActive ? (
-          <button className="btn btn-stop" onClick={togglePicker}>
-            <StopIcon />
-            Stop picking
-          </button>
-        ) : (
-          <button className="btn btn-primary" onClick={togglePicker}>
-            <CrosshairsIcon />
-            Pick element
-          </button>
+        {lastLocator && result && (
+          <div className="result">
+            <div className="result-top">
+              <span className="badge">{result.badge}</span>
+              <span className="result-sep">·</span>
+              <span className="result-tag">&lt;{lastTag}&gt;</span>
+            </div>
+            <div
+              className="result-code"
+              dangerouslySetInnerHTML={{ __html: highlight(lastLocator) }}
+            />
+            <div className="result-footer">
+              <span className="result-hint">last picked</span>
+              <button
+                className="btn-copy-result"
+                onClick={() => copyLocator(lastLocator)}
+                title="Copy locator"
+              >
+                {copiedLocator ? (
+                  <><CheckIcon />Copied</>
+                ) : (
+                  <><CopyIcon />Copy</>
+                )}
+              </button>
+            </div>
+          </div>
         )}
 
         {pickerActive && (
@@ -121,25 +149,24 @@ const App = () => {
           </div>
         )}
 
-        {lastLocator && result && (
-          <div className="result">
-            <div className="result-top">
-              <span className="badge">{result.badge}</span>
-              <span className="result-tag">
-                &lt;<span className="tag">{lastTag}</span>&gt;
-              </span>
-            </div>
-            <div
-              className="result-code"
-              dangerouslySetInnerHTML={{ __html: highlight(lastLocator) }}
-            />
-          </div>
-        )}
+        <div className="btn-pick-row">
+          {pickerActive ? (
+            <button className="btn btn-stop" onClick={togglePicker}>
+              <StopIcon />
+              Stop picking
+            </button>
+          ) : (
+            <button className="btn btn-primary" onClick={togglePicker}>
+              <CrosshairsIcon />
+              Pick element
+            </button>
+          )}
+        </div>
 
         {history.length > 0 ? (
           <div>
             <div className="history-head">
-              <span className="history-label">HISTORY</span>
+              <span className="history-label">History</span>
               <span className="history-count">
                 {history.length} / {MAX_HISTORY}
               </span>

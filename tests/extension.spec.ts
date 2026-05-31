@@ -121,10 +121,11 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     await expect(page.locator('#pickwright-highlight')).toBeHidden();
 
     // Toast confirms the copy and the dropdown-not-opened warning.
-    const toast = page.locator('div:has-text("✓ Copied:")');
+    const toast = page.locator('#pickwright-toast');
     await expect(toast).toBeVisible();
     await expect(toast).toContainText(expectedLocator);
-    await expect(toast).toContainText('⚠ Dropdown trigger — not opened');
+    await expect(toast).toContainText('⚠ Warning');
+    await expect(toast).toContainText('Dropdown trigger detected (not opened)');
 
     // Clipboard contents (poll to avoid races with the async write).
     await expect
