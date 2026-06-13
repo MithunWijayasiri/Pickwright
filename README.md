@@ -95,6 +95,12 @@ Contributions are welcome! To get started:
 
 Please keep PRs focused and follow the existing code style (enforced via ESLint + Prettier).
 
+## Privacy
+
+Pickwright performs no off-device collection or transmission — no tracking, no
+analytics, no network requests. Your selection history is stored only locally in
+the extension's own browser storage. See the full [Privacy Policy](docs/PRIVACY.md).
+
 ## License
 
 MIT
