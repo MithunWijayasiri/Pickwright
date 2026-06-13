@@ -44,10 +44,10 @@ One `src/manifest.json` → two browser builds. `webpack.config.js` reads `TARGE
 
 Popup cannot message content script directly → two paths:
 
-1. **Popup → content (commands):** popup sends `TOGGLE_PICKER` / `GET_PICKER_STATE` via `chrome.runtime.sendMessage`. **Background relays:** ignores messages w/ `sender.tab` (from content), forwards popup messages to active tab's content script, returns response async (`return true`).
-2. **Content → popup (results/state):** on selection, content broadcasts `ELEMENT_SELECTED` directly via `chrome.runtime.sendMessage` — **NOT** relayed; popup listens. On Escape, broadcasts `PICKER_STATE_CHANGED` (`{ active: false }`) so popup resets toggle.
+1. **Popup → content (commands):** popup sends `TOGGLE_PICKER` / `GET_PICKER_STATE` via `chrome.runtime.sendMessage`. **Background relays** popup messages (those w/o `sender.tab`) to active tab's content script, returns response async (`return true`). Messages w/ `sender.tab` (from content) are handled in background, not relayed.
+2. **Content → popup (results/state):** on selection, content broadcasts `ELEMENT_SELECTED` directly via `chrome.runtime.sendMessage` — **NOT** relayed. Both background (to persist history) and popup (to update its display) receive it. On Escape, content broadcasts `PICKER_STATE_CHANGED` (`{ active: false }`) so popup resets toggle.
 
-History written **in popup** (`App.tsx`), NOT content script: popup gets `ELEMENT_SELECTED`, enriches w/ active tab URL, calls `addToHistory`. Content never touches `chrome.storage`. All message type constants + payload interfaces live in `src/shared/messaging.ts` — keep in sync across all three contexts.
+History written **in the background worker** (`background/index.ts`), NOT popup or content script: on `ELEMENT_SELECTED` from content (`sender.tab` present), background builds the `HistoryEntry` using `sender.tab.url` and calls `addToHistory` — the popup is usually closed when the user clicks, so it can't reliably write. Popup just re-reads storage (`getHistory`) to display. Content never touches `chrome.storage`. All message type constants + payload interfaces live in `src/shared/messaging.ts` — keep in sync across all three contexts.
 
 ### Picking mechanism (`src/content/`)
 
