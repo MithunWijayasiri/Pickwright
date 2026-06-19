@@ -9,9 +9,16 @@ import {
   CheckIcon,
   HistoryIcon,
   GitHubIcon,
+  SunIcon,
+  MoonIcon,
 } from './icons';
 
 const MAX_HISTORY = 20;
+
+type Theme = 'dark' | 'light';
+
+const getInitialTheme = (): Theme =>
+  localStorage.getItem('pw-theme') === 'light' ? 'light' : 'dark';
 
 const App = () => {
   const [pickerActive, setPickerActive] = useState(false);
@@ -20,6 +27,19 @@ const App = () => {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [copiedTs, setCopiedTs] = useState<number | null>(null);
   const [copiedLocator, setCopiedLocator] = useState(false);
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((cur) => {
+      const next = cur === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('pw-theme', next);
+      return next;
+    });
+  };
 
   useEffect(() => {
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_PICKER_STATE }, (response) => {
@@ -91,11 +111,19 @@ const App = () => {
   return (
     <div className="pw">
       <header className="hd">
-        <div className="hd-pip" />
         <span className="hd-name">
-          Pick<span className="w">w</span>right
+          <span className="n1">Pick</span>
+          <span className="n2">wright</span>
         </span>
         <span className="hd-ver">v{chrome.runtime.getManifest().version}</span>
+        <button
+          className="hd-theme"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+        </button>
         <a
           className="hd-gh"
           href="https://github.com/MithunWijayasiri/Pickwright"
