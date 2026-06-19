@@ -21,6 +21,7 @@
   --accent: #4ec9b0;
   --accent-lo: rgba(78, 201, 176, 0.1);
   --accent-hi: rgba(78, 201, 176, 0.18);
+  --accent-glow: rgba(78, 201, 176, 0.5);
   --accent-dark: #2f7a6b;
   /* Stop / destructive — muted red */
   --destructive-bg: rgba(224, 108, 117, 0.1);
@@ -58,6 +59,7 @@
   --accent: #267f99;
   --accent-lo: rgba(38, 127, 153, 0.1);
   --accent-hi: rgba(38, 127, 153, 0.16);
+  --accent-glow: rgba(38, 127, 153, 0.5);
   --accent-dark: #1c6378;
   --destructive-bg: rgba(205, 49, 49, 0.08);
   --destructive-hi: rgba(205, 49, 49, 0.15);
@@ -389,7 +391,7 @@ body {
 
 @keyframes pw-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(78, 201, 176, 0.5);
+    box-shadow: 0 0 0 0 var(--accent-glow);
   }
   70% {
     box-shadow: 0 0 0 6px transparent;
