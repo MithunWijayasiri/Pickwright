@@ -1,35 +1,42 @@
-/* Pickwright popup — Design D "Big Result" (Bold Mono theme) */
+/* Pickwright popup — VS Code Dark theme */
 /* JetBrains Mono is bundled locally via @fontsource (see popup/index.tsx). */
 
 :root {
-  /* Surfaces */
-  --surface-base: #0e0e0e;
-  --surface-raised: #141414;
-  --surface-row: #141414;
-  --surface-row-hover: #1c1c1c;
+  /* Surfaces — VS Code editor grays */
+  --surface-base: #1e1e1e;
+  --surface-raised: #252526;
+  --surface-titlebar: #2d2d30;
+  --surface-row: #1e1e1e;
+  --surface-row-hover: #2a2d2e;
   /* Borders */
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.12);
-  --border-subtle: rgba(255,255,255,0.05);
+  --border: #2d2d2d;
+  --border2: #3c3c3c;
+  --border-subtle: #262626;
   /* Text */
-  --text-primary: #f2f2f0;
-  --text-body: #d8d8d4;
-  --text-muted: #707068;
-  --text-faint: #3e3e3a;
-  /* Accent */
-  --accent: #00d062;
-  --accent-lo: rgba(0,208,98,0.08);
-  --accent-dark: #00a84e;
-  /* Stop / destructive */
-  --destructive-bg: rgba(255,100,100,0.08);
-  --destructive-text: #ff7070;
-  --destructive-border: rgba(255,100,100,0.2);
-  /* Syntax */
-  --tok-fn: #79b8ff;
-  --tok-str: #00d062;
-  --tok-key: #ffa657;
+  --text-primary: #d4d4d4;
+  --text-body: #cccccc;
+  --text-muted: #858585;
+  --text-faint: #585858;
+  /* Accent — muted VS Code teal */
+  --accent: #4ec9b0;
+  --accent-lo: rgba(78, 201, 176, 0.1);
+  --accent-dark: #2f7a6b;
+  /* Stop / destructive — muted red */
+  --destructive-bg: rgba(224, 108, 117, 0.1);
+  --destructive-text: #e06c75;
+  --destructive-border: rgba(224, 108, 117, 0.3);
+  /* Syntax — VS Code token palette */
+  --tok-fn: #dcdcaa;
+  --tok-str: #ce9178;
+  --tok-key: #9cdcfe;
+  /* Strategy type colors */
+  --type-role: #9cdcfe;
+  --type-testid: #c586c0;
+  --type-label: #dcdcaa;
+  --type-text: #4ec9b0;
+  --type-css: #858585;
 
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, 'Fira Code', Menlo, monospace;
 }
 
 * {
@@ -60,56 +67,60 @@ body {
 .hd {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--surface-titlebar);
+  border-bottom: 1px solid var(--border2);
 }
 
 .hd-pip {
-  width: 5px;
-  height: 5px;
-  background: var(--accent);
-  flex-shrink: 0;
+  /* hidden — wordmark carries the brand color */
+  display: none;
 }
 
 .hd-mark {
-  /* hidden — replaced by pip */
   display: none;
 }
 
 .hd-name {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-primary);
 }
 
-.hd-name .w {
+.hd-name .n1 {
   color: var(--accent);
+}
+
+.hd-name .n2 {
+  color: var(--type-testid);
 }
 
 .hd-ver {
   font-size: 9px;
-  color: var(--text-faint);
-  margin-left: 2px;
+  color: var(--text-muted);
+  background: var(--border2);
+  border-radius: 3px;
+  padding: 1px 5px;
 }
 
 .hd-gh {
   display: flex;
   align-items: center;
-  color: var(--text-faint);
+  color: var(--text-muted);
   margin-left: auto;
   transition: color 150ms ease;
 }
 
 .hd-gh .icon {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
 }
 
 .hd-gh:hover {
-  color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 /* ---------- Body ---------- */
@@ -120,7 +131,7 @@ body {
 
 /* ---------- Big result hero ---------- */
 .result {
-  padding: 14px 14px 12px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border2);
 }
 
@@ -133,34 +144,30 @@ body {
 
 .badge {
   font-family: var(--font-mono);
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent);
-  background: none;
-  padding: 0;
-  border-radius: 0;
 }
 
 .result-sep {
-  color: var(--text-faint);
-  font-size: 9px;
+  color: var(--text-muted);
+  font-size: 11px;
 }
 
 .result-tag {
   font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-faint);
+  font-size: 10px;
+  color: var(--type-role);
 }
 
 /* Large locator display */
 .result-code {
   font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
   word-break: break-all;
   color: var(--text-primary);
   margin-bottom: 12px;
@@ -187,31 +194,33 @@ body {
 }
 
 .result-hint {
-  font-size: 9px;
-  color: var(--text-faint);
-  letter-spacing: 0.04em;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
 }
 
 /* ---------- Copy button (in result footer) ---------- */
 .btn-copy-result {
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #0a0a0a;
-  background: var(--accent);
-  border: none;
+  color: var(--accent);
+  background: rgba(78, 201, 176, 0.08);
+  border: 1px solid var(--accent-dark);
+  border-radius: 4px;
   padding: 4px 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 5px;
-  transition: opacity 0.15s;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .btn-copy-result:hover {
-  opacity: 0.85;
+  background: rgba(78, 201, 176, 0.16);
+  border-color: var(--accent);
 }
 
 .btn-copy-result .icon {
@@ -236,11 +245,12 @@ body {
   gap: 8px;
   padding: 9px 14px;
   border: 1px solid;
+  border-radius: 4px;
   background: transparent;
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
   transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
@@ -252,19 +262,20 @@ body {
 }
 
 .btn .icon {
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
 }
 
 .btn-primary {
-  color: var(--accent);
-  border-color: rgba(0,208,98,0.4);
+  color: var(--text-muted);
+  border-color: var(--border2);
 }
 
 .btn-primary:hover {
+  color: var(--accent);
   background: var(--accent-lo);
-  border-color: var(--accent);
+  border-color: var(--accent-dark);
 }
 
 .btn-stop {
@@ -274,7 +285,7 @@ body {
 }
 
 .btn-stop:hover {
-  background: rgba(255,100,100,0.14);
+  background: rgba(224, 108, 117, 0.18);
 }
 
 /* ---------- Empty history placeholder ---------- */
@@ -316,20 +327,27 @@ body {
   height: 6px;
   margin-top: 4px;
   flex: 0 0 6px;
+  border-radius: 50%;
   background: var(--accent);
   animation: pw-pulse 1.4s ease infinite;
 }
 
 @keyframes pw-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(0,208,98,0.5); }
-  70% { box-shadow: 0 0 0 6px transparent; }
-  100% { box-shadow: 0 0 0 0 transparent; }
+  0% {
+    box-shadow: 0 0 0 0 rgba(78, 201, 176, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
 }
 
 .banner-title {
   font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--accent);
 }
@@ -345,21 +363,21 @@ body {
 .history-head {
   display: flex;
   align-items: center;
-  padding: 8px 14px 4px;
+  padding: 9px 14px 5px;
 }
 
 .history-label {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .history-count {
   margin-left: auto;
-  font-size: 8px;
-  color: var(--text-faint);
+  font-size: 9px;
+  color: var(--text-muted);
 }
 
 .history-list {
@@ -371,42 +389,70 @@ body {
 }
 
 /* Thin scrollbar */
-.history-list::-webkit-scrollbar { width: 6px; }
-.history-list::-webkit-scrollbar-track { background: transparent; }
-.history-list::-webkit-scrollbar-thumb { background: var(--border2); }
-.history-list::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+.history-list::-webkit-scrollbar {
+  width: 8px;
+}
+.history-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.history-list::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 4px;
+}
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
 
-/* ---------- History rows — ruled like landing page feature rows ---------- */
+/* ---------- History rows ---------- */
 .row {
   display: grid;
-  grid-template-columns: 36px 1fr 16px;
-  align-items: center;
+  grid-template-columns: auto 1fr 16px;
+  align-items: flex-start;
   gap: 8px;
   padding: 7px 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
   cursor: pointer;
-  transition: background 120ms ease, padding-left 150ms ease;
+  transition: background 120ms ease;
 }
 
 .row:hover {
   background: var(--surface-row-hover);
-  padding-left: 18px;
 }
 
-/* ---------- Strategy pill (text only, no bg box) ---------- */
+/* ---------- Strategy pill — bordered box, colored per type ---------- */
 .pill {
   font-family: var(--font-mono);
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  background: var(--surface-raised);
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-top: 1px;
 }
 
-.pill-role    { color: var(--tok-fn); }
-.pill-testId  { color: var(--accent); }
-.pill-label   { color: #b392f0; }
-.pill-text    { color: var(--tok-key); }
-.pill-css     { color: var(--text-muted); }
+.pill-role {
+  color: var(--type-role);
+  border-color: var(--type-role);
+}
+.pill-testId {
+  color: var(--type-testid);
+  border-color: var(--type-testid);
+}
+.pill-label {
+  color: var(--type-label);
+  border-color: var(--type-label);
+}
+.pill-text {
+  color: var(--type-text);
+  border-color: var(--type-text);
+}
+.pill-css {
+  color: var(--type-css);
+  border-color: var(--border2);
+}
 
 .row-main {
   min-width: 0;
@@ -414,7 +460,7 @@ body {
 
 .row-locator {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--text-body);
   white-space: nowrap;
   overflow: hidden;
@@ -424,7 +470,7 @@ body {
 .row-tag {
   margin-top: 1px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   color: var(--text-faint);
 }
 
@@ -432,6 +478,7 @@ body {
   flex: 0 0 auto;
   width: 12px;
   height: 12px;
+  margin-top: 2px;
   color: var(--text-faint);
   opacity: 0;
   transition: opacity 150ms ease, color 150ms ease;
@@ -445,5 +492,3 @@ body {
   opacity: 1;
   color: var(--accent);
 }
-
-

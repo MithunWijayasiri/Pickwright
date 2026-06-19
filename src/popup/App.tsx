@@ -91,9 +91,9 @@ const App = () => {
   return (
     <div className="pw">
       <header className="hd">
-        <div className="hd-pip" />
         <span className="hd-name">
-          Pick<span className="w">w</span>right
+          <span className="n1">Pick</span>
+          <span className="n2">wright</span>
         </span>
         <span className="hd-ver">v{chrome.runtime.getManifest().version}</span>
         <a
