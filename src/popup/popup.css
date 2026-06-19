@@ -20,9 +20,11 @@
   /* Accent — muted VS Code teal */
   --accent: #4ec9b0;
   --accent-lo: rgba(78, 201, 176, 0.1);
+  --accent-hi: rgba(78, 201, 176, 0.18);
   --accent-dark: #2f7a6b;
   /* Stop / destructive — muted red */
   --destructive-bg: rgba(224, 108, 117, 0.1);
+  --destructive-hi: rgba(224, 108, 117, 0.18);
   --destructive-text: #e06c75;
   --destructive-border: rgba(224, 108, 117, 0.3);
   /* Syntax — VS Code token palette */
@@ -37,6 +39,38 @@
   --type-css: #858585;
 
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, 'Fira Code', Menlo, monospace;
+}
+
+/* ---------- Light theme — VS Code Light+ palette ---------- */
+:root[data-theme='light'] {
+  --surface-base: #ffffff;
+  --surface-raised: #f3f3f3;
+  --surface-titlebar: #f3f3f3;
+  --surface-row: #ffffff;
+  --surface-row-hover: #e8e8e8;
+  --border: #e5e5e5;
+  --border2: #d4d4d4;
+  --border-subtle: #ececec;
+  --text-primary: #1e1e1e;
+  --text-body: #333333;
+  --text-muted: #6f6f6f;
+  --text-faint: #a0a0a0;
+  --accent: #267f99;
+  --accent-lo: rgba(38, 127, 153, 0.1);
+  --accent-hi: rgba(38, 127, 153, 0.16);
+  --accent-dark: #1c6378;
+  --destructive-bg: rgba(205, 49, 49, 0.08);
+  --destructive-hi: rgba(205, 49, 49, 0.15);
+  --destructive-text: #cd3131;
+  --destructive-border: rgba(205, 49, 49, 0.3);
+  --tok-fn: #795e26;
+  --tok-str: #a31515;
+  --tok-key: #0451a5;
+  --type-role: #0451a5;
+  --type-testid: #af00db;
+  --type-label: #795e26;
+  --type-text: #267f99;
+  --type-css: #6f6f6f;
 }
 
 * {
@@ -110,7 +144,6 @@ body {
   display: flex;
   align-items: center;
   color: var(--text-muted);
-  margin-left: auto;
   transition: color 150ms ease;
 }
 
@@ -121,6 +154,28 @@ body {
 
 .hd-gh:hover {
   color: var(--text-primary);
+}
+
+.hd-theme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 150ms ease;
+}
+
+.hd-theme:hover {
+  color: var(--accent);
+}
+
+.hd-theme .icon {
+  width: 14px;
+  height: 14px;
 }
 
 /* ---------- Body ---------- */
@@ -207,7 +262,7 @@ body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent);
-  background: rgba(78, 201, 176, 0.08);
+  background: var(--accent-lo);
   border: 1px solid var(--accent-dark);
   border-radius: 4px;
   padding: 4px 10px;
@@ -219,7 +274,7 @@ body {
 }
 
 .btn-copy-result:hover {
-  background: rgba(78, 201, 176, 0.16);
+  background: var(--accent-hi);
   border-color: var(--accent);
 }
 
@@ -285,7 +340,7 @@ body {
 }
 
 .btn-stop:hover {
-  background: rgba(224, 108, 117, 0.18);
+  background: var(--destructive-hi);
 }
 
 /* ---------- Empty history placeholder ---------- */
