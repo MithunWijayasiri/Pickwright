@@ -7,22 +7,10 @@ Guidance for Claude Code working in this repo.
 | Command | Description |
 |---------|-------------|
 | `npm run build` | Production build → `dist/` (Chrome manifest; load this folder as an unpacked extension) |
-| `npm run build:chrome` | Chrome build → `dist/` (`TARGET=chrome`) |
-| `npm run build:firefox` | Firefox build → `dist-firefox/` (`TARGET=firefox`, gecko manifest) |
 | `npm run dev` | Development build with watch mode |
-| `npm run lint` | ESLint over `src/**/*.{ts,tsx}` |
-| `npm run format` | Prettier write over `src` + `tests` (`.{ts,tsx,css,html}`) and `playwright.config.ts` |
 | `npm run test` | Playwright E2E suite (runs `npm run build` first) |
 
 E2E: `tests/`, Playwright (`@playwright/test`). Launches persistent Chromium w/ unpacked `dist/` loaded, serves `tests/test-page.html` over local HTTP, drives picker via messages relayed through background worker. Run `npx playwright install chromium` once before first run. Locator engine has NO unit tests — coverage = E2E suite + manual (build, reload at `chrome://extensions`, pick on real page). Reload extension after content/background changes; popup changes show on reopen.
-
-## Code review / `gh` CLI
-
-`gh` is **NOT installed** here — `/review` skill cannot fetch PR metadata/diffs. Do **NOT** run `gh pr list` / `gh pr view` / `gh pr diff` (fail "command not found"). Review locally:
-
-- Feature branch vs default: `git diff master...<branch>`.
-- No branch given → review current branch vs `master`.
-- Remote `https://github.com/MithunWijayasiri/Pickwright.git`; `master` = default + PR base.
 
 ## Architecture
 

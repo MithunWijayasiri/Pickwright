@@ -1,10 +1,19 @@
 // Pickwright background service worker
 
 import { MESSAGE_TYPES, Message } from '../shared/messaging';
-import { addToHistory, HistoryEntry } from '../shared/storage';
+import { addToHistory, clearHistory, HistoryEntry } from '../shared/storage';
+import { getSettings } from '../shared/settings';
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Pickwright extension installed');
+});
+
+// Auto-clear history on browser restart when historyMode is 'autoClear'.
+chrome.runtime.onStartup.addListener(async () => {
+  const { historyMode } = await getSettings();
+  if (historyMode === 'autoClear') {
+    await clearHistory();
+  }
 });
 
 chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) => {
@@ -13,15 +22,20 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
     // Persist picked elements here — the popup is usually closed by the time
     // the user clicks the page, so it can't reliably write history itself.
     if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
-      const entry: HistoryEntry = {
-        url: sender.tab.url ?? '',
-        timestamp: Date.now(),
-        locator: message.payload.locator,
-        score: message.payload.score,
-        tag: message.payload.tag,
-        textSnippet: message.payload.textSnippet,
-      };
-      addToHistory(entry);
+      const tabUrl = sender.tab.url ?? '';
+      const payload = message.payload;
+      getSettings().then(({ historyMode }) => {
+        if (historyMode === 'off') return;
+        const entry: HistoryEntry = {
+          url: tabUrl,
+          timestamp: Date.now(),
+          locator: payload.locator,
+          score: payload.score,
+          tag: payload.tag,
+          textSnippet: payload.textSnippet,
+        };
+        addToHistory(entry);
+      });
     }
     return;
   }

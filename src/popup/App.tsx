@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { MESSAGE_TYPES, Message } from '../shared/messaging';
-import { getHistory, HistoryEntry } from '../shared/storage';
+import { getHistory, clearHistory, HistoryEntry } from '../shared/storage';
+import {
+  getSettings,
+  setSettings,
+  Settings,
+  HistoryMode,
+  DEFAULT_SETTINGS,
+} from '../shared/settings';
 import { getStrategy, highlight } from './locatorUtils';
 import {
   CrosshairsIcon,
@@ -9,16 +16,52 @@ import {
   CheckIcon,
   HistoryIcon,
   GitHubIcon,
-  SunIcon,
-  MoonIcon,
+  SettingsIcon,
+  BackIcon,
 } from './icons';
 
 const MAX_HISTORY = 20;
 
 type Theme = 'dark' | 'light';
+type View = 'main' | 'settings';
 
 const getInitialTheme = (): Theme =>
   localStorage.getItem('pw-theme') === 'light' ? 'light' : 'dark';
+
+const Segmented = <T extends string>({
+  value,
+  options,
+  onChange,
+  label,
+  desc,
+}: {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (next: T) => void;
+  label: string;
+  desc: string;
+}) => (
+  <div className="set-row">
+    <div className="set-text">
+      <div className="set-label">{label}</div>
+      <div className="set-desc">{desc}</div>
+    </div>
+    <div className="seg" role="radiogroup" aria-label={label}>
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          role="radio"
+          aria-checked={value === opt.value}
+          className={`seg-btn${value === opt.value ? ' on' : ''}`}
+          onClick={() => onChange(opt.value)}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  </div>
+);
 
 const App = () => {
   const [pickerActive, setPickerActive] = useState(false);
@@ -28,20 +71,30 @@ const App = () => {
   const [copiedTs, setCopiedTs] = useState<number | null>(null);
   const [copiedLocator, setCopiedLocator] = useState(false);
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [view, setView] = useState<View>('main');
+  const [settings, setSettingsState] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((cur) => {
-      const next = cur === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('pw-theme', next);
-      return next;
-    });
+  const applyTheme = (next: Theme) => {
+    localStorage.setItem('pw-theme', next);
+    setTheme(next);
+  };
+
+  const updateSetting = (patch: Partial<Settings>) => {
+    setSettingsState((cur) => ({ ...cur, ...patch }));
+    setSettings(patch);
+    // Turning history off wipes existing entries and hides the section.
+    if (patch.historyMode === 'off') {
+      clearHistory();
+      setHistory([]);
+    }
   };
 
   useEffect(() => {
+    getSettings().then(setSettingsState);
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_PICKER_STATE }, (response) => {
       if (response?.active) setPickerActive(true);
     });
@@ -111,32 +164,76 @@ const App = () => {
   return (
     <div className="pw">
       <header className="hd">
-        <span className="hd-name">
-          <span className="n1">Pick</span>
-          <span className="n2">wright</span>
-        </span>
-        <span className="hd-ver">v{chrome.runtime.getManifest().version}</span>
-        <button
-          className="hd-theme"
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-        </button>
-        <a
-          className="hd-gh"
-          href="https://github.com/MithunWijayasiri/Pickwright"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="View on GitHub"
-          aria-label="View on GitHub"
-        >
-          <GitHubIcon />
-        </a>
+        {view === 'settings' ? (
+          <>
+            <button
+              className="hd-btn"
+              onClick={() => setView('main')}
+              title="Back"
+              aria-label="Back"
+            >
+              <BackIcon />
+            </button>
+            <span className="hd-name">Settings</span>
+          </>
+        ) : (
+          <>
+            <span className="hd-name">
+              <span className="n1">Pick</span>
+              <span className="n2">wright</span>
+            </span>
+            <span className="hd-ver">v{chrome.runtime.getManifest().version}</span>
+            <div className="hd-actions">
+              <button
+                className="hd-btn"
+                onClick={() => setView('settings')}
+                title="Settings"
+                aria-label="Settings"
+              >
+                <SettingsIcon />
+              </button>
+              <a
+                className="hd-gh"
+                href="https://github.com/MithunWijayasiri/Pickwright"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View on GitHub"
+                aria-label="View on GitHub"
+              >
+                <GitHubIcon />
+              </a>
+            </div>
+          </>
+        )}
       </header>
 
       <div className="body">
+        {view === 'settings' ? (
+          <div className="settings">
+            <Segmented<Theme>
+              value={theme}
+              options={[
+                { value: 'light', label: 'Light' },
+                { value: 'dark', label: 'Dark' },
+              ]}
+              onChange={applyTheme}
+              label="Theme"
+              desc="Switch between the light and dark color scheme."
+            />
+            <Segmented<HistoryMode>
+              value={settings.historyMode}
+              options={[
+                { value: 'keep', label: 'Keep' },
+                { value: 'autoClear', label: 'Auto-clear' },
+                { value: 'off', label: 'Off' },
+              ]}
+              onChange={(next) => updateSetting({ historyMode: next })}
+              label="History"
+              desc="Keep saves locators across restarts, Auto-clear wipes them on browser startup, Off stops recording."
+            />
+          </div>
+        ) : (
+          <>
         {lastLocator && result && (
           <div className="result">
             <div className="result-top">
@@ -191,7 +288,8 @@ const App = () => {
           )}
         </div>
 
-        {history.length > 0 ? (
+        {settings.historyMode !== 'off' &&
+          (history.length > 0 ? (
           <div>
             <div className="history-head">
               <span className="history-label">History</span>
@@ -237,6 +335,8 @@ const App = () => {
             <HistoryIcon />
             <p>No locators yet — pick an element to capture its Playwright locator.</p>
           </div>
+          ))}
+          </>
         )}
       </div>
     </div>
