@@ -31,3 +31,7 @@ export async function removeFromHistory(timestamp: number): Promise<void> {
   const filtered = history.filter((entry) => entry.timestamp !== timestamp);
   await chrome.storage.local.set({ [STORAGE_KEY]: filtered });
 }
+
+export async function clearHistory(): Promise<void> {
+  await chrome.storage.local.set({ [STORAGE_KEY]: [] });
+}
