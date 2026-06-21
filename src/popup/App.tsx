@@ -18,6 +18,7 @@ import {
   GitHubIcon,
   SettingsIcon,
   BackIcon,
+  StackIcon,
 } from './icons';
 
 const MAX_HISTORY = 20;
@@ -65,6 +66,8 @@ const Segmented = <T extends string>({
 
 const App = () => {
   const [pickerActive, setPickerActive] = useState(false);
+  const [multiPickerActive, setMultiPickerActive] = useState(false);
+  const [multiPickCount, setMultiPickCount] = useState(0);
   const [lastLocator, setLastLocator] = useState<string | null>(null);
   const [lastTag, setLastTag] = useState<string>('');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -105,7 +108,12 @@ const App = () => {
       .then(setSettingsState)
       .catch(() => setSettingsState(DEFAULT_SETTINGS));
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_PICKER_STATE }, (response) => {
-      if (response?.active) setPickerActive(true);
+      if (response?.active) {
+        setPickerActive(true);
+        if (response.multi) {
+          setMultiPickerActive(true);
+        }
+      }
     });
     // Restore history and the most-recent pick as the result card (the popup is
     // usually closed when the pick happens, so this rebuilds the result state).
@@ -120,14 +128,27 @@ const App = () => {
     const listener = (message: Message) => {
       if (message.type === MESSAGE_TYPES.PICKER_STATE_CHANGED) {
         setPickerActive(message.payload.active);
+        if (!message.payload.active) {
+          setMultiPickerActive(false);
+          setMultiPickCount(0);
+        }
+      }
+      if (message.type === MESSAGE_TYPES.MULTI_PICK_STATE_CHANGED) {
+        setPickerActive(false);
+        setMultiPickerActive(false);
+        setMultiPickCount(0);
       }
       if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
-        // Live update if the popup happens to be open. The background worker
-        // owns persistence — re-read storage to stay in sync.
         setLastLocator(message.payload.locator);
         setLastTag(message.payload.tag);
-        setPickerActive(false);
-        // Delay to let the background worker finish writing to storage before reading.
+        if (!message.payload.multiPick) {
+          // Single-pick: deactivate and close popup
+          setPickerActive(false);
+        } else {
+          // Multi-pick: increment counter, stay active
+          setMultiPickCount((c) => c + 1);
+        }
+        // Delay to let the background worker finish writing to storage.
         setTimeout(() => getHistory().then(setHistory), 200);
       }
     };
@@ -143,6 +164,25 @@ const App = () => {
           window.close();
         }
       }
+    });
+  };
+
+  const startMultiPick = () => {
+    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.MULTI_PICK_TOGGLE }, (response) => {
+      if (response) {
+        setPickerActive(response.active);
+        setMultiPickerActive(response.multi);
+        setMultiPickCount(0);
+        // Don't close popup — show stop button + count
+      }
+    });
+  };
+
+  const stopMultiPick = () => {
+    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.MULTI_PICK_STOP }, () => {
+      setPickerActive(false);
+      setMultiPickerActive(false);
+      setMultiPickCount(0);
     });
   };
 
@@ -271,7 +311,18 @@ const App = () => {
           </div>
         )}
 
-        {pickerActive && (
+        {pickerActive && multiPickerActive && (
+          <div className="banner">
+            <span className="banner-dot" />
+            <div>
+              <div className="banner-title">Multi-pick active</div>
+              <div className="banner-hint">
+                Click elements to collect locators. Press Stop when done.
+              </div>
+            </div>
+          </div>
+        )}
+        {pickerActive && !multiPickerActive && (
           <div className="banner">
             <span className="banner-dot" />
             <div>
@@ -283,21 +334,42 @@ const App = () => {
           </div>
         )}
 
+
+
         <div className="btn-pick-row">
-          {pickerActive ? (
-            <button className="btn btn-stop" onClick={togglePicker}>
+          {pickerActive && multiPickerActive ? (
+            <button className="btn btn-stop btn-full" onClick={stopMultiPick}>
+              <StopIcon />
+              Stop picking
+              {multiPickCount > 0 && (
+                <span className="btn-count">{multiPickCount}</span>
+              )}
+            </button>
+          ) : pickerActive && !multiPickerActive ? (
+            <button className="btn btn-stop btn-full" onClick={togglePicker}>
               <StopIcon />
               Stop picking
             </button>
           ) : (
-            <button className="btn btn-primary" onClick={togglePicker}>
-              <CrosshairsIcon />
-              Pick element
-            </button>
+            <>
+              <button className="btn btn-primary" onClick={togglePicker}>
+                <CrosshairsIcon />
+                Pick element
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={startMultiPick}
+                disabled={settings.historyMode === 'off'}
+                title={settings.historyMode === 'off' ? 'Enable history in Settings to use multi-pick' : ''}
+              >
+                <StackIcon />
+                Pick multiple
+              </button>
+            </>
           )}
         </div>
 
-        {settings.historyMode !== 'off' &&
+        {(multiPickerActive || settings.historyMode !== 'off') &&
           (history.length > 0 ? (
           <div>
             <div className="history-head">

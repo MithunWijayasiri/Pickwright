@@ -18,8 +18,10 @@ import {
 import { getLocator } from '../locator-engine';
 
 let pickerActive = false;
+let multiPickerActive = false;
 let lastHoveredElement: Element | null = null;
 let lastLocatorStr = '';
+let pickCount = 0;
 
 // Events to suppress on document so the page never reacts while picking.
 // 'click' has its own dedicated handler and is NOT listed here.
@@ -47,6 +49,8 @@ function activatePicker(): void {
 function deactivatePicker(): void {
   if (!pickerActive) return;
   pickerActive = false;
+  multiPickerActive = false;
+  pickCount = 0;
   detachListeners();
   removeOverlay();
   document.documentElement.style.cursor = '';
@@ -138,21 +142,27 @@ function onClick(e: MouseEvent): void {
       tag: meta.tagName,
       textSnippet: meta.textContent.slice(0, 40),
       score: result.best.score,
+      multiPick: multiPickerActive,
       // TODO: Pass result.best.reasons to payload for explainability feature
     },
   });
 
-  deactivatePicker();
+  if (!multiPickerActive) {
+    deactivatePicker();
+  } else {
+    pickCount++;
+  }
 }
 
 function onKeyDown(e: KeyboardEvent): void {
   if (e.key === 'Escape') {
     e.preventDefault();
     e.stopImmediatePropagation();
+    const wasMulti = multiPickerActive;
     deactivatePicker();
     chrome.runtime.sendMessage({
       type: MESSAGE_TYPES.PICKER_STATE_CHANGED,
-      payload: { active: false },
+      payload: { active: false, multi: wasMulti },
     });
   }
 }
@@ -430,8 +440,29 @@ chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) =
     return;
   }
 
+  if (message.type === MESSAGE_TYPES.MULTI_PICK_TOGGLE) {
+    multiPickerActive = true;
+    pickCount = 0;
+    if (!pickerActive) {
+      activatePicker();
+    }
+    sendResponse({ active: pickerActive, multi: true });
+    return;
+  }
+
+  if (message.type === MESSAGE_TYPES.MULTI_PICK_STOP) {
+    const count = pickCount;
+    deactivatePicker();
+    chrome.runtime.sendMessage({
+      type: MESSAGE_TYPES.MULTI_PICK_STATE_CHANGED,
+      payload: { active: false },
+    });
+    sendResponse({ active: false, count });
+    return;
+  }
+
   if (message.type === MESSAGE_TYPES.GET_PICKER_STATE) {
-    sendResponse({ active: pickerActive });
+    sendResponse({ active: pickerActive, multi: multiPickerActive });
     return;
   }
 });

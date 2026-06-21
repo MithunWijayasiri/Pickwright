@@ -81,6 +81,21 @@ export const GitHubIcon = ({ className }: IconProps) => (
   </svg>
 );
 
+export const StackIcon = ({ className }: IconProps) => (
+  <svg {...base(className)}>
+    <rect x="2.5" y="2.5" width="11" height="8" rx="1.5" />
+    <path d="M3.5 11v1.5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V11" />
+    <path d="M5 13.5V15a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.5" />
+  </svg>
+);
+
+export const DoubleStackIcon = ({ className }: IconProps) => (
+  <svg {...base(className)}>
+    <rect x="2.5" y="3.5" width="11" height="8" rx="1.5" />
+    <path d="M3.5 12v1.5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V12" />
+  </svg>
+);
+
 export const LogoMark = ({ className }: IconProps) => (
   <svg className={className ?? 'hd-mark'} viewBox="0 0 128 128" fill="none" aria-hidden={true} xmlns="http://www.w3.org/2000/svg">
     <rect width="128" height="128" rx="26" fill="#0e0e0e"/>
