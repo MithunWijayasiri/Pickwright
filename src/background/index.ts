@@ -10,9 +10,13 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Auto-clear history on browser restart when historyMode is 'autoClear'.
 chrome.runtime.onStartup.addListener(async () => {
-  const { historyMode } = await getSettings();
-  if (historyMode === 'autoClear') {
-    await clearHistory();
+  try {
+    const { historyMode } = await getSettings();
+    if (historyMode === 'autoClear') {
+      await clearHistory();
+    }
+  } catch (error) {
+    console.error('Failed to process startup history mode', error);
   }
 });
 
@@ -24,18 +28,22 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
     if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
       const tabUrl = sender.tab.url ?? '';
       const payload = message.payload;
-      getSettings().then(({ historyMode }) => {
-        if (historyMode === 'off') return;
-        const entry: HistoryEntry = {
-          url: tabUrl,
-          timestamp: Date.now(),
-          locator: payload.locator,
-          score: payload.score,
-          tag: payload.tag,
-          textSnippet: payload.textSnippet,
-        };
-        addToHistory(entry);
-      });
+      getSettings()
+        .then(({ historyMode }) => {
+          if (historyMode === 'off') return;
+          const entry: HistoryEntry = {
+            url: tabUrl,
+            timestamp: Date.now(),
+            locator: payload.locator,
+            score: payload.score,
+            tag: payload.tag,
+            textSnippet: payload.textSnippet,
+          };
+          addToHistory(entry);
+        })
+        .catch((error) => {
+          console.error('Failed to persist element selection history', error);
+        });
     }
     return;
   }

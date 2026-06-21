@@ -83,9 +83,16 @@ const App = () => {
     setTheme(next);
   };
 
-  const updateSetting = (patch: Partial<Settings>) => {
-    setSettingsState((cur) => ({ ...cur, ...patch }));
-    setSettings(patch);
+  const updateSetting = async (patch: Partial<Settings>) => {
+    const prev = settings;
+    const optimistic = { ...prev, ...patch };
+    setSettingsState(optimistic);
+    try {
+      await setSettings(patch);
+    } catch {
+      setSettingsState(prev);
+      return;
+    }
     // Turning history off wipes existing entries and hides the section.
     if (patch.historyMode === 'off') {
       clearHistory();
@@ -94,7 +101,9 @@ const App = () => {
   };
 
   useEffect(() => {
-    getSettings().then(setSettingsState);
+    getSettings()
+      .then(setSettingsState)
+      .catch(() => setSettingsState(DEFAULT_SETTINGS));
     chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_PICKER_STATE }, (response) => {
       if (response?.active) setPickerActive(true);
     });
