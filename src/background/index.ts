@@ -51,7 +51,9 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
   // Relay popup commands to the active tab's content script.
   if (
     message.type === MESSAGE_TYPES.TOGGLE_PICKER ||
-    message.type === MESSAGE_TYPES.GET_PICKER_STATE
+    message.type === MESSAGE_TYPES.GET_PICKER_STATE ||
+    message.type === MESSAGE_TYPES.MULTI_PICK_TOGGLE ||
+    message.type === MESSAGE_TYPES.MULTI_PICK_STOP
   ) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;

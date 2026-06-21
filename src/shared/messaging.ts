@@ -5,6 +5,9 @@ export const MESSAGE_TYPES = {
   PICKER_STATE_CHANGED: 'PICKER_STATE_CHANGED',
   ELEMENT_SELECTED: 'ELEMENT_SELECTED',
   GET_PICKER_STATE: 'GET_PICKER_STATE',
+  MULTI_PICK_TOGGLE: 'MULTI_PICK_TOGGLE',
+  MULTI_PICK_STOP: 'MULTI_PICK_STOP',
+  MULTI_PICK_STATE_CHANGED: 'MULTI_PICK_STATE_CHANGED',
 } as const;
 
 export interface TogglePickerMessage {
@@ -13,7 +16,7 @@ export interface TogglePickerMessage {
 
 export interface PickerStateChangedMessage {
   type: typeof MESSAGE_TYPES.PICKER_STATE_CHANGED;
-  payload: { active: boolean };
+  payload: { active: boolean; multi?: boolean };
 }
 
 export interface GetPickerStateMessage {
@@ -28,11 +31,28 @@ export interface ElementSelectedMessage {
     tag: string;
     textSnippet: string;
     score: number;
+    multiPick?: boolean;
   };
+}
+
+export interface MultiPickToggleMessage {
+  type: typeof MESSAGE_TYPES.MULTI_PICK_TOGGLE;
+}
+
+export interface MultiPickStopMessage {
+  type: typeof MESSAGE_TYPES.MULTI_PICK_STOP;
+}
+
+export interface MultiPickStateChangedMessage {
+  type: typeof MESSAGE_TYPES.MULTI_PICK_STATE_CHANGED;
+  payload: { active: boolean };
 }
 
 export type Message =
   | TogglePickerMessage
   | PickerStateChangedMessage
   | GetPickerStateMessage
-  | ElementSelectedMessage;
+  | ElementSelectedMessage
+  | MultiPickToggleMessage
+  | MultiPickStopMessage
+  | MultiPickStateChangedMessage;
