@@ -134,9 +134,11 @@ const App = () => {
         }
       }
       if (message.type === MESSAGE_TYPES.MULTI_PICK_STATE_CHANGED) {
-        setPickerActive(false);
-        setMultiPickerActive(false);
-        setMultiPickCount(0);
+        setMultiPickerActive(message.payload.active);
+        if (!message.payload.active) {
+          setPickerActive(false);
+          setMultiPickCount(0);
+        }
       }
       if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
         setLastLocator(message.payload.locator);
