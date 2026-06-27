@@ -85,10 +85,10 @@ export function getLocatorReasons(candidate: LocatorCandidate, _el: Element): Lo
   }
 
   if (candidate.strategy === 'locator' && candidate.cssEquivalent) {
-    if (candidate.cssEquivalent.includes('nth-of-type')) {
+    if (/:nth-(child|of-type)/.test(candidate.cssEquivalent)) {
       reasons.push({
-        code: 'css-nth-of-type',
-        message: 'nth-of-type selector is highly fragile to DOM order changes',
+        code: 'css-nth',
+        message: 'nth-child/nth-of-type selector is highly fragile to DOM order changes',
       });
     }
     if (/\.\w/.test(candidate.cssEquivalent)) {

@@ -2,115 +2,137 @@
 
 import { ElementMetadata } from '../shared/types';
 import { LocatorCandidate } from './types';
+import { SCORE, isGuidLike, makeSelectorForId } from './playwright-port';
+
+const TEXT_MAX = 80;
 
 /**
  * Generate all possible locator candidates for an element.
- * Priority: getByTestId → getByRole → getByLabel → getByPlaceholder → getByText → CSS
+ * Priority follows Playwright's scoring (lower = better):
+ * testId → role+name → placeholder → label → text → CSS id → role-only → CSS.
+ * Each candidate carries its real uniqueness (matched against the DOM).
  */
 export function generateCandidates(el: Element, meta: ElementMetadata): LocatorCandidate[] {
   const candidates: LocatorCandidate[] = [];
   const prefix = meta.frameSelector ? `frameLocator('${esc(meta.frameSelector)}').` : '';
+  const add = (c: LocatorCandidate) => candidates.push(penalizeForLength(c));
 
-  // 1. getByTestId (only for data-testid; data-test-id/data-cy use CSS locator)
+  // 1. getByTestId (only data-testid; data-test-id/data-cy emit as CSS locator)
   const testId = meta.dataAttributes['data-testid'];
   if (testId) {
-    candidates.push({
+    const css = cssAttr('data-testid', testId);
+    add({
       strategy: 'getByTestId',
       value: `${prefix}getByTestId('${esc(testId)}')`,
-      score: 0,
+      score: SCORE.testId,
       reason: 'data-testid is the most stable selector',
-      unique: true,
-      cssEquivalent: cssAttr('data-testid', testId),
+      unique: isUnique(css, el),
+      cssEquivalent: css,
     });
   }
-  // data-test-id / data-cy — emit as CSS locator (getByTestId only matches data-testid by default)
   const altTestId = meta.dataAttributes['data-test-id'] || meta.dataAttributes['data-cy'];
   const altTestAttr = meta.dataAttributes['data-test-id'] ? 'data-test-id' : 'data-cy';
   if (!testId && altTestId) {
-    candidates.push({
+    const css = cssAttr(altTestAttr, altTestId);
+    add({
       strategy: 'locator',
-      value: `${prefix}locator('${esc(cssAttr(altTestAttr, altTestId))}')`,
-      score: 0,
+      value: `${prefix}locator('${esc(css)}')`,
+      score: SCORE.otherTestId,
       reason: `${altTestAttr} as CSS selector (configure testIdAttribute for getByTestId)`,
-      unique: true,
-      cssEquivalent: cssAttr(altTestAttr, altTestId),
+      unique: isUnique(css, el),
+      cssEquivalent: css,
     });
   }
 
   // 2. getByRole
-  const role = meta.role || getImplicitRole(meta.tagName, el);
+  const role = roleOf(el);
   if (role) {
     const name = getAccessibleName(el, meta);
     if (name) {
-      candidates.push({
+      add({
         strategy: 'getByRole',
         value: `${prefix}getByRole('${esc(role)}', { name: '${esc(name)}' })`,
-        score: 0,
+        score: SCORE.roleWithName,
         reason: 'Role + accessible name is stable and semantic',
-        unique: true,
+        unique: countRoleMatches(el, role, name) === 1,
         cssEquivalent: null,
       });
     }
-    // Role-only candidate (less specific, still useful)
-    candidates.push({
+    add({
       strategy: 'getByRole',
       value: `${prefix}getByRole('${esc(role)}')`,
-      score: 0,
+      score: SCORE.roleWithoutName,
       reason: 'Role without name — less specific',
-      unique: true,
+      unique: countRoleMatches(el, role, null) === 1,
       cssEquivalent: null,
     });
   }
 
-  // 3. getByLabel
-  const label = findAssociatedLabel(el);
-  if (label) {
-    candidates.push({
-      strategy: 'getByLabel',
-      value: `${prefix}getByLabel('${esc(label)}')`,
-      score: 0,
-      reason: 'Label association is accessibility-friendly',
-      unique: true,
-      cssEquivalent: null,
-    });
-  }
-
-  // 4. getByPlaceholder
+  // 3. getByPlaceholder
   if (meta.placeholder) {
-    candidates.push({
+    const css = cssAttr('placeholder', meta.placeholder);
+    add({
       strategy: 'getByPlaceholder',
       value: `${prefix}getByPlaceholder('${esc(meta.placeholder)}')`,
-      score: 0,
+      score: SCORE.placeholder,
       reason: 'Placeholder text as locator',
-      unique: true,
-      cssEquivalent: cssAttr('placeholder', meta.placeholder),
+      unique: isUnique(css, el),
+      cssEquivalent: css,
     });
   }
 
-  // 5. getByText (only for short, meaningful text)
-  if (meta.textContent.length > 0 && meta.textContent.length <= 50) {
-    candidates.push({
-      strategy: 'getByText',
-      value: `${prefix}getByText('${esc(meta.textContent)}')`,
-      score: 0,
-      reason: 'Visible text — may break on i18n changes',
-      unique: true,
+  // 4. getByLabel
+  const label = findAssociatedLabel(el);
+  if (label) {
+    add({
+      strategy: 'getByLabel',
+      value: `${prefix}getByLabel('${esc(label)}')`,
+      score: SCORE.label,
+      reason: 'Label association is accessibility-friendly',
+      unique: countLabelMatches(el, label) === 1,
       cssEquivalent: null,
     });
   }
 
-  // 6. CSS fallback
+  // 5. getByText (short, meaningful text only)
+  if (meta.textContent.length > 0 && meta.textContent.length <= TEXT_MAX) {
+    add({
+      strategy: 'getByText',
+      value: `${prefix}getByText('${esc(meta.textContent)}')`,
+      score: SCORE.text,
+      reason: 'Visible text — may break on i18n changes',
+      unique: countTextMatches(el, meta.textContent) === 1,
+      cssEquivalent: null,
+    });
+  }
+
+  // 6. CSS fallback — always unique by construction, so a unique candidate always exists.
   const cssSelector = buildCssSelector(el, meta);
-  candidates.push({
+  add({
     strategy: 'locator',
     value: `${prefix}locator('${esc(cssSelector)}')`,
-    score: 0,
+    score: cssScore(cssSelector),
     reason: 'CSS fallback — less stable',
-    unique: true,
+    unique: isUnique(cssSelector, el),
     cssEquivalent: cssSelector,
   });
 
   return candidates;
+}
+
+// Score for the generated CSS fallback, based on what it ended up using.
+function cssScore(selector: string): number {
+  if (selector.startsWith('#') || selector.startsWith('[id=')) return SCORE.cssId;
+  if (/:nth-(child|of-type)/.test(selector)) return SCORE.nth;
+  return SCORE.cssTagName;
+}
+
+// Playwright's length penalty: bump mid-range scores slightly for long selectors.
+function penalizeForLength(c: LocatorCandidate): LocatorCandidate {
+  if (c.score > 50 && c.score < 300) {
+    c.score += Math.min(10, (c.value.length / 10) | 0);
+  }
+  return c;
 }
 
 function getImplicitRole(tagName: string, el: Element): string | null {
@@ -132,7 +154,6 @@ function getImplicitRole(tagName: string, el: Element): string | null {
     h6: 'heading',
   };
 
-  // <a> only carries the link role when it has an href
   if (tagName === 'a') {
     return el.hasAttribute('href') ? 'link' : null;
   }
@@ -161,13 +182,16 @@ function getImplicitRole(tagName: string, el: Element): string | null {
   return map[tagName] ?? null;
 }
 
-function getAccessibleName(el: Element, meta: ElementMetadata): string | null {
-  // aria-label has highest priority
-  const ariaLabel = meta.ariaAttributes['aria-label'];
+/** Explicit role attribute, else implicit role from the tag. */
+function roleOf(el: Element): string | null {
+  return el.getAttribute('role') || getImplicitRole(el.tagName.toLowerCase(), el);
+}
+
+function getAccessibleName(el: Element, meta?: ElementMetadata): string | null {
+  const ariaLabel = el.getAttribute('aria-label');
   if (ariaLabel) return ariaLabel.slice(0, 60);
 
-  // aria-labelledby
-  const labelledBy = meta.ariaAttributes['aria-labelledby'];
+  const labelledBy = el.getAttribute('aria-labelledby');
   if (labelledBy) {
     const root = el.getRootNode() as Document | ShadowRoot;
     const text = labelledBy
@@ -179,17 +203,16 @@ function getAccessibleName(el: Element, meta: ElementMetadata): string | null {
     if (text) return text.slice(0, 60);
   }
 
-  // Associated <label>
   const label = findAssociatedLabel(el);
   if (label) return label;
 
-  // title
-  if (meta.title) return meta.title.slice(0, 60);
+  const title = el.getAttribute('title');
+  if (title) return title.slice(0, 60);
 
-  // For buttons/links/headings (or elements with equivalent roles), use visible text
-  const role = meta.role || getImplicitRole(meta.tagName, el);
-  if (role && ['button', 'link', 'heading'].includes(role) && meta.textContent) {
-    return meta.textContent.slice(0, 60);
+  const role = roleOf(el);
+  if (role && ['button', 'link', 'heading'].includes(role)) {
+    const text = meta ? meta.textContent : normalizeText(el.textContent ?? '');
+    if (text) return text.slice(0, 60);
   }
 
   return null;
@@ -207,93 +230,114 @@ function findAssociatedLabel(el: Element): string | null {
   return null;
 }
 
+// --- Uniqueness counting (walks the element's root node) ---
+
+function rootOf(el: Element): Document | ShadowRoot {
+  return el.getRootNode() as Document | ShadowRoot;
+}
+
+function countRoleMatches(el: Element, role: string, name: string | null): number {
+  let count = 0;
+  for (const cand of rootOf(el).querySelectorAll('*')) {
+    if (roleOf(cand) !== role) continue;
+    if (name !== null && getAccessibleName(cand) !== name) continue;
+    if (++count > 1) return count;
+  }
+  return count;
+}
+
+function countTextMatches(el: Element, text: string): number {
+  let count = 0;
+  for (const cand of rootOf(el).querySelectorAll('*')) {
+    if (normalizeText(cand.textContent ?? '') === text) {
+      if (++count > 1) return count;
+    }
+  }
+  return count;
+}
+
+function countLabelMatches(el: Element, label: string): number {
+  let count = 0;
+  for (const cand of rootOf(el).querySelectorAll('input, textarea, select, [role]')) {
+    if (findAssociatedLabel(cand) === label) {
+      if (++count > 1) return count;
+    }
+  }
+  return count;
+}
+
+function normalizeText(s: string): string {
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+// --- CSS selector building ---
+
 function buildCssSelector(el: Element, meta: ElementMetadata): string {
   const base = buildBaseCssSelector(el, meta);
-
-  // If the base selector already pins exactly this element, we're done.
   if (isUnique(base, el)) return base;
 
-  // Non-unique (e.g. a component wrapper like ng-select whose own div has only
-  // framework classes). Playwright's generator only walks ancestors and bails to
-  // unstable class chains here — instead, disambiguate via a stable *descendant*
-  // (the combobox input id, a testid, formcontrolname, …) using :has().
+  // Component wrapper whose own segment is non-unique (e.g. ng-select with only
+  // framework classes): disambiguate via a stable *descendant* with :has().
   const withDescendant = augmentWithStableDescendant(base, el);
   if (withDescendant && isUnique(withDescendant, el)) return withDescendant;
 
-  // Fallback: prepend the nearest stable ancestor (ancestor escalation).
   const withAncestor = augmentWithStableAncestor(base, el);
-  if (withAncestor) return withAncestor;
+  if (withAncestor && isUnique(withAncestor, el)) return withAncestor;
 
-  return withDescendant ?? base;
+  // Guaranteed-unique path (id → class combos → nth-child up the ancestor chain).
+  return buildUniqueCssPath(el);
 }
 
 function buildBaseCssSelector(el: Element, meta: ElementMetadata): string {
-  // 1. ID (if stable-looking)
   if (meta.id && isStableId(meta.id)) {
-    return `#${CSS.escape(meta.id)}`;
+    return makeSelectorForId(meta.id);
   }
 
-  // 2. data-testid
   const testId = meta.dataAttributes['data-testid'];
   if (testId) return cssAttr('data-testid', testId);
 
-  // 3. formcontrolname (Angular)
   if (meta.formControlName) {
     return cssAttr('formcontrolname', meta.formControlName);
   }
 
-  // 4. name attribute
   if (meta.name) {
     return `${meta.tagName}${cssAttr('name', meta.name)}`;
   }
 
-  // 5. placeholder
   if (meta.placeholder) {
     return `${meta.tagName}${cssAttr('placeholder', meta.placeholder)}`;
   }
 
-  // 6. role attribute
   if (meta.role) {
     return `${meta.tagName}${cssAttr('role', meta.role)}`;
   }
 
-  // 7. Stable classes
   const stableClasses = meta.classes.filter(isStableClass).slice(0, 2);
   if (stableClasses.length > 0) {
-    return `${meta.tagName}.${stableClasses.join('.')}`;
+    return `${meta.tagName}.${stableClasses.map((c) => CSS.escape(c)).join('.')}`;
   }
 
-  // 8. Nth-child as last resort (but with parent context)
   return buildNthChildSelector(el, meta);
 }
 
 /** True when `selector` matches exactly `el` within its root node. */
 function isUnique(selector: string, el: Element): boolean {
   try {
-    const root = el.getRootNode() as Document | ShadowRoot;
-    const matches = root.querySelectorAll(selector);
+    const matches = rootOf(el).querySelectorAll(selector);
     return matches.length === 1 && matches[0] === el;
   } catch {
     return false;
   }
 }
 
-/**
- * Append `:has(<stable descendant>)` to the element's own segment so the
- * selector resolves to this element via something stable nested inside it.
- */
 function augmentWithStableDescendant(base: string, el: Element): string | null {
   const descendant = findStableDescendantSelector(el);
   return descendant ? `${base}:has(${descendant})` : null;
 }
 
-/**
- * Find a selector for a stable, identifying element nested inside `el`.
- * Priority mirrors buildBaseCssSelector: id → testid → formcontrolname → name.
- */
 function findStableDescendantSelector(el: Element): string | null {
   const stableId = Array.from(el.querySelectorAll('[id]')).find((d) => isStableId(d.id));
-  if (stableId) return `#${CSS.escape(stableId.id)}`;
+  if (stableId) return makeSelectorForId(stableId.id);
 
   for (const attr of ['data-testid', 'data-test-id', 'data-cy']) {
     const d = el.querySelector(`[${attr}]`);
@@ -312,23 +356,83 @@ function findStableDescendantSelector(el: Element): string | null {
   return null;
 }
 
-/** Prepend the nearest stable ancestor (id or class) that makes `base` unique. */
 function augmentWithStableAncestor(base: string, el: Element): string | null {
   let parent = el.parentElement;
   while (parent) {
     let candidate: string | null = null;
     if (parent.id && isStableId(parent.id)) {
-      candidate = `#${CSS.escape(parent.id)} ${base}`;
+      candidate = `${makeSelectorForId(parent.id)} ${base}`;
     } else {
       const stableClass = Array.from(parent.classList).filter(isStableClass)[0];
       if (stableClass) {
-        candidate = `${parent.tagName.toLowerCase()}.${stableClass} ${base}`;
+        candidate = `${parent.tagName.toLowerCase()}.${CSS.escape(stableClass)} ${base}`;
       }
     }
     if (candidate && isUnique(candidate, el)) return candidate;
     parent = parent.parentElement;
   }
   return null;
+}
+
+/**
+ * Build a guaranteed-unique `>`-joined path, ported from Playwright's cssFallback:
+ * at each ancestor prefer id, then the smallest class combo, then nth-child.
+ */
+function buildUniqueCssPath(el: Element): string {
+  const root = rootOf(el);
+  const tokens: string[] = [];
+
+  const uniqueWith = (prefix: string): string | null => {
+    const selector = [prefix, ...tokens].join(' > ');
+    try {
+      const matches = root.querySelectorAll(selector);
+      if (matches.length === 1 && matches[0] === el) return selector;
+    } catch {
+      /* invalid intermediate selector */
+    }
+    return null;
+  };
+
+  let current: Element | null = el;
+  while (current && (current as Node) !== root) {
+    const tag = current.tagName.toLowerCase();
+    let best = '';
+
+    if (current.id && isStableId(current.id)) {
+      const tok = makeSelectorForId(current.id);
+      const hit = uniqueWith(tok);
+      if (hit) return hit;
+      best = tok;
+    }
+
+    const parent: Element | null = current.parentElement;
+    const classes = Array.from(current.classList).filter(isStableClass).map((c) => CSS.escape(c));
+    for (let i = 0; i < classes.length; i++) {
+      const tok = `${tag}.${classes.slice(0, i + 1).join('.')}`;
+      const hit = uniqueWith(tok);
+      if (hit) return hit;
+      if (!best && parent && parent.querySelectorAll(tok).length === 1) best = tok;
+    }
+
+    if (parent) {
+      const siblings = Array.from(parent.children);
+      const sameTag = siblings.filter((s) => s.tagName === current!.tagName);
+      const tok =
+        sameTag.indexOf(current) === 0
+          ? tag
+          : `${tag}:nth-child(${siblings.indexOf(current) + 1})`;
+      const hit = uniqueWith(tok);
+      if (hit) return hit;
+      if (!best) best = tok;
+    } else if (!best) {
+      best = tag;
+    }
+
+    tokens.unshift(best);
+    current = parent;
+  }
+
+  return tokens.join(' > ');
 }
 
 function buildNthChildSelector(el: Element, meta: ElementMetadata): string {
@@ -343,19 +447,18 @@ function buildNthChildSelector(el: Element, meta: ElementMetadata): string {
 }
 
 function getParentHint(parent: Element): string {
-  if (parent.id && isStableId(parent.id)) return `#${CSS.escape(parent.id)}`;
+  if (parent.id && isStableId(parent.id)) return makeSelectorForId(parent.id);
   const stableClasses = Array.from(parent.classList).filter(isStableClass).slice(0, 1);
-  if (stableClasses.length > 0) return `${parent.tagName.toLowerCase()}.${stableClasses[0]}`;
+  if (stableClasses.length > 0) return `${parent.tagName.toLowerCase()}.${CSS.escape(stableClasses[0])}`;
   return parent.tagName.toLowerCase();
 }
 
 function isStableId(id: string): boolean {
-  // Reject IDs that look auto-generated
-  return !/^\d|^(mat-|cdk-|ng-|_ng|ember|react-)/.test(id) && !id.includes(':');
+  // Reject framework-generated prefixes and GUID/hash-like ids.
+  return !/^(mat-|cdk-|ng-|_ng|ember|react-)/.test(id) && !id.includes(':') && !isGuidLike(id);
 }
 
 function isStableClass(cls: string): boolean {
-  // Reject Angular/CDK/framework-generated classes
   return (
     !/^(ng-|cdk-|mat-ripple|_ngcontent|_nghost|mat-mdc-|mdc-|p-|ui-)/.test(cls) &&
     !/^[a-z]{1,3}-[a-f0-9]{4,}$/i.test(cls)
@@ -366,7 +469,6 @@ function esc(s: string): string {
   return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
-// Build a quoted CSS attribute selector with the value safely escaped.
 function cssAttr(name: string, value: string): string {
   return `[${name}="${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`;
 }

@@ -50,8 +50,8 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     await expectLocatorOnHover('[data-testid="submit-btn"]', "getByTestId('submit-btn')");
   });
 
-  test('getByRole (role only) when no accessible name', async () => {
-    await expectLocatorOnHover('#username-input', "getByRole('textbox')");
+  test('getByPlaceholder when role is non-unique (two textboxes share the role)', async () => {
+    await expectLocatorOnHover('#username-input', "getByPlaceholder('Enter username')");
   });
 
   test('getByRole with name from associated label', async () => {
