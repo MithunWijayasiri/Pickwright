@@ -95,8 +95,8 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         value: `${prefix}getByPlaceholder('${esc(alt.text)}')`,
         score: SCORE.placeholder - alt.scoreBonus,
         reason: 'Placeholder text (trimmed)',
-        unique: isUnique(cssAttr('placeholder', alt.text), el),
-        cssEquivalent: cssAttr('placeholder', alt.text),
+        unique: countAttrSubstring(el, 'placeholder', alt.text) === 1,
+        cssEquivalent: null,
       });
     }
   }
@@ -119,8 +119,8 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         value: `${prefix}getByAltText('${esc(alt.text)}')`,
         score: SCORE.altText - alt.scoreBonus,
         reason: 'Alt text (trimmed)',
-        unique: isUnique(cssAttr('alt', alt.text), el),
-        cssEquivalent: cssAttr('alt', alt.text),
+        unique: countAttrSubstring(el, 'alt', alt.text) === 1,
+        cssEquivalent: null,
       });
     }
   }
@@ -155,8 +155,8 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         value: `${prefix}getByTitle('${esc(alt.text)}')`,
         score: SCORE.title - alt.scoreBonus,
         reason: 'Title attribute (trimmed)',
-        unique: isUnique(cssAttr('title', alt.text), el),
-        cssEquivalent: cssAttr('title', alt.text),
+        unique: countAttrSubstring(el, 'title', alt.text) === 1,
+        cssEquivalent: null,
       });
     }
   }
@@ -177,7 +177,7 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         value: `${prefix}getByText('${esc(alt.text)}')`,
         score: SCORE.text - alt.scoreBonus,
         reason: 'Visible text (trimmed)',
-        unique: countTextMatches(el, alt.text) === 1,
+        unique: isUniqueTextSubstring(el, alt.text),
         cssEquivalent: null,
       });
     }
@@ -350,6 +350,44 @@ function countLabelMatches(el: Element, label: string): number {
   for (const cand of rootOf(el).querySelectorAll('input, textarea, select, [role]')) {
     if (!isVisible(cand)) continue;
     if (findAssociatedLabel(cand) === label) {
+      if (++count > 1) return count;
+    }
+  }
+  return count;
+}
+
+// --- Substring matching for trimmed text/attr alternatives ---
+// Mirrors Playwright's default (exact: false) for getByText/Placeholder/AltText/Title.
+
+/**
+ * Playwright's elementMatchesText: `el`'s own text contains `text` and no child
+ * element's text does (so only the innermost match counts, never its ancestors).
+ */
+function matchesTextSubstring(el: Element, text: string): boolean {
+  if (!normalizeText(el.textContent ?? '').includes(text)) return false;
+  for (const child of el.children) {
+    if (normalizeText(child.textContent ?? '').includes(text)) return false;
+  }
+  return true;
+}
+
+/** True when `el` is the sole substring match for `text` in its root. */
+function isUniqueTextSubstring(el: Element, text: string): boolean {
+  if (!matchesTextSubstring(el, text)) return false;
+  let count = 0;
+  for (const cand of rootOf(el).querySelectorAll('*')) {
+    if (!isVisible(cand)) continue;
+    if (matchesTextSubstring(cand, text) && ++count > 1) return false;
+  }
+  return count === 1;
+}
+
+/** Count visible elements whose `attr` value contains `text` as a substring. */
+function countAttrSubstring(el: Element, attr: string, text: string): number {
+  let count = 0;
+  for (const cand of rootOf(el).querySelectorAll(`[${attr}]`)) {
+    if (!isVisible(cand)) continue;
+    if (normalizeText(cand.getAttribute(attr) ?? '').includes(text)) {
       if (++count > 1) return count;
     }
   }

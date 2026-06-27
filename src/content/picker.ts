@@ -267,9 +267,21 @@ function retargetToInteractive(el: Element): Element {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return el;
   if ((el as HTMLElement).isContentEditable) return el;
 
-  const interactive = el.closest(INTERACTIVE_SELECTOR);
+  const interactive = closestInteractiveComposed(el);
   if (interactive && isElementVisible(interactive)) return interactive;
   return el;
+}
+
+// Nearest interactive ancestor across open shadow boundaries (composed tree).
+// Element.closest stops at the shadow root, so hop shadowRoot → host manually.
+function closestInteractiveComposed(el: Element): Element | null {
+  let node: Node | null = el;
+  while (node) {
+    if (node instanceof Element && node.matches(INTERACTIVE_SELECTOR)) return node;
+    const parent: Node | null = node.parentNode;
+    node = parent instanceof ShadowRoot ? parent.host : parent;
+  }
+  return null;
 }
 
 function isElementVisible(el: Element): boolean {

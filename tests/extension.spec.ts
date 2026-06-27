@@ -117,6 +117,14 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     await expectLocatorOnHover('#save-icon', "getByRole('button', { name: 'Save' })");
   });
 
+  test('prefers a trimmed text alternative that resolves uniquely by substring', async () => {
+    await expectLocatorOnHover('#item-row', "getByText('Item')");
+  });
+
+  test('retargets across a shadow boundary to an interactive host', async () => {
+    await expectLocatorOnHover('#composed-icon', "getByRole('button', { name: 'Composed Action' })");
+  });
+
   test('drills into open shadow roots', async () => {
     await expectLocatorOnHover('#shadow-btn', "getByRole('button', { name: 'Shadow Button' })");
   });
