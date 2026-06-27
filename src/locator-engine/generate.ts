@@ -372,7 +372,7 @@ function trimWordBoundary(text: string, maxLength: number): string {
  * at word boundaries. "Delete (3)" → "Delete", "Item 42" → "Item".
  */
 function suitableTextAlternatives(text: string): { text: string; scoreBonus: number }[] {
-  let result: { text: string; scoreBonus: number }[] = [];
+  const result: { text: string; scoreBonus: number }[] = [];
 
   // Strip leading numbers
   const leadingMatch = text.match(/^[\d.,]+[^.,\w]/);
