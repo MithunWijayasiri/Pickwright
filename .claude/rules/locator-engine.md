@@ -31,8 +31,10 @@ Invariants for `src/locator-engine/`. Violating these is how the parity PR shipp
 
 ## Framework-noise filtering
 
-- `isStableId` + `isStableClass` (`generate.ts`) + `isGuidLike` (`playwright-port.ts`) reject `mat-/cdk-/ng-/_ng/ember/react-`, ids with `:`, hash-suffixed classes, GUID-like ids.
-- Locator-quality change → adjust these heuristics AND the `SCORE` table together; they're coupled.
+- `isStableId` (`generate.ts`): rejects id prefixes `mat-/cdk-/ng-/_ng/ember/react-`, ids with `:`, GUID-like ids (`isGuidLike`, `playwright-port.ts`).
+- `isStableClass` (`generate.ts`): rejects class prefixes `ng-/cdk-/mat-ripple/_ngcontent/_nghost/mat-mdc-/mdc-/p-/ui-` + hash-suffixed `^[a-z]{1,3}-[a-f0-9]{4,}$` (also catches `jsx-…`).
+- Mirror these regexes here when they change. `data-testid` is never noise — top signal, keep it out of both filters.
+- Locator-quality change → adjust heuristics AND `SCORE` together; coupled.
 
 ## Test-ID attrs
 
