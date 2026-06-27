@@ -50,8 +50,8 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     await expectLocatorOnHover('[data-testid="submit-btn"]', "getByTestId('submit-btn')");
   });
 
-  test('getByRole (role only) when no accessible name', async () => {
-    await expectLocatorOnHover('#username-input', "getByRole('textbox')");
+  test('getByPlaceholder when role is non-unique (two textboxes share the role)', async () => {
+    await expectLocatorOnHover('#username-input', "getByPlaceholder('Enter username')");
   });
 
   test('getByRole with name from associated label', async () => {
@@ -96,6 +96,33 @@ test.describe('Pickwright Chrome Extension E2E', () => {
       'ng-select:has(#holding-ctrl)',
       "locator('ng-select.simp-form-control.simp-select:has(#holding-ctrl)')",
     );
+  });
+
+  test('getByAltText for an image with alt text', async () => {
+    await expectLocatorOnHover('#logo-img', "getByAltText('Company Logo')");
+  });
+
+  test('getByTitle when only a title attribute identifies the element', async () => {
+    await expectLocatorOnHover('#info-icon', "getByTitle('More information')");
+  });
+
+  test('chains getByTestId via parent when child testid is non-unique', async () => {
+    await expectLocatorOnHover(
+      '[data-testid="card-alpha"] [data-testid="card-action"]',
+      "getByTestId('card-alpha').getByTestId('card-action')",
+    );
+  });
+
+  test('retargets a non-interactive icon to its interactive button parent', async () => {
+    await expectLocatorOnHover('#save-icon', "getByRole('button', { name: 'Save' })");
+  });
+
+  test('prefers a trimmed text alternative that resolves uniquely by substring', async () => {
+    await expectLocatorOnHover('#item-row', "getByText('Item')");
+  });
+
+  test('retargets across a shadow boundary to an interactive host', async () => {
+    await expectLocatorOnHover('#composed-icon', "getByRole('button', { name: 'Composed Action' })");
   });
 
   test('drills into open shadow roots', async () => {

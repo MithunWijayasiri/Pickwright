@@ -255,6 +255,44 @@ function detachListeners(): void {
 
 // --- Element resolution ---
 
+const INTERACTIVE_SELECTOR =
+  'button,select,input,[role=button],[role=checkbox],[role=radio],a,[role=link]';
+
+/**
+ * If the target is a non-interactive child (icon/glyph) inside an interactive
+ * ancestor, retarget to that ancestor. Matches Playwright's retarget behavior.
+ */
+function retargetToInteractive(el: Element): Element {
+  const tag = el.tagName;
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return el;
+  if ((el as HTMLElement).isContentEditable) return el;
+
+  const interactive = closestInteractiveComposed(el);
+  if (interactive && isElementVisible(interactive)) return interactive;
+  return el;
+}
+
+// Nearest interactive ancestor across open shadow boundaries (composed tree).
+// Element.closest stops at the shadow root, so hop shadowRoot → host manually.
+function closestInteractiveComposed(el: Element): Element | null {
+  let node: Node | null = el;
+  while (node) {
+    if (node instanceof Element && node.matches(INTERACTIVE_SELECTOR)) return node;
+    const parent: Node | null = node.parentNode;
+    node = parent instanceof ShadowRoot ? parent.host : parent;
+  }
+  return null;
+}
+
+function isElementVisible(el: Element): boolean {
+  try {
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  } catch {
+    return true;
+  }
+}
+
 function resolveAt(x: number, y: number): Element | null {
   let el = document.elementFromPoint(x, y);
   if (!el || isPickerElement(el)) return null;
@@ -278,7 +316,8 @@ function resolveAt(x: number, y: number): Element | null {
     }
   }
 
-  return drillIntoShadow(el, x, y);
+  const resolved = drillIntoShadow(el, x, y);
+  return retargetToInteractive(resolved);
 }
 
 // --- Clipboard ---

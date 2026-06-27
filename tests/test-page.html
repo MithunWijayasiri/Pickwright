@@ -123,6 +123,63 @@
       </ng-select>
     </div>
 
+    <!-- 7c. getByAltText: img with alt text and no other identifying strategy. -->
+    <div class="form-group">
+      <img
+        id="logo-img"
+        alt="Company Logo"
+        width="40"
+        height="40"
+        src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+      />
+    </div>
+
+    <!-- 7d. getByTitle: sized empty element carrying only a title attribute. -->
+    <div class="form-group">
+      <span
+        id="info-icon"
+        title="More information"
+        style="display: inline-block; width: 24px; height: 24px; background: #eee"
+      ></span>
+    </div>
+
+    <!-- 7e. Chained getByTestId: the child testid repeats across two cards, so it
+         is only unique when scoped by the parent card's testid. -->
+    <div class="form-group">
+      <div data-testid="card-alpha">
+        <button data-testid="card-action">Alpha Action</button>
+      </div>
+      <div data-testid="card-beta">
+        <button data-testid="card-action">Beta Action</button>
+      </div>
+    </div>
+
+    <!-- 7f. Retarget to interactive parent: hovering the non-interactive icon
+         inside the button should generate the button's locator, not the icon's. -->
+    <div class="form-group">
+      <button id="save-btn">
+        <span
+          id="save-icon"
+          class="icon"
+          style="display: inline-block; width: 16px; height: 16px; background: #fff"
+        ></span>
+        Save
+      </button>
+    </div>
+
+    <!-- 7g. Trimmed text alternative: full text "Item 42" trims to "Item",
+         which scores lower and must resolve uniquely via substring matching. -->
+    <div class="form-group">
+      <div id="item-row">Item 42</div>
+    </div>
+
+    <!-- 7h. Retarget across a shadow boundary: an interactive host (role=button)
+         whose only content is a non-interactive icon in its shadow root. Hovering
+         the icon must retarget to the host, which Element.closest can't reach. -->
+    <div class="form-group">
+      <icon-host id="composed-host"></icon-host>
+    </div>
+
     <!-- 8. Shadow DOM section -->
     <h2>Shadow DOM Sandbox</h2>
     <div class="shadow-container">
@@ -157,6 +214,16 @@
           Shadow Button
         </button>
       </div>
+    `;
+
+      // Interactive shadow host with a non-interactive icon inside its shadow root.
+      const iconHost = document.getElementById('composed-host');
+      iconHost.setAttribute('role', 'button');
+      iconHost.setAttribute('aria-label', 'Composed Action');
+      iconHost.style.display = 'inline-block';
+      const iconShadow = iconHost.attachShadow({ mode: 'open' });
+      iconShadow.innerHTML = `
+      <span id="composed-icon" style="display: inline-block; width: 20px; height: 20px; background: #ccc;"></span>
     `;
     </script>
   </body>
