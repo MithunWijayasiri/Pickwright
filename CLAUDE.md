@@ -50,15 +50,10 @@ History written **in background** (`background/index.ts`), NOT popup/content: on
 
 ### Locator pipeline (`src/locator-engine/`)
 
-`inspect.collectMetadata` → `getLocator` (`generateCandidates` → `scoreAndSelect`), called from `picker.onMouseMove` + `picker.onClick`.
+`inspect.collectMetadata` → `getLocator` (`generate.ts` builds candidates → `score.ts` picks the lowest-scoring **unique** one), from `picker.onMouseMove` + `picker.onClick`.
 
-- `generate.ts` emits ≤6 candidates, priority: `getByTestId` → `getByRole` (w/ + w/o accessible name) → `getByLabel` → `getByPlaceholder` → `getByText` (≤50 chars) → `locator(css)` fallback. CSS builder cascades ID → testid → Angular `formcontrolname` → `name` → placeholder → role → stable classes → `nth-of-type`.
-- `score.ts` ranks via `STRATEGY_SCORES` + adjustments (bonus role+name; penalties role-only / text / nth-of-type / class / long strings), validates **uniqueness** via `querySelectorAll` on element's root node, prefers unique, returns `{ best, alternatives }`.
-- **Framework-noise filtering is central:** `isStableId` + `isStableClass` reject auto-generated identifiers (`mat-`, `cdk-`, `ng-`, `_ngcontent`, hash-suffixed classes, IDs w/ `:`). Locator quality changes → adjust these heuristics + score table together.
+- Strategy scores live in `playwright-port.ts` `SCORE` (**lower = better**); `score.ts` picks the lowest-scoring unique candidate.
+- Framework-noise filtering (`isStableId` / `isStableClass`) is central — auto-generated identifiers (`mat-`/`cdk-`/`ng-`, hashed classes, etc.) are rejected so they never win.
+- Authoritative noise heuristics, full priority order, uniqueness/chaining invariants: `.claude/rules/locator-engine.md`.
 
 Test-ID attrs (highest priority): `data-testid`, `data-test-id`, `data-cy`.
-
-## TypeScript / tooling
-
-- `tsconfig.json` strict w/ `noUnusedLocals` / `noUnusedParameters` — prefix intentionally-unused params w/ `_`.
-- `@types/chrome` provides `chrome.*`; no bundler polyfills.
