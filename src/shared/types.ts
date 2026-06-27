@@ -9,6 +9,7 @@ export interface ElementMetadata {
   role: string | null;
   placeholder: string | null;
   title: string | null;
+  alt: string | null;
   name: string | null;
   formControlName: string | null;
   dataAttributes: Record<string, string>;

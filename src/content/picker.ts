@@ -255,6 +255,32 @@ function detachListeners(): void {
 
 // --- Element resolution ---
 
+const INTERACTIVE_SELECTOR =
+  'button,select,input,[role=button],[role=checkbox],[role=radio],a,[role=link]';
+
+/**
+ * If the target is a non-interactive child (icon/glyph) inside an interactive
+ * ancestor, retarget to that ancestor. Matches Playwright's retarget behavior.
+ */
+function retargetToInteractive(el: Element): Element {
+  const tag = el.tagName;
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return el;
+  if ((el as HTMLElement).isContentEditable) return el;
+
+  const interactive = el.closest(INTERACTIVE_SELECTOR);
+  if (interactive && isElementVisible(interactive)) return interactive;
+  return el;
+}
+
+function isElementVisible(el: Element): boolean {
+  try {
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  } catch {
+    return true;
+  }
+}
+
 function resolveAt(x: number, y: number): Element | null {
   let el = document.elementFromPoint(x, y);
   if (!el || isPickerElement(el)) return null;
@@ -278,7 +304,8 @@ function resolveAt(x: number, y: number): Element | null {
     }
   }
 
-  return drillIntoShadow(el, x, y);
+  const resolved = drillIntoShadow(el, x, y);
+  return retargetToInteractive(resolved);
 }
 
 // --- Clipboard ---

@@ -79,6 +79,40 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       unique: isUnique(css, el),
       cssEquivalent: css,
     });
+    for (const alt of suitableTextAlternatives(meta.placeholder)) {
+      add({
+        strategy: 'getByPlaceholder',
+        value: `${prefix}getByPlaceholder('${esc(alt.text)}')`,
+        score: SCORE.placeholder - alt.scoreBonus,
+        reason: 'Placeholder text (trimmed)',
+        unique: isUnique(cssAttr('placeholder', alt.text), el),
+        cssEquivalent: cssAttr('placeholder', alt.text),
+      });
+    }
+  }
+
+  // 3b. getByAltText
+  const ALT_TAGS = ['APPLET', 'AREA', 'IMG', 'INPUT'];
+  if (meta.alt && ALT_TAGS.includes(el.tagName)) {
+    const css = cssAttr('alt', meta.alt);
+    add({
+      strategy: 'getByAltText',
+      value: `${prefix}getByAltText('${esc(meta.alt)}')`,
+      score: SCORE.altText,
+      reason: 'Alt text on image/input',
+      unique: isUnique(css, el),
+      cssEquivalent: css,
+    });
+    for (const alt of suitableTextAlternatives(meta.alt)) {
+      add({
+        strategy: 'getByAltText',
+        value: `${prefix}getByAltText('${esc(alt.text)}')`,
+        score: SCORE.altText - alt.scoreBonus,
+        reason: 'Alt text (trimmed)',
+        unique: isUnique(cssAttr('alt', alt.text), el),
+        cssEquivalent: cssAttr('alt', alt.text),
+      });
+    }
   }
 
   // 4. getByLabel
@@ -94,7 +128,30 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     });
   }
 
-  // 5. getByText (short, meaningful text only)
+  // 5. getByTitle
+  if (meta.title) {
+    const css = cssAttr('title', meta.title);
+    add({
+      strategy: 'getByTitle',
+      value: `${prefix}getByTitle('${esc(meta.title)}')`,
+      score: SCORE.title,
+      reason: 'Title attribute as locator',
+      unique: isUnique(css, el),
+      cssEquivalent: css,
+    });
+    for (const alt of suitableTextAlternatives(meta.title)) {
+      add({
+        strategy: 'getByTitle',
+        value: `${prefix}getByTitle('${esc(alt.text)}')`,
+        score: SCORE.title - alt.scoreBonus,
+        reason: 'Title attribute (trimmed)',
+        unique: isUnique(cssAttr('title', alt.text), el),
+        cssEquivalent: cssAttr('title', alt.text),
+      });
+    }
+  }
+
+  // 6. getByText (short, meaningful text only)
   if (meta.textContent.length > 0 && meta.textContent.length <= TEXT_MAX) {
     add({
       strategy: 'getByText',
@@ -104,9 +161,19 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       unique: countTextMatches(el, meta.textContent) === 1,
       cssEquivalent: null,
     });
+    for (const alt of suitableTextAlternatives(meta.textContent)) {
+      add({
+        strategy: 'getByText',
+        value: `${prefix}getByText('${esc(alt.text)}')`,
+        score: SCORE.text - alt.scoreBonus,
+        reason: 'Visible text (trimmed)',
+        unique: countTextMatches(el, alt.text) === 1,
+        cssEquivalent: null,
+      });
+    }
   }
 
-  // 6. CSS fallback — always unique by construction, so a unique candidate always exists.
+  // 7. CSS fallback — always unique by construction, so a unique candidate always exists.
   const cssSelector = buildCssSelector(el, meta);
   add({
     strategy: 'locator',
@@ -230,15 +297,27 @@ function findAssociatedLabel(el: Element): string | null {
   return null;
 }
 
-// --- Uniqueness counting (walks the element's root node) ---
+// --- Uniqueness counting (walks the element's root node, visible only) ---
 
 function rootOf(el: Element): Document | ShadowRoot {
   return el.getRootNode() as Document | ShadowRoot;
 }
 
+function isVisible(el: Element): boolean {
+  try {
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden') return false;
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 || rect.height > 0;
+  } catch {
+    return true;
+  }
+}
+
 function countRoleMatches(el: Element, role: string, name: string | null): number {
   let count = 0;
   for (const cand of rootOf(el).querySelectorAll('*')) {
+    if (!isVisible(cand)) continue;
     if (roleOf(cand) !== role) continue;
     if (name !== null && getAccessibleName(cand) !== name) continue;
     if (++count > 1) return count;
@@ -249,6 +328,7 @@ function countRoleMatches(el: Element, role: string, name: string | null): numbe
 function countTextMatches(el: Element, text: string): number {
   let count = 0;
   for (const cand of rootOf(el).querySelectorAll('*')) {
+    if (!isVisible(cand)) continue;
     if (normalizeText(cand.textContent ?? '') === text) {
       if (++count > 1) return count;
     }
@@ -259,6 +339,7 @@ function countTextMatches(el: Element, text: string): number {
 function countLabelMatches(el: Element, label: string): number {
   let count = 0;
   for (const cand of rootOf(el).querySelectorAll('input, textarea, select, [role]')) {
+    if (!isVisible(cand)) continue;
     if (findAssociatedLabel(cand) === label) {
       if (++count > 1) return count;
     }
@@ -268,6 +349,49 @@ function countLabelMatches(el: Element, label: string): number {
 
 function normalizeText(s: string): string {
   return s.replace(/\s+/g, ' ').trim();
+}
+
+// --- Text alternatives (port from Playwright) ---
+
+function trimWordBoundary(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  const trimmed = text.substring(0, maxLength);
+  const match = trimmed.match(/^(.*)\b(.+?)$/);
+  return match ? match[1].trimEnd() : '';
+}
+
+/**
+ * Generate text alternatives by stripping leading/trailing numbers and trimming
+ * at word boundaries. "Delete (3)" → "Delete", "Item 42" → "Item".
+ */
+function suitableTextAlternatives(text: string): { text: string; scoreBonus: number }[] {
+  let result: { text: string; scoreBonus: number }[] = [];
+
+  // Strip leading numbers
+  const leadingMatch = text.match(/^[\d.,]+[^.,\w]/);
+  if (leadingMatch) {
+    const alt = trimWordBoundary(text.substring(leadingMatch[0].length).trimStart(), 80);
+    if (alt) result.push({ text: alt, scoreBonus: alt.length <= 30 ? 2 : 1 });
+  }
+
+  // Strip trailing numbers
+  const trailingMatch = text.match(/[^.,\w][\d.,]+$/);
+  if (trailingMatch) {
+    const alt = trimWordBoundary(text.substring(0, text.length - trailingMatch[0].length).trimEnd(), 80);
+    if (alt) result.push({ text: alt, scoreBonus: alt.length <= 30 ? 2 : 1 });
+  }
+
+  // Trimmed variants
+  if (text.length <= 30) {
+    result.push({ text, scoreBonus: 0 });
+  } else {
+    const long = trimWordBoundary(text, 80);
+    if (long) result.push({ text: long, scoreBonus: 0 });
+    const short = trimWordBoundary(text, 30);
+    if (short) result.push({ text: short, scoreBonus: 1 });
+  }
+
+  return result.filter((r) => r.text);
 }
 
 // --- CSS selector building ---

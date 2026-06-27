@@ -9,6 +9,7 @@ export const SCORE = {
   roleWithName: 100,
   label: 120,
   placeholder: 140,
+  altText: 160,
   text: 180,
   title: 200,
   cssId: 500,

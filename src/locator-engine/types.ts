@@ -6,6 +6,8 @@ export type LocatorStrategy =
   | 'getByLabel'
   | 'getByPlaceholder'
   | 'getByText'
+  | 'getByAltText'
+  | 'getByTitle'
   | 'locator'; // CSS fallback
 
 export interface LocatorReason {

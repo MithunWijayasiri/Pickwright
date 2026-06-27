@@ -80,6 +80,7 @@ export function collectMetadata(el: Element): ElementMetadata {
     role: el.getAttribute('role'),
     placeholder: el.getAttribute('placeholder'),
     title: el.getAttribute('title'),
+    alt: el.getAttribute('alt'),
     name: el.getAttribute('name'),
     formControlName: el.getAttribute('formcontrolname') || el.getAttribute('ng-reflect-name'),
     dataAttributes,
