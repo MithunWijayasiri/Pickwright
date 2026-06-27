@@ -21,14 +21,21 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
   const testId = meta.dataAttributes['data-testid'];
   if (testId) {
     const css = cssAttr('data-testid', testId);
+    const unique = isUnique(css, el);
     add({
       strategy: 'getByTestId',
       value: `${prefix}getByTestId('${esc(testId)}')`,
       score: SCORE.testId,
       reason: 'data-testid is the most stable selector',
-      unique: isUnique(css, el),
+      unique,
       cssEquivalent: css,
     });
+
+    // If not unique, try chaining with a parent that has data-testid
+    if (!unique) {
+      const chained = findChainedTestId(el, testId, prefix);
+      if (chained) add(chained);
+    }
   }
   const altTestId = meta.dataAttributes['data-test-id'] || meta.dataAttributes['data-cy'];
   const altTestAttr = meta.dataAttributes['data-test-id'] ? 'data-test-id' : 'data-cy';
@@ -599,4 +606,40 @@ function esc(s: string): string {
 
 function cssAttr(name: string, value: string): string {
   return `[${name}="${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`;
+}
+
+// --- Parent-nesting for test IDs ---
+
+/**
+ * When a testId is not unique, walk up ancestors to find a parent with data-testid
+ * that scopes it to uniqueness. Returns a chained getByTestId locator.
+ * Example: getByTestId('parent-testid').getByTestId('child-testid')
+ */
+function findChainedTestId(el: Element, childTestId: string, prefix: string): LocatorCandidate | null {
+  let parent = el.parentElement;
+  const root = rootOf(el);
+
+  while (parent && (parent as Node) !== root) {
+    const parentTestId = parent.getAttribute('data-testid');
+    if (parentTestId) {
+      const chainedCss = `${cssAttr('data-testid', parentTestId)} ${cssAttr('data-testid', childTestId)}`;
+      try {
+        const matches = root.querySelectorAll(chainedCss);
+        if (matches.length === 1 && matches[0] === el) {
+          return {
+            strategy: 'getByTestId',
+            value: `${prefix}getByTestId('${esc(parentTestId)}').getByTestId('${esc(childTestId)}')`,
+            score: SCORE.testId + 1, // Slightly worse than single unique testId
+            reason: 'Chained getByTestId for uniqueness',
+            unique: true,
+            cssEquivalent: chainedCss,
+          };
+        }
+      } catch {
+        // Invalid selector, skip
+      }
+    }
+    parent = parent.parentElement;
+  }
+  return null;
 }
