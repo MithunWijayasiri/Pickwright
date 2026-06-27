@@ -2,7 +2,7 @@
 // Source: microsoft/playwright packages/injected/src/selectorGenerator.ts
 // Licensed under Apache-2.0. Adapted to plain DOM (no InjectedScript engine).
 
-// Strategy scores, lower is better — mirrors Playwright's constants.
+// Strategy scores, lower is better — modeled on Playwright's constants.
 export const SCORE = {
   testId: 1,
   otherTestId: 2,
@@ -19,13 +19,6 @@ export const SCORE = {
   nth: 10000,
   cssFallback: 10000000,
 } as const;
-
-// Combined score: earlier tokens weigh more (token.score * (len - i)).
-export function combineScores(scores: number[]): number {
-  let total = 0;
-  for (let i = 0; i < scores.length; i++) total += scores[i] * (scores.length - i);
-  return total;
-}
 
 // Auto-generated IDs (GUIDs, hashes) make poor locators. Detects them by
 // counting transitions between character classes — many transitions = noise.

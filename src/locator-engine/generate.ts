@@ -9,13 +9,16 @@ const TEXT_MAX = 50;
 /**
  * Generate all possible locator candidates for an element.
  * Priority follows Playwright's scoring (lower = better):
- * testId → role+name → placeholder → label → text → CSS id → role-only → CSS.
+ * testId → role+name → label → placeholder → altText → text → title → CSS id → role-only → CSS.
  * Each candidate carries its real uniqueness (matched against the DOM).
  */
 export function generateCandidates(el: Element, meta: ElementMetadata): LocatorCandidate[] {
   const candidates: LocatorCandidate[] = [];
   const prefix = meta.frameSelector ? `frameLocator('${esc(meta.frameSelector)}').` : '';
-  const add = (c: LocatorCandidate) => candidates.push(penalizeForLength(c));
+  const add = (c: LocatorCandidate) => {
+    penalizeForLength(c);
+    candidates.push(c);
+  };
 
   // 1. getByTestId (only data-testid; data-test-id/data-cy emit as CSS locator)
   const testId = meta.dataAttributes['data-testid'];
@@ -202,11 +205,10 @@ function cssScore(selector: string): number {
 }
 
 // Playwright's length penalty: bump mid-range scores slightly for long selectors.
-function penalizeForLength(c: LocatorCandidate): LocatorCandidate {
+function penalizeForLength(c: LocatorCandidate): void {
   if (c.score > 50 && c.score < 300) {
     c.score += Math.min(10, (c.value.length / 10) | 0);
   }
-  return c;
 }
 
 function getImplicitRole(tagName: string, el: Element): string | null {
