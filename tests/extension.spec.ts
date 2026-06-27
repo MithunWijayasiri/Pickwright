@@ -98,6 +98,25 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     );
   });
 
+  test('getByAltText for an image with alt text', async () => {
+    await expectLocatorOnHover('#logo-img', "getByAltText('Company Logo')");
+  });
+
+  test('getByTitle when only a title attribute identifies the element', async () => {
+    await expectLocatorOnHover('#info-icon', "getByTitle('More information')");
+  });
+
+  test('chains getByTestId via parent when child testid is non-unique', async () => {
+    await expectLocatorOnHover(
+      '[data-testid="card-alpha"] [data-testid="card-action"]',
+      "getByTestId('card-alpha').getByTestId('card-action')",
+    );
+  });
+
+  test('retargets a non-interactive icon to its interactive button parent', async () => {
+    await expectLocatorOnHover('#save-icon', "getByRole('button', { name: 'Save' })");
+  });
+
   test('drills into open shadow roots', async () => {
     await expectLocatorOnHover('#shadow-btn', "getByRole('button', { name: 'Shadow Button' })");
   });

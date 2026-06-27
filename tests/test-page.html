@@ -123,6 +123,50 @@
       </ng-select>
     </div>
 
+    <!-- 7c. getByAltText: img with alt text and no other identifying strategy. -->
+    <div class="form-group">
+      <img
+        id="logo-img"
+        alt="Company Logo"
+        width="40"
+        height="40"
+        src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+      />
+    </div>
+
+    <!-- 7d. getByTitle: sized empty element carrying only a title attribute. -->
+    <div class="form-group">
+      <span
+        id="info-icon"
+        title="More information"
+        style="display: inline-block; width: 24px; height: 24px; background: #eee"
+      ></span>
+    </div>
+
+    <!-- 7e. Chained getByTestId: the child testid repeats across two cards, so it
+         is only unique when scoped by the parent card's testid. -->
+    <div class="form-group">
+      <div data-testid="card-alpha">
+        <button data-testid="card-action">Alpha Action</button>
+      </div>
+      <div data-testid="card-beta">
+        <button data-testid="card-action">Beta Action</button>
+      </div>
+    </div>
+
+    <!-- 7f. Retarget to interactive parent: hovering the non-interactive icon
+         inside the button should generate the button's locator, not the icon's. -->
+    <div class="form-group">
+      <button id="save-btn">
+        <span
+          id="save-icon"
+          class="icon"
+          style="display: inline-block; width: 16px; height: 16px; background: #fff"
+        ></span>
+        Save
+      </button>
+    </div>
+
     <!-- 8. Shadow DOM section -->
     <h2>Shadow DOM Sandbox</h2>
     <div class="shadow-container">
