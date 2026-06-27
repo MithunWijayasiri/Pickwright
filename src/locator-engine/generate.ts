@@ -4,7 +4,7 @@ import { ElementMetadata } from '../shared/types';
 import { LocatorCandidate } from './types';
 import { SCORE, isGuidLike, makeSelectorForId } from './playwright-port';
 
-const TEXT_MAX = 80;
+const TEXT_MAX = 50;
 
 /**
  * Generate all possible locator candidates for an element.
@@ -418,9 +418,7 @@ function buildUniqueCssPath(el: Element): string {
       const siblings = Array.from(parent.children);
       const sameTag = siblings.filter((s) => s.tagName === current!.tagName);
       const tok =
-        sameTag.indexOf(current) === 0
-          ? tag
-          : `${tag}:nth-child(${siblings.indexOf(current) + 1})`;
+        sameTag.length > 1 ? `${tag}:nth-child(${siblings.indexOf(current) + 1})` : tag;
       const hit = uniqueWith(tok);
       if (hit) return hit;
       if (!best) best = tok;
