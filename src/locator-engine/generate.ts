@@ -296,6 +296,12 @@ function buildBaseCssSelector(el: Element, meta: ElementMetadata): string {
   const testId = meta.dataAttributes['data-testid'];
   if (testId) return cssAttr('data-testid', testId);
 
+  const altTestId = meta.dataAttributes['data-test-id'] || meta.dataAttributes['data-cy'];
+  if (altTestId) {
+    const attr = meta.dataAttributes['data-test-id'] ? 'data-test-id' : 'data-cy';
+    return cssAttr(attr, altTestId);
+  }
+
   if (meta.formControlName) {
     return cssAttr('formcontrolname', meta.formControlName);
   }
