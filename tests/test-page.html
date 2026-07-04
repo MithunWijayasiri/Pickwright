@@ -180,6 +180,24 @@
       <icon-host id="composed-host"></icon-host>
     </div>
 
+    <!-- 7i. Expanded implicit role map. aria-label gives each a deterministic
+         accessible name so the new tag/input role drives getByRole (score 100). -->
+    <div class="form-group">
+      <table>
+        <tbody>
+          <tr>
+            <td aria-label="Account balance">1,250.00</td>
+          </tr>
+        </tbody>
+      </table>
+      <input type="file" aria-label="Upload avatar" />
+      <input type="text" list="pw-colors" aria-label="Pick a color" />
+      <datalist id="pw-colors">
+        <option value="Red"></option>
+      </datalist>
+    </div>
+    <footer aria-label="Page footer">Footer content</footer>
+
     <!-- 8. Shadow DOM section -->
     <h2>Shadow DOM Sandbox</h2>
     <div class="shadow-container">

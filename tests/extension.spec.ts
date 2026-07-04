@@ -136,6 +136,34 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     );
   });
 
+  test('maps td to the cell role (expanded implicit role map)', async () => {
+    await expectLocatorOnHover(
+      'td[aria-label="Account balance"]',
+      "getByRole('cell', { name: 'Account balance' })",
+    );
+  });
+
+  test('maps input[type=file] to the button role', async () => {
+    await expectLocatorOnHover(
+      'input[type="file"]',
+      "getByRole('button', { name: 'Upload avatar' })",
+    );
+  });
+
+  test('maps a text input with a datalist to the combobox role', async () => {
+    await expectLocatorOnHover(
+      'input[list="pw-colors"]',
+      "getByRole('combobox', { name: 'Pick a color' })",
+    );
+  });
+
+  test('maps footer outside a landmark to the contentinfo role', async () => {
+    await expectLocatorOnHover(
+      'footer[aria-label="Page footer"]',
+      "getByRole('contentinfo', { name: 'Page footer' })",
+    );
+  });
+
   test('selects an element: toast, clipboard, and history', async ({
     extensionContext,
     extensionId,

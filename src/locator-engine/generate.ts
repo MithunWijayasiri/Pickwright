@@ -211,51 +211,118 @@ function penalizeForLength(c: LocatorCandidate): void {
   }
 }
 
+const IMPLICIT_ROLE_BY_TAG: Record<string, string> = {
+  article: 'article',
+  aside: 'complementary',
+  blockquote: 'blockquote',
+  button: 'button',
+  caption: 'caption',
+  code: 'code',
+  datalist: 'listbox',
+  dd: 'definition',
+  del: 'deletion',
+  dfn: 'term',
+  dialog: 'dialog',
+  dt: 'term',
+  em: 'emphasis',
+  fieldset: 'group',
+  figure: 'figure',
+  h1: 'heading',
+  h2: 'heading',
+  h3: 'heading',
+  h4: 'heading',
+  h5: 'heading',
+  h6: 'heading',
+  hr: 'separator',
+  html: 'document',
+  ins: 'insertion',
+  li: 'listitem',
+  main: 'main',
+  math: 'math',
+  menu: 'list',
+  meter: 'meter',
+  nav: 'navigation',
+  ol: 'list',
+  optgroup: 'group',
+  option: 'option',
+  p: 'paragraph',
+  pre: 'generic',
+  progress: 'progressbar',
+  ruby: 'ruby',
+  select: 'combobox',
+  strong: 'strong',
+  sub: 'subscript',
+  summary: 'summary',
+  sup: 'superscript',
+  svg: 'img',
+  table: 'table',
+  tbody: 'rowgroup',
+  td: 'cell',
+  textarea: 'textbox',
+  tfoot: 'rowgroup',
+  th: 'columnheader',
+  thead: 'rowgroup',
+  tr: 'row',
+  ul: 'list',
+};
+
+const INPUT_ROLE_BY_TYPE: Record<string, string> = {
+  checkbox: 'checkbox',
+  radio: 'radio',
+  range: 'slider',
+  number: 'spinbutton',
+  search: 'searchbox',
+  email: 'textbox',
+  tel: 'textbox',
+  url: 'textbox',
+  text: 'textbox',
+  password: 'textbox',
+  submit: 'button',
+  button: 'button',
+  reset: 'button',
+  image: 'button',
+};
+
+// Types with no ARIA role: color, date, datetime-local, month, time, week (and hidden → skip).
+function getInputRole(input: HTMLInputElement): string | null {
+  const type = (input.getAttribute('type') ?? 'text').toLowerCase();
+  if (type === 'hidden') return null;
+  if (type === 'file') return 'button';
+  if (input.hasAttribute('list') && ['search', 'text', '', 'email', 'tel', 'url'].includes(type)) {
+    return 'combobox';
+  }
+  return INPUT_ROLE_BY_TYPE[type] ?? null;
+}
+
+function hasGlobalAriaAttribute(el: Element): boolean {
+  return el.getAttributeNames().some((n) => n.startsWith('aria-'));
+}
+
+function hasAccessibleName(el: Element): boolean {
+  return !!(el.getAttribute('aria-label') || el.getAttribute('aria-labelledby'));
+}
+
+const LANDMARK_SELECTOR =
+  'article:not([role]), aside:not([role]), main:not([role]), nav:not([role]), section:not([role]), [role=article], [role=complementary], [role=main], [role=navigation], [role=region]';
+
+function isInsideLandmark(el: Element): boolean {
+  return !!el.parentElement?.closest(LANDMARK_SELECTOR);
+}
+
 function getImplicitRole(tagName: string, el: Element): string | null {
-  const map: Record<string, string> = {
-    button: 'button',
-    select: 'combobox',
-    textarea: 'textbox',
-    img: 'img',
-    nav: 'navigation',
-    main: 'main',
-    form: 'form',
-    dialog: 'dialog',
-    table: 'table',
-    h1: 'heading',
-    h2: 'heading',
-    h3: 'heading',
-    h4: 'heading',
-    h5: 'heading',
-    h6: 'heading',
-  };
-
-  if (tagName === 'a') {
-    return el.hasAttribute('href') ? 'link' : null;
+  if (tagName === 'a' || tagName === 'area') return el.hasAttribute('href') ? 'link' : null;
+  if (tagName === 'input') return getInputRole(el as HTMLInputElement);
+  if (tagName === 'img') {
+    if (el.getAttribute('alt') === '' && !el.hasAttribute('title') && !hasGlobalAriaAttribute(el) && !el.hasAttribute('tabindex'))
+      return 'presentation';
+    return 'img';
   }
+  if (tagName === 'footer') return isInsideLandmark(el) ? null : 'contentinfo';
+  if (tagName === 'header') return isInsideLandmark(el) ? null : 'banner';
+  if (tagName === 'form') return hasAccessibleName(el) ? 'form' : null;
+  if (tagName === 'section') return hasAccessibleName(el) ? 'region' : null;
 
-  if (tagName === 'input') {
-    const type = el.getAttribute('type') ?? 'text';
-    const inputRoles: Record<string, string> = {
-      checkbox: 'checkbox',
-      radio: 'radio',
-      range: 'slider',
-      number: 'spinbutton',
-      search: 'searchbox',
-      email: 'textbox',
-      tel: 'textbox',
-      url: 'textbox',
-      text: 'textbox',
-      password: 'textbox',
-      submit: 'button',
-      button: 'button',
-      reset: 'button',
-      image: 'button',
-    };
-    return inputRoles[type] ?? null;
-  }
-
-  return map[tagName] ?? null;
+  return IMPLICIT_ROLE_BY_TAG[tagName] ?? null;
 }
 
 /** Explicit role attribute, else implicit role from the tag. */
