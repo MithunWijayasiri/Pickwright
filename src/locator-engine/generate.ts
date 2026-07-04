@@ -248,11 +248,8 @@ const IMPLICIT_ROLE_BY_TAG: Record<string, string> = {
   p: 'paragraph',
   pre: 'generic',
   progress: 'progressbar',
-  ruby: 'ruby',
-  select: 'combobox',
   strong: 'strong',
   sub: 'subscript',
-  summary: 'summary',
   sup: 'superscript',
   svg: 'img',
   table: 'table',
@@ -312,6 +309,8 @@ function isInsideLandmark(el: Element): boolean {
 function getImplicitRole(tagName: string, el: Element): string | null {
   if (tagName === 'a' || tagName === 'area') return el.hasAttribute('href') ? 'link' : null;
   if (tagName === 'input') return getInputRole(el as HTMLInputElement);
+  if (tagName === 'select')
+    return el.hasAttribute('multiple') || (el as HTMLSelectElement).size > 1 ? 'listbox' : 'combobox';
   if (tagName === 'img') {
     if (el.getAttribute('alt') === '' && !el.hasAttribute('title') && !hasGlobalAriaAttribute(el) && !el.hasAttribute('tabindex'))
       return 'presentation';
