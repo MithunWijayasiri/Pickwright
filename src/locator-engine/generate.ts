@@ -280,7 +280,7 @@ const INPUT_ROLE_BY_TYPE: Record<string, string> = {
   image: 'button',
 };
 
-// Types with no ARIA role: color, date, datetime-local, month, time, week (and hidden → skip).
+// Unrecognized types resolve to textbox (Playwright); only hidden yields no role.
 function getInputRole(input: HTMLInputElement): string | null {
   const type = (input.getAttribute('type') ?? 'text').toLowerCase();
   if (type === 'hidden') return null;
@@ -288,7 +288,7 @@ function getInputRole(input: HTMLInputElement): string | null {
   if (input.hasAttribute('list') && ['search', 'text', '', 'email', 'tel', 'url'].includes(type)) {
     return 'combobox';
   }
-  return INPUT_ROLE_BY_TYPE[type] ?? null;
+  return INPUT_ROLE_BY_TYPE[type] ?? 'textbox';
 }
 
 function hasGlobalAriaAttribute(el: Element): boolean {
