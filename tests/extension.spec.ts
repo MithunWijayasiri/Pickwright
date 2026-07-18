@@ -180,7 +180,7 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     await expect(toast).toBeVisible();
     await expect(toast).toContainText(expectedLocator);
     await expect(toast).toContainText('⚠ Warning');
-    await expect(toast).toContainText('Dropdown trigger detected (not opened)');
+    await expect(toast).toContainText('Dropdown not opened');
 
     // Clipboard contents (poll to avoid races with the async write).
     await expect
