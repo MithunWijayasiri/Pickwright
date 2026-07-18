@@ -12,6 +12,7 @@ export const SCORE = {
   altText: 160,
   text: 180,
   title: 200,
+  formControlName: 250,
   cssId: 500,
   roleWithoutName: 510,
   cssInputTypeName: 520,

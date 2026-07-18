@@ -12,7 +12,12 @@ export function scoreAndSelect(candidates: LocatorCandidate[], el: Element): Loc
 
   pool.sort((a, b) => a.score - b.score);
 
-  const deduped = deduplicateRoleCandidates(pool);
+  // Same locator string can arrive via two strategies (e.g. formcontrolname
+  // candidate + CSS fallback) — keep the lowest-scoring copy only.
+  const seen = new Set<string>();
+  const byValue = pool.filter((c) => (seen.has(c.value) ? false : (seen.add(c.value), true)));
+
+  const deduped = deduplicateRoleCandidates(byValue);
 
   if (deduped[0]) {
     deduped[0].reasons = getLocatorReasons(deduped[0], el);
@@ -31,5 +36,8 @@ function deduplicateRoleCandidates(candidates: LocatorCandidate[]): LocatorCandi
   );
   if (!hasRoleWithName) return candidates;
 
-  return candidates.filter((c) => !(c.strategy === 'getByRole' && !c.value.includes('name:')));
+  // Keep .nth() candidates — they are the recourse when role+name is not unique.
+  return candidates.filter(
+    (c) => !(c.strategy === 'getByRole' && !c.value.includes('name:') && !c.value.includes('.nth(')),
+  );
 }

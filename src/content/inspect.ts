@@ -82,7 +82,8 @@ export function collectMetadata(el: Element): ElementMetadata {
     title: el.getAttribute('title'),
     alt: el.getAttribute('alt'),
     name: el.getAttribute('name'),
-    formControlName: el.getAttribute('formcontrolname') || el.getAttribute('ng-reflect-name'),
+    // ng-reflect-* is intentionally ignored — it exists only in Angular dev builds.
+    formControlName: el.getAttribute('formcontrolname'),
     dataAttributes,
     frameSelector: null, // set by caller if in iframe
   };

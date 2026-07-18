@@ -291,6 +291,51 @@ body {
   height: 11px;
 }
 
+/* ---------- Alternatives under result ---------- */
+.alt-list {
+  margin-bottom: 10px;
+}
+
+.alt-head {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.alt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.alt-row:last-child {
+  border-bottom: none;
+}
+
+.alt-row:hover {
+  background: var(--surface-row-hover);
+}
+
+.alt-row:hover .row-copy {
+  opacity: 1;
+}
+
+.alt-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  word-break: break-all;
+  color: var(--text-body);
+  flex: 1;
+}
+
 /* ---------- Pick button row ---------- */
 .btn-pick-row {
   display: flex;

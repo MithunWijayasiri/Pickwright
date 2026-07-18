@@ -10,6 +10,9 @@ export interface HistoryEntry {
   score: number;
   tag: string;
   textSnippet: string;
+  // Absent on entries stored before alternatives/reasons were captured.
+  alternatives?: string[];
+  reasons?: string[];
 }
 
 export async function getHistory(): Promise<HistoryEntry[]> {

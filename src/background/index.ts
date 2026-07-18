@@ -20,6 +20,17 @@ chrome.runtime.onStartup.addListener(async () => {
   }
 });
 
+// Keyboard shortcut → toggle the picker in the active tab (same relay as popup toggle).
+chrome.commands?.onCommand.addListener((command) => {
+  if (command !== 'toggle-picker') return;
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0]?.id;
+    if (!tabId) return;
+    // Reading lastError silences "Unchecked runtime.lastError" when no content script.
+    chrome.tabs.sendMessage(tabId, { type: MESSAGE_TYPES.TOGGLE_PICKER }, () => chrome.runtime.lastError);
+  });
+});
+
 chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) => {
   // Messages from a content script carry sender.tab.
   if (sender.tab) {
@@ -38,6 +49,8 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
             score: payload.score,
             tag: payload.tag,
             textSnippet: payload.textSnippet,
+            alternatives: payload.alternatives,
+            reasons: payload.reasons,
           };
           addToHistory(entry);
         })
