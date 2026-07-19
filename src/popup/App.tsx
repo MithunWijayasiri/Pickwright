@@ -324,7 +324,10 @@ const App = () => {
                     tabIndex={0}
                     onClick={() => copyAlt(alt, i)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') copyAlt(alt, i);
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        copyAlt(alt, i);
+                      }
                     }}
                     title="Copy alternative"
                   >

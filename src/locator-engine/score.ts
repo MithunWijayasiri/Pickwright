@@ -15,7 +15,11 @@ export function scoreAndSelect(candidates: LocatorCandidate[], el: Element): Loc
   // Same locator string can arrive via two strategies (e.g. formcontrolname
   // candidate + CSS fallback) — keep the lowest-scoring copy only.
   const seen = new Set<string>();
-  const byValue = pool.filter((c) => (seen.has(c.value) ? false : (seen.add(c.value), true)));
+  const byValue = pool.filter((c) => {
+    if (seen.has(c.value)) return false;
+    seen.add(c.value);
+    return true;
+  });
 
   const deduped = deduplicateRoleCandidates(byValue);
 
