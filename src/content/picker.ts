@@ -108,6 +108,8 @@ function onMouseMove(e: MouseEvent): void {
 }
 
 function onClick(e: MouseEvent): void {
+  // Shift+click passes through to the page (opens dropdowns/menus); picker stays armed.
+  if (e.shiftKey) return;
   // Intercept in capture phase — page never sees this click
   e.stopImmediatePropagation();
   e.preventDefault();
@@ -143,7 +145,7 @@ function onClick(e: MouseEvent): void {
       textSnippet: meta.textContent.slice(0, 40),
       score: result.best.score,
       multiPick: multiPickerActive,
-      // TODO: Pass result.best.reasons to payload for explainability feature
+      reasons: (result.best.reasons ?? []).map((r) => r.message),
     },
   });
 
@@ -168,6 +170,8 @@ function onKeyDown(e: KeyboardEvent): void {
 }
 
 function suppressEvent(e: Event): void {
+  // Shift held: let the event through so dropdowns/menus can open while picking.
+  if ((e as MouseEvent).shiftKey) return;
   e.stopImmediatePropagation();
   if (e.type === 'contextmenu') e.preventDefault();
 }
@@ -430,7 +434,7 @@ function showToast(text: string, isDropdown: boolean): void {
       marginTop: '2px',
       fontWeight: '500',
     });
-    warnRow.textContent = 'Dropdown trigger detected (not opened)';
+    warnRow.textContent = 'Dropdown not opened — Shift+click opens it so you can pick inside';
     innerContent.appendChild(warnRow);
   }
 

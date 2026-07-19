@@ -78,6 +78,21 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     });
   }
 
+  // 2b. getByRole(...).nth(N) — offered when the role alone is ambiguous
+  if (role && countRoleMatches(el, role, null) > 1) {
+    const index = visibleRoleIndex(el, role);
+    if (index >= 0 && index <= 5) {
+      add({
+        strategy: 'getByRole',
+        value: `${prefix}getByRole('${esc(role)}').nth(${index})`,
+        score: SCORE.nth,
+        reason: 'Role with positional index — breaks when element order changes',
+        unique: true,
+        cssEquivalent: null,
+      });
+    }
+  }
+
   // 3. getByPlaceholder
   if (meta.placeholder) {
     const css = cssAttr('placeholder', meta.placeholder);
@@ -159,6 +174,19 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         cssEquivalent: null,
       });
     }
+  }
+
+  // 5b. Angular formcontrolname — authored in templates, survives prod builds
+  if (meta.formControlName) {
+    const css = cssAttr('formcontrolname', meta.formControlName);
+    add({
+      strategy: 'locator',
+      value: `${prefix}locator('${esc(css)}')`,
+      score: SCORE.formControlName,
+      reason: 'formcontrolname is a stable Angular reactive-form attribute',
+      unique: isUnique(css, el),
+      cssEquivalent: css,
+    });
   }
 
   // 6. getByText (short, meaningful text only)
@@ -329,6 +357,28 @@ function roleOf(el: Element): string | null {
   return el.getAttribute('role') || getImplicitRole(el.tagName.toLowerCase(), el);
 }
 
+// Roles whose accessible name comes from their content (Playwright's allowsNameFromContent).
+const NAME_FROM_CONTENT_ROLES = new Set([
+  'button',
+  'cell',
+  'checkbox',
+  'columnheader',
+  'gridcell',
+  'heading',
+  'link',
+  'menuitem',
+  'menuitemcheckbox',
+  'menuitemradio',
+  'option',
+  'radio',
+  'row',
+  'rowheader',
+  'switch',
+  'tab',
+  'tooltip',
+  'treeitem',
+]);
+
 function getAccessibleName(el: Element, meta?: ElementMetadata): string | null {
   const ariaLabel = el.getAttribute('aria-label');
   if (ariaLabel) return ariaLabel.slice(0, 60);
@@ -352,7 +402,7 @@ function getAccessibleName(el: Element, meta?: ElementMetadata): string | null {
   if (title) return title.slice(0, 60);
 
   const role = roleOf(el);
-  if (role && ['button', 'link', 'heading'].includes(role)) {
+  if (role && NAME_FROM_CONTENT_ROLES.has(role)) {
     const text = meta ? meta.textContent : normalizeText(el.textContent ?? '');
     if (text) return text.slice(0, 60);
   }
@@ -398,6 +448,18 @@ function countRoleMatches(el: Element, role: string, name: string | null): numbe
     if (++count > 1) return count;
   }
   return count;
+}
+
+/** 0-based index of `el` among visible same-role elements in its root, or -1. */
+function visibleRoleIndex(el: Element, role: string): number {
+  let index = 0;
+  for (const cand of rootOf(el).querySelectorAll('*')) {
+    if (!isVisible(cand)) continue;
+    if (roleOf(cand) !== role) continue;
+    if (cand === el) return index;
+    index++;
+  }
+  return -1;
 }
 
 function countTextMatches(el: Element, text: string): number {

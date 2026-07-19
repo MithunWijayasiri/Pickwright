@@ -7,11 +7,14 @@ A Manifest V3 browser extension for **Chrome** and **Firefox** that lets you pic
 ## Features
 
 - **Element Picker** — hover to highlight, click to select without triggering page actions
-- **Playwright Locators** — generates `getByTestId`, `getByRole`, `getByLabel`, `getByPlaceholder`, `getByText`, and CSS fallback locators
+- **Playwright Locators** — generates `getByTestId`, `getByRole`, `getByLabel`, `getByPlaceholder`, `getByAltText`, `getByTitle`, `getByText`, `.nth()` and CSS fallback locators
 - **Smart Scoring** — ranks candidates by stability, accessibility, and uniqueness
 - **Clipboard Copy** — selected locator is instantly copied to clipboard with a toast confirmation
 - **Recent History** — last 20 locators stored for quick reuse
-- **Angular Support** — detects dropdown triggers, formcontrolname, and ng-reflect-* attributes without triggering UI changes
+- **Angular Support** — detects dropdown triggers and generates stable `formcontrolname` locators (dev-only `ng-reflect-*` attributes are ignored)
+- **Dropdown Picking** — hold **Shift** and click to let the page open dropdowns/menus while the picker stays armed, then pick inside
+- **Alternatives** — the popup lists up to 3 alternative locators for the last pick, click to copy
+- **Keyboard Shortcut** — `Alt+Shift+L` toggles the picker without opening the popup
 - **Shadow DOM** — traverses open shadow roots for accurate element targeting
 - **Iframe Support** — fully highlights and selects elements inside same-origin frames (prepends `frameLocator('...')` prefix; cross-origin frames fall back to the frame boundary itself)
 

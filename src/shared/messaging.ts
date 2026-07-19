@@ -28,6 +28,7 @@ export interface ElementSelectedMessage {
   payload: {
     locator: string;
     alternatives: string[];
+    reasons: string[];
     tag: string;
     textSnippet: string;
     score: number;

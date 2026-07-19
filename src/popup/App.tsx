@@ -70,6 +70,9 @@ const App = () => {
   const [multiPickCount, setMultiPickCount] = useState(0);
   const [lastLocator, setLastLocator] = useState<string | null>(null);
   const [lastTag, setLastTag] = useState<string>('');
+  const [lastAlternatives, setLastAlternatives] = useState<string[]>([]);
+  const [lastReasons, setLastReasons] = useState<string[]>([]);
+  const [copiedAltIdx, setCopiedAltIdx] = useState<number | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [copiedTs, setCopiedTs] = useState<number | null>(null);
   const [copiedLocator, setCopiedLocator] = useState(false);
@@ -122,6 +125,8 @@ const App = () => {
       if (h[0]) {
         setLastLocator(h[0].locator);
         setLastTag(h[0].tag);
+        setLastAlternatives(h[0].alternatives ?? []);
+        setLastReasons(h[0].reasons ?? []);
       }
     });
 
@@ -143,6 +148,8 @@ const App = () => {
       if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
         setLastLocator(message.payload.locator);
         setLastTag(message.payload.tag);
+        setLastAlternatives(message.payload.alternatives);
+        setLastReasons(message.payload.reasons ?? []);
         if (!message.payload.multiPick) {
           // Single-pick: deactivate and close popup
           setPickerActive(false);
@@ -195,6 +202,16 @@ const App = () => {
       await navigator.clipboard.writeText(locator);
       setCopiedLocator(true);
       setTimeout(() => setCopiedLocator(false), 1000);
+    } catch {
+      // Clipboard may be unavailable; ignore.
+    }
+  };
+
+  const copyAlt = async (locator: string, idx: number) => {
+    try {
+      await navigator.clipboard.writeText(locator);
+      setCopiedAltIdx(idx);
+      setTimeout(() => setCopiedAltIdx((cur) => (cur === idx ? null : cur)), 1000);
     } catch {
       // Clipboard may be unavailable; ignore.
     }
@@ -288,7 +305,7 @@ const App = () => {
         {lastLocator && result && (
           <div className="result">
             <div className="result-top">
-              <span className="badge">{result.badge}</span>
+              <span className="badge" title={lastReasons.join(' • ')}>{result.badge}</span>
               <span className="result-sep">·</span>
               <span className="result-tag">&lt;{lastTag}&gt;</span>
             </div>
@@ -296,6 +313,37 @@ const App = () => {
               className="result-code"
               dangerouslySetInnerHTML={{ __html: highlight(lastLocator) }}
             />
+            {lastAlternatives.length > 0 && (
+              <div className="alt-list">
+                <div className="alt-head">Alternatives</div>
+                {lastAlternatives.map((alt, i) => (
+                  <div
+                    key={i}
+                    className="alt-row"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => copyAlt(alt, i)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        copyAlt(alt, i);
+                      }
+                    }}
+                    title="Copy alternative"
+                  >
+                    <span
+                      className="alt-code"
+                      dangerouslySetInnerHTML={{ __html: highlight(alt) }}
+                    />
+                    {copiedAltIdx === i ? (
+                      <CheckIcon className="row-copy copied" />
+                    ) : (
+                      <CopyIcon className="row-copy" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="result-footer">
               <span className="result-hint">last picked</span>
               <button
