@@ -46,11 +46,16 @@ export function getFrameSelector(el: Element): string | null {
   return null;
 }
 
+// Attribute values reach frameLocator() as a CSS selector, so quotes and backslashes escape here.
+function cssValue(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
 function buildFrameIdentifier(frame: HTMLIFrameElement): string {
-  if (frame.id) return `iframe#${frame.id}`;
-  if (frame.name) return `iframe[name="${frame.name}"]`;
+  if (frame.id) return `iframe#${CSS.escape(frame.id)}`;
+  if (frame.name) return `iframe[name="${cssValue(frame.name)}"]`;
   const src = frame.getAttribute('src');
-  if (src) return `iframe[src="${src}"]`;
+  if (src) return `iframe[src="${cssValue(src)}"]`;
   return 'iframe';
 }
 
