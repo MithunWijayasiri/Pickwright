@@ -448,7 +448,11 @@ const App = () => {
                           tabIndex={0}
                           onClick={() => copyRow(entry)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') copyRow(entry);
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              // Space would scroll the popup.
+                              e.preventDefault();
+                              copyRow(entry);
+                            }
                           }}
                         >
                           <span className={`pill pill-${strat.pill}`}>{strat.pill}</span>

@@ -10,6 +10,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Both jobs only read the repo; no job needs a writable GITHUB_TOKEN.
+permissions:
+  contents: read
+
 jobs:
   check:
     name: Check
