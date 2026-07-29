@@ -14,6 +14,10 @@ module.exports = {
     background: './src/background/index.ts',
     content: './src/content/picker.ts',
     popup: './src/popup/index.tsx',
+    // Engine unit-test harness — gated so production builds never carry it.
+    ...(process.env.TEST_HARNESS
+      ? { 'engine-harness': './tests/engine/harness-entry.ts' }
+      : {}),
   },
   output: {
     path: path.resolve(__dirname, OUT_DIR),
@@ -25,7 +29,14 @@ module.exports = {
       {
         test: /\.tsx?$/,
         use: 'ts-loader',
-        exclude: /node_modules/,
+        exclude: [/node_modules/, path.resolve(__dirname, 'tests')],
+      },
+      {
+        // Test harness sits outside the root tsconfig's rootDir (./src), so it
+        // needs the test config or ts-loader fails with TS6059.
+        test: /\.tsx?$/,
+        include: path.resolve(__dirname, 'tests'),
+        use: { loader: 'ts-loader', options: { configFile: 'tsconfig.test.json' } },
       },
       {
         test: /\.css$/,

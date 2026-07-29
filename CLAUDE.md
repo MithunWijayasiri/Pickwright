@@ -6,13 +6,22 @@
 |---------|-------------|
 | `npm run build` | Production build → `dist/` (Chrome manifest; load folder as unpacked extension) |
 | `npm run dev` | Dev build, watch mode |
-| `npm run test` | Playwright E2E (runs `build` first) |
+| `npm run test` | Playwright E2E, `--project=chromium` (runs `build` first) |
+| `npm run test:engine` | Locator engine unit tests, `--project=engine` (builds harness first) |
+| `npm run check` | `typecheck` + `lint` + `format:check` — same command CI's `Check` job runs |
+| `npm run format` | Prettier write (`src/`, `tests/`, `playwright.config.ts`) |
 
-E2E (`tests/`, `@playwright/test`): persistent Chromium w/ unpacked `dist/` loaded, serves `tests/test-page.html` over local HTTP, drives picker via messages relayed through background. Run `npx playwright install chromium` once first. Locator engine has NO unit tests — coverage = E2E + manual (build, reload at `chrome://extensions`, pick on real page). Reload extension after content/background changes; popup changes show on reopen.
+`check` is the pre-push gate. `typecheck` runs `tsc --noEmit` twice: root `tsconfig.json` (`src/**` only) plus `tsconfig.test.json` (`tests/**` + `playwright.config.ts`). Tests are NOT in the root tsconfig on purpose — `ts-loader` builds its program from it and would pull `@playwright/test` node globals into the bundle typecheck. `.prettierrc` sets `endOfLine: auto`: working copies are CRLF (`core.autocrlf=true`, no `.gitattributes`), so prettier's default `lf` fails every file on line endings alone.
+
+Types are gated twice — `ts-loader` has no `transpileOnly`, so `build` typechecks `src/` too. `check` exists for speed (no Chromium download), not extra coverage.
+
+E2E (`tests/`, `@playwright/test`): persistent Chromium w/ unpacked `dist/` loaded, serves `tests/test-page.html` over local HTTP, drives picker via messages relayed through background. Run `npx playwright install chromium` once first. Engine unit tests (`tests/engine/`, `--project=engine`): table-driven, one HTML snippet per case, `about:blank` with NO extension loaded. Engine reaches the page via `dist/engine-harness.js` — a webpack entry gated on `TEST_HARNESS=1` so it never ships. That entry compiles with `tsconfig.test.json` via a second `ts-loader` rule in `webpack.config.js` (root tsconfig's `rootDir: ./src` rejects it, TS6059). A real browser is required, not jsdom: `isVisible` reads layout, and jsdom's 0×0 rects would make every uniqueness count wrong while tests still passed. Cases assert the emitted locator string only — private helpers are exercised through `getLocator`, never exported for tests. Coverage = priority ladder (one case per `SCORE` rung) + noise filters; remaining groups in `docs/locator-engine-unit-test-plan.md`. Manual check still applies for picker UX (build, reload at `chrome://extensions`, pick on real page). Reload extension after content/background changes; popup changes show on reopen.
 
 ## Architecture
 
 Manifest V3 extension, **Chrome + Firefox** from one codebase. Locator logic = plain DOM, no Playwright dep — only emits Playwright-syntax strings.
+
+CI (`.github/workflows/ci.yml`, PRs to `master`): `Check` job (`npm run check` → `build:firefox` → `web-ext lint`) + `E2E Tests` job. `web-ext lint` warns on missing `data_collection_permissions` and `innerHTML` assignments — 0 errors, so it does not gate.
 
 ### Cross-browser build
 

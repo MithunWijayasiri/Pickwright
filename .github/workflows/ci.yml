@@ -39,5 +39,8 @@ jobs:
       - run: npm ci
       # Chromium + system deps; the test fixtures auto-add --headless=new when CI is set.
       - run: npx playwright install --with-deps chromium
+      # Engine unit tests first — seconds, and localises locator regressions.
+      - name: Run engine unit tests
+        run: npm run test:engine
       - name: Run E2E suite
         run: npm test

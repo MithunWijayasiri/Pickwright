@@ -14,7 +14,8 @@
     "format": "prettier --write \"{src,tests}/**/*.{ts,tsx,css,html}\" \"playwright.config.ts\"",
     "format:check": "prettier --check \"{src,tests}/**/*.{ts,tsx,css,html}\" \"playwright.config.ts\"",
     "check": "npm run typecheck && npm run lint && npm run format:check",
-    "test": "npm run build && playwright test"
+    "test": "npm run build && playwright test --project=chromium",
+    "test:engine": "cross-env TEST_HARNESS=1 webpack --mode production && playwright test --project=engine"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

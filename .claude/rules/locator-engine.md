@@ -3,6 +3,7 @@ paths:
   - "src/locator-engine/**"
   - "src/content/inspect.ts"
   - "src/content/picker.ts"
+  - "tests/engine/**"
 ---
 
 # Locator-engine rules
@@ -17,6 +18,8 @@ Invariants for `src/locator-engine/`. Violating these is how the parity PR shipp
 - Role `.nth(N)`: emitted only when role alone matches >1 visible elements and index ≤ 5. `unique: true` by construction. Exempt from the role-only dedupe in `score.ts` — it is the recourse when role+name is not unique.
 - `getByRole` name-from-content only for roles in `NAME_FROM_CONTENT_ROLES` (Playwright's `allowsNameFromContent` list) — not every role takes its name from text.
 - Adding/reordering a strategy = edit the `SCORE` value. Then fix any doc comment that lists the order — they drift (the PR shipped a backwards `placeholder → label` comment while scores said the opposite).
+- The ladder is pinned by `tests/engine/locator.spec.ts` (one case per rung). Reordering `SCORE` WILL fail cases there. Decide per case whether the new winner is intended and edit the expectation deliberately — never paste actual output back in to make it green.
+- `SCORE.label` is near-unreachable: `getAccessibleName` consults `findAssociatedLabel` first, so a labeled element with a role wins at `roleWithName` (100) before `label` (120); and `countLabelMatches` only scans `input, textarea, select, [role]`, so a labeled element without a role never counts as unique. Matches Playwright — not a bug. Its spec fixture looks contrived on purpose.
 
 ## Every candidate carries real uniqueness
 
@@ -36,7 +39,7 @@ Invariants for `src/locator-engine/`. Violating these is how the parity PR shipp
 - `isStableId` (`generate.ts`): rejects id prefixes `mat-/cdk-/ng-/_ng/ember/react-`, ids with `:`, GUID-like ids (`isGuidLike`, `playwright-port.ts`).
 - `isStableClass` (`generate.ts`): rejects class prefixes `ng-/cdk-/mat-ripple/_ngcontent/_nghost/mat-mdc-/mdc-/p-/ui-` + hash-suffixed `^[a-z]{1,3}-[a-f0-9]{4,}$` (also catches `jsx-…`).
 - `ng-reflect-*` attrs exist only in Angular dev builds — never collect as a locator source (`collectMetadata`). `formcontrolname` IS stable: own strategy at `SCORE.formControlName`.
-- Mirror these regexes here when they change. `data-testid` is never noise — top signal, keep it out of both filters.
+- Mirror these regexes in TWO places when they change: here, and the noise-filtering cases in `tests/engine/locator.spec.ts`. `data-testid` is never noise — top signal, keep it out of both filters.
 - Locator-quality change → adjust heuristics AND `SCORE` together; coupled.
 
 ## Test-ID attrs
