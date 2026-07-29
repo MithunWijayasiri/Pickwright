@@ -21,9 +21,7 @@ export async function getSettings(): Promise<Settings> {
   const raw = result[SETTINGS_KEY] ?? {};
   return {
     ...DEFAULT_SETTINGS,
-    historyMode: isHistoryMode(raw.historyMode)
-      ? raw.historyMode
-      : DEFAULT_SETTINGS.historyMode,
+    historyMode: isHistoryMode(raw.historyMode) ? raw.historyMode : DEFAULT_SETTINGS.historyMode,
   };
 }
 

@@ -122,7 +122,10 @@ test.describe('Pickwright Chrome Extension E2E', () => {
   });
 
   test('retargets across a shadow boundary to an interactive host', async () => {
-    await expectLocatorOnHover('#composed-icon', "getByRole('button', { name: 'Composed Action' })");
+    await expectLocatorOnHover(
+      '#composed-icon',
+      "getByRole('button', { name: 'Composed Action' })",
+    );
   });
 
   test('drills into open shadow roots', async () => {

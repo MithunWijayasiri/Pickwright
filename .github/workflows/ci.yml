@@ -1,6 +1,6 @@
 name: CI
 
-# Run lint + the Playwright E2E suite on every pull request to master.
+# Run static checks + the Playwright E2E suite on every pull request to master.
 on:
   pull_request:
     branches: [master]
@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -21,7 +21,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run lint
+      # tsc --noEmit + eslint + prettier --check; same command as local `npm run check`.
+      - run: npm run check
+      # Firefox manifest transform + AMO validity — release signs from this build.
+      - run: npm run build:firefox
+      - run: npx web-ext lint --source-dir=dist-firefox
 
   e2e:
     name: E2E Tests

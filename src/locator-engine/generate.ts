@@ -338,9 +338,16 @@ function getImplicitRole(tagName: string, el: Element): string | null {
   if (tagName === 'a' || tagName === 'area') return el.hasAttribute('href') ? 'link' : null;
   if (tagName === 'input') return getInputRole(el as HTMLInputElement);
   if (tagName === 'select')
-    return el.hasAttribute('multiple') || (el as HTMLSelectElement).size > 1 ? 'listbox' : 'combobox';
+    return el.hasAttribute('multiple') || (el as HTMLSelectElement).size > 1
+      ? 'listbox'
+      : 'combobox';
   if (tagName === 'img') {
-    if (el.getAttribute('alt') === '' && !el.hasAttribute('title') && !hasGlobalAriaAttribute(el) && !el.hasAttribute('tabindex'))
+    if (
+      el.getAttribute('alt') === '' &&
+      !el.hasAttribute('title') &&
+      !hasGlobalAriaAttribute(el) &&
+      !el.hasAttribute('tabindex')
+    )
       return 'presentation';
     return 'img';
   }
@@ -552,7 +559,10 @@ function suitableTextAlternatives(text: string): { text: string; scoreBonus: num
   // Strip trailing numbers
   const trailingMatch = text.match(/[^.,\w][\d.,]+$/);
   if (trailingMatch) {
-    const alt = trimWordBoundary(text.substring(0, text.length - trailingMatch[0].length).trimEnd(), 80);
+    const alt = trimWordBoundary(
+      text.substring(0, text.length - trailingMatch[0].length).trimEnd(),
+      80,
+    );
     if (alt) result.push({ text: alt, scoreBonus: alt.length <= 30 ? 2 : 1 });
   }
 
@@ -711,7 +721,9 @@ function buildUniqueCssPath(el: Element): string {
     }
 
     const parent: Element | null = current.parentElement;
-    const classes = Array.from(current.classList).filter(isStableClass).map((c) => CSS.escape(c));
+    const classes = Array.from(current.classList)
+      .filter(isStableClass)
+      .map((c) => CSS.escape(c));
     for (let i = 0; i < classes.length; i++) {
       const tok = `${tag}.${classes.slice(0, i + 1).join('.')}`;
       const hit = uniqueWith(tok);
@@ -722,8 +734,7 @@ function buildUniqueCssPath(el: Element): string {
     if (parent) {
       const siblings = Array.from(parent.children);
       const sameTag = siblings.filter((s) => s.tagName === current!.tagName);
-      const tok =
-        sameTag.length > 1 ? `${tag}:nth-child(${siblings.indexOf(current) + 1})` : tag;
+      const tok = sameTag.length > 1 ? `${tag}:nth-child(${siblings.indexOf(current) + 1})` : tag;
       const hit = uniqueWith(tok);
       if (hit) return hit;
       if (!best) best = tok;
@@ -752,7 +763,8 @@ function buildNthChildSelector(el: Element, meta: ElementMetadata): string {
 function getParentHint(parent: Element): string {
   if (parent.id && isStableId(parent.id)) return makeSelectorForId(parent.id);
   const stableClasses = Array.from(parent.classList).filter(isStableClass).slice(0, 1);
-  if (stableClasses.length > 0) return `${parent.tagName.toLowerCase()}.${CSS.escape(stableClasses[0])}`;
+  if (stableClasses.length > 0)
+    return `${parent.tagName.toLowerCase()}.${CSS.escape(stableClasses[0])}`;
   return parent.tagName.toLowerCase();
 }
 
@@ -783,7 +795,11 @@ function cssAttr(name: string, value: string): string {
  * that scopes it to uniqueness. Returns a chained getByTestId locator.
  * Example: getByTestId('parent-testid').getByTestId('child-testid')
  */
-function findChainedTestId(el: Element, childTestId: string, prefix: string): LocatorCandidate | null {
+function findChainedTestId(
+  el: Element,
+  childTestId: string,
+  prefix: string,
+): LocatorCandidate | null {
   let parent = el.parentElement;
   const root = rootOf(el);
 

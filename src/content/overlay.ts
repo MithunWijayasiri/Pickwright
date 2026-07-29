@@ -94,11 +94,7 @@ export function hideHighlight(): void {
 }
 
 export function isPickerElement(el: Element): boolean {
-  return (
-    el.id === HIGHLIGHT_ID ||
-    el.id === TOOLTIP_ID ||
-    el.closest(`#${TOAST_ID}`) !== null
-  );
+  return el.id === HIGHLIGHT_ID || el.id === TOOLTIP_ID || el.closest(`#${TOAST_ID}`) !== null;
 }
 
 function createElement(id: string, styles: Partial<CSSStyleDeclaration>): HTMLDivElement {
