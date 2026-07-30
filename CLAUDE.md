@@ -19,7 +19,7 @@
 Two suites, both real-browser:
 
 - **E2E** (`tests/`): persistent Chromium w/ unpacked `dist/`, serves `tests/test-page.html` over local HTTP, drives picker via messages relayed through background. `npx playwright install chromium` once first.
-- **Engine units** (`tests/engine/`): table-driven, `about:blank`, no extension. Reaches the engine via `dist/engine-harness.js` — webpack entry gated on `TEST_HARNESS=1`, compiled with `tsconfig.test.json` through a second `ts-loader` rule (root `rootDir: ./src` rejects it, TS6059). Not jsdom, on purpose: `isVisible` reads layout, and 0×0 rects would break every uniqueness count while tests still passed. Scope + open groups: `docs/locator-engine-unit-test-plan.md`.
+- **Engine units** (`tests/engine/`): table-driven, `about:blank`, no extension. Reaches the engine via `dist/engine-harness.js` — webpack entry gated on `TEST_HARNESS=1`, compiled with `tsconfig.test.json` through a second `ts-loader` rule (root `rootDir: ./src` rejects it, TS6059). Not jsdom, on purpose: `isVisible` reads layout, and 0×0 rects would break every uniqueness count while tests still passed. Scope + open groups: `docs/backlog.md`.
 
 Picker UX still needs a manual check (reload at `chrome://extensions`, pick on a real page). Reload after content/background changes; popup changes show on reopen.
 
