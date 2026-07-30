@@ -223,3 +223,119 @@ test.describe('noise filtering', () => {
     },
   ]);
 });
+
+// Group 3 — uniqueness must match the matcher's semantics. Trimmed alternatives
+// resolve as substrings (Playwright's exact: false), so they need substring
+// uniqueness. Pairing a substring matcher with an exact check yields a candidate
+// that can never be selected — the CSS fallback silently wins instead.
+test.describe('uniqueness and matcher semantics', () => {
+  run([
+    {
+      name: 'text: trailing number stripped, ancestors excluded from the count',
+      html: `<div>Delete 3</div>`,
+      pick: 'div',
+      expected: `getByText('Delete')`,
+    },
+    {
+      name: 'text: innermost element wins over its wrapper',
+      html: `<div><span>Save 42</span></div>`,
+      pick: 'span',
+      expected: `getByText('Save')`,
+    },
+    {
+      name: 'text: trimmed variant rejected when a sibling shares the substring',
+      html: `<div>Delete 3</div><div>Delete 4</div>`,
+      pick: 'div:nth-of-type(1)',
+      expected: `getByText('Delete 3')`,
+    },
+    {
+      name: 'placeholder: trimmed variant used when it stays unique',
+      html: `<input placeholder="Search products 2024">`,
+      pick: 'input',
+      expected: `getByPlaceholder('Search products')`,
+    },
+    {
+      name: 'placeholder: full value kept when the trimmed one is ambiguous',
+      html: `<input placeholder="Search products 2024"><input placeholder="Search products 2025">`,
+      pick: 'input:nth-of-type(1)',
+      expected: `getByPlaceholder('Search products 2024')`,
+    },
+    {
+      // A div, not a span: substring counts filter by isVisible, and an empty
+      // inline element is 0x0, so no trimmed variant can ever be unique on it.
+      name: 'title: trimmed variant used when it stays unique',
+      html: `<div title="Close panel 2"></div>`,
+      pick: 'div',
+      expected: `getByTitle('Close panel')`,
+    },
+    {
+      name: 'altText: trimmed variant used when it stays unique',
+      html: `<img alt="Logo 2024" src="data:,">`,
+      pick: 'img',
+      expected: `getByAltText('Logo')`,
+    },
+    {
+      name: 'text: no getByText candidate above TEXT_MAX (50 chars)',
+      html: `<div class="notice">This paragraph is far too long to be a sensible text locator</div>`,
+      pick: '.notice',
+      expectNot: /getByText/,
+    },
+  ]);
+});
+
+// Group 4 — role resolution and accessible name. Counting is visible-only, which
+// is why these run in a real browser: jsdom's 0x0 rects would make every count wrong.
+test.describe('role and accessible name', () => {
+  run([
+    {
+      name: 'name from content for a role in NAME_FROM_CONTENT_ROLES',
+      html: `<h2>Dashboard</h2>`,
+      pick: 'h2',
+      expected: `getByRole('heading', { name: 'Dashboard' })`,
+    },
+    {
+      name: 'no name from content for a role outside that list',
+      html: `<p>Some notice</p>`,
+      pick: 'p',
+      expected: `getByText('Some notice')`,
+    },
+    {
+      name: 'aria-label overrides name from content',
+      html: `<button aria-label="Close dialog">&times;</button>`,
+      pick: 'button',
+      expected: `getByRole('button', { name: 'Close dialog' })`,
+    },
+    {
+      name: 'aria-labelledby resolves through the referenced element',
+      html: `<span id="lbl">Email</span><input aria-labelledby="lbl">`,
+      pick: 'input',
+      expected: `getByRole('textbox', { name: 'Email' })`,
+    },
+    {
+      name: 'implicit role from input type',
+      html: `<input type="checkbox" aria-label="Accept terms">`,
+      pick: 'input',
+      expected: `getByRole('checkbox', { name: 'Accept terms' })`,
+    },
+    {
+      name: 'anchor without href has no link role',
+      html: `<a>Learn more</a>`,
+      pick: 'a',
+      expected: `getByText('Learn more')`,
+    },
+    {
+      // The case a fake DOM cannot express: without layout, the hidden button
+      // would count too and role+name would look ambiguous.
+      name: 'hidden siblings excluded, so role+name stays unique',
+      html: `<button style="display:none">Same</button><button>Same</button>`,
+      pick: 'button:nth-of-type(2)',
+      expected: `getByRole('button', { name: 'Same' })`,
+    },
+    {
+      name: 'nth not emitted past index 5',
+      html: `<button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button>`,
+      pick: 'button:nth-of-type(7)',
+      expectNot: /\.nth\(/,
+    },
+  ]);
+});
