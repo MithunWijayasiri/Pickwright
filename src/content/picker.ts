@@ -373,7 +373,8 @@ function showToast(text: string, isDropdown: boolean): void {
     zIndex: '2147483647',
     opacity: '0',
     transform: 'translateX(30px) scale(0.96)',
-    transition: 'opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), transform 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+    transition:
+      'opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), transform 250ms cubic-bezier(0.16, 1, 0.3, 1)',
     pointerEvents: 'auto',
   });
 

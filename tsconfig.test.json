@@ -1,0 +1,11 @@
+{
+  // Typecheck-only config for test sources. Kept out of the root tsconfig because
+  // ts-loader builds its program from that file and would compile tests into the bundle.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    // chrome for page.evaluate bodies, node for process.env.
+    "types": ["chrome", "node"]
+  },
+  "include": ["tests/**/*", "playwright.config.ts"]
+}

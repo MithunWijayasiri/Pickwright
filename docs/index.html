@@ -33,11 +33,17 @@
   --accent-text: #00d062;
   --nav-bg:      rgba(14,14,14,0.95);
   --hero-wm:     rgba(255,255,255,0.022);
-  --code-bg:     #141414;
-  --code-border: rgba(255,255,255,0.08);
-  --code-cm:     #383835;
-  --code-kw:     #79b8ff;
-  --code-fn:     #b392f0;
+  --code-bg:      #141414;
+  --code-border:  rgba(255,255,255,0.08);
+  --code-head-bg: rgba(0,0,0,0.2);
+  --code-name:    #a0a0ae;
+  --code-ts-bg:   rgba(121,184,255,0.1);
+  --code-ts-fg:   #79b8ff;
+  --code-text:    #d0d0da;
+  --code-cm:      #8a8a9e;
+  --code-kw:      #79b8ff;
+  --code-fn:      #b392f0;
+  --code-s:       #00d062;
 }
 
 [data-theme="light"] {
@@ -54,11 +60,17 @@
   --accent-text: #007a3d;
   --nav-bg:      rgba(245,244,240,0.95);
   --hero-wm:     rgba(0,0,0,0.03);
-  --code-bg:     #1a1a1e;
-  --code-border: rgba(255,255,255,0.07);
-  --code-cm:     #444450;
-  --code-kw:     #79b8ff;
-  --code-fn:     #b392f0;
+  --code-bg:      #fbfaf8;
+  --code-border:  rgba(0,0,0,0.12);
+  --code-head-bg: rgba(0,0,0,0.035);
+  --code-name:    #6b675e;
+  --code-ts-bg:   rgba(5,80,174,0.09);
+  --code-ts-fg:   #0550ae;
+  --code-text:    #33322d;
+  --code-cm:      #6b675e;
+  --code-kw:      #0550ae;
+  --code-fn:      #8250df;
+  --code-s:       #007a3d;
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
@@ -102,6 +114,9 @@ a { color: inherit; text-decoration: none; }
 .stagger-4 { transition-delay: 0.20s; }
 .stagger-5 { transition-delay: 0.25s; }
 .stagger-6 { transition-delay: 0.30s; }
+.stagger-7 { transition-delay: 0.35s; }
+.stagger-8 { transition-delay: 0.40s; }
+.stagger-9 { transition-delay: 0.45s; }
 
 /* ─── Nav ────────────────────────────────────────────────────────────────── */
 nav {
@@ -221,7 +236,7 @@ h1 .dim { color: var(--muted); transition: color 0.3s; }
   font-size: 16px; color: var(--muted); max-width: 420px;
   font-weight: 300; line-height: 1.7;
 }
-.hero-btns { display: flex; gap: 10px; flex-shrink: 0; }
+.hero-btns { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; flex-shrink: 0; }
 
 .btn-fill {
   display: inline-flex; align-items: center; gap: 8px;
@@ -245,6 +260,45 @@ h1 .dim { color: var(--muted); transition: color 0.3s; }
 }
 .btn-border:hover { color: var(--text); border-color: var(--border2); transform: translateY(-1px); }
 .btn-border:active { transform: translateY(0); }
+
+/* ─── Store badges ───────────────────────────────────────────────────────── */
+.badge-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 11px;
+  padding: 9px 18px 9px 14px;
+  background: var(--bg3); color: var(--text);
+  border: 1px solid var(--border2); border-radius: 6px;
+  font-family: var(--sans); text-align: left; cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s, var(--transition-theme);
+}
+.badge:hover { border-color: var(--accent); transform: translateY(-1px); }
+.badge:active { transform: translateY(0); }
+.badge-txt { display: flex; flex-direction: column; line-height: 1.25; }
+.badge-kicker {
+  font-family: var(--mono); font-size: 8.5px; font-weight: 700;
+  letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase;
+}
+.badge-store { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+
+.hero-alt {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  letter-spacing: 0.02em; transition: color 0.2s;
+}
+.hero-alt:hover { color: var(--accent); }
+
+/* ─── Toast ──────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 99;
+  padding: 13px 18px; max-width: 320px;
+  background: var(--bg3); color: var(--text);
+  border: 1px solid var(--accent); border-left-width: 3px; border-radius: 4px;
+  font-family: var(--mono); font-size: 12px; line-height: 1.5;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+  opacity: 0; transform: translateY(12px); pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
 
 /* Load animations */
 @keyframes fade-up   { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -309,17 +363,6 @@ h1 .dim { color: var(--muted); transition: color 0.3s; }
 }
 .feat-row:last-child { border-bottom: none; }
 .feat-row:hover { background: var(--bg2); }
-/* Hover accent line */
-.feat-row::before {
-  content: '';
-  display: block;
-  width: 0; height: 100%;
-  position: absolute; left: 0; top: 0;
-  background: var(--accent);
-  transition: width 0.2s ease;
-  opacity: 0;
-}
-.feat-rows { position: relative; }
 
 .fr-num  { font-family: var(--mono); font-size: 11px; color: var(--dim); }
 .fr-tag  { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; transition: color 0.3s; }
@@ -415,33 +458,36 @@ h1 .dim { color: var(--muted); transition: color 0.3s; }
   margin-bottom: 1.5rem; color: var(--muted);
 }
 
-/* Code block — always dark regardless of theme */
+/* Code block — syntax palette follows the active theme */
 .code-block {
   background: var(--code-bg);
   border: 1px solid var(--code-border);
   border-radius: 4px; overflow: hidden;
+  transition: var(--transition-theme);
 }
 .cb-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 9px 14px;
   border-bottom: 1px solid var(--code-border);
-  background: rgba(0,0,0,0.2);
+  background: var(--code-head-bg);
+  transition: var(--transition-theme);
 }
-.cb-name { font-family: var(--mono); font-size: 10px; color: #6a6a7a; }
+.cb-name { font-family: var(--mono); font-size: 10px; color: var(--code-name); }
 .cb-ts   {
   font-family: var(--mono); font-size: 9px;
-  padding: 2px 7px; background: rgba(121,184,255,0.1);
-  color: #79b8ff; border-radius: 2px;
+  padding: 2px 7px; background: var(--code-ts-bg);
+  color: var(--code-ts-fg); border-radius: 2px;
 }
 .cb-body {
   padding: 1.1rem 1.25rem;
   font-family: var(--mono); font-size: 11.5px; line-height: 1.85;
-  color: #d0d0da;
+  color: var(--code-text);
+  transition: var(--transition-theme);
 }
-.cb-body .kw { color: #79b8ff; }
-.cb-body .fn { color: #b392f0; }
-.cb-body .s  { color: #00d062; }
-.cb-body .cm { color: #3a3a48; }
+.cb-body .kw { color: var(--code-kw); }
+.cb-body .fn { color: var(--code-fn); }
+.cb-body .s  { color: var(--code-s); }
+.cb-body .cm { color: var(--code-cm); }
 
 /* ─── CTA strip ──────────────────────────────────────────────────────────── */
 .cta-strip {
@@ -500,6 +546,7 @@ footer {
   .install-inner { grid-template-columns: 1fr; }
   .install-left { border-right: none; border-bottom: 1px solid var(--border); }
   nav .nav-links { display: none; }
+  #toast { left: 16px; right: 16px; bottom: 16px; max-width: none; }
   .cta-strip { align-items: flex-start; }
 }
 
@@ -534,6 +581,18 @@ footer {
   </div>
 </nav>
 
+<!-- Shared gradient for the Firefox mark, referenced by every store badge -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <radialGradient id="ffGrad" cx="35%" cy="72%" r="80%">
+      <stop offset="0%"   stop-color="#ffe14f"/>
+      <stop offset="32%"  stop-color="#ff980e"/>
+      <stop offset="63%"  stop-color="#ff3647"/>
+      <stop offset="100%" stop-color="#9059ff"/>
+    </radialGradient>
+  </defs>
+</svg>
+
 <!-- ── Hero ────────────────────────────────────────────────────────────────── -->
 <section class="hero">
   <div class="hero-bg-text" aria-hidden="true">PICK</div>
@@ -547,8 +606,32 @@ footer {
     <div class="hero-row">
       <p class="hero-sub">Click any element. Get the highest-ranked Playwright locator — testId, role, label, or CSS — scored and ready to paste.</p>
       <div class="hero-btns">
-        <a class="btn-fill" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download from GitHub</a>
-        <a class="btn-border" href="https://github.com/MithunWijayasiri/Pickwright">GitHub →</a>
+        <div class="badge-row">
+          <button class="badge" data-store="Chrome Web Store">
+            <svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M24 24 L3.22 12 A24 24 0 0 1 44.78 12 Z" fill="#EA4335"/>
+              <path d="M24 24 L44.78 12 A24 24 0 0 1 24 48 Z" fill="#FBBC05"/>
+              <path d="M24 24 L24 48 A24 24 0 0 1 3.22 12 Z" fill="#34A853"/>
+              <circle cx="24" cy="24" r="11.5" fill="#fff"/>
+              <circle cx="24" cy="24" r="8.5" fill="#4285F4"/>
+            </svg>
+            <span class="badge-txt">
+              <span class="badge-kicker">Coming soon to the</span>
+              <span class="badge-store">Chrome Web Store</span>
+            </span>
+          </button>
+          <button class="badge" data-store="Firefox Add-ons">
+            <svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true">
+              <circle cx="24" cy="24" r="23" fill="url(#ffGrad)"/>
+              <path d="M24 7c5 3 7 7 6.5 11.5 2-1.5 4.5-1 6 1.5-1 8.5-6 15-12.5 15S11 28.5 12 20c2.5 3 5.5 3 7.5 1-1.5-6 1-11 4.5-14z" fill="#fff" opacity="0.24"/>
+            </svg>
+            <span class="badge-txt">
+              <span class="badge-kicker">Coming soon to</span>
+              <span class="badge-store">Firefox Add-ons</span>
+            </span>
+          </button>
+        </div>
+        <a class="hero-alt" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Available now on GitHub Releases →</a>
       </div>
     </div>
   </div>
@@ -557,12 +640,12 @@ footer {
 <!-- ── Stats ────────────────────────────────────────────────────────────────── -->
 <div class="stats">
   <div class="stat reveal stagger-1">
-    <span class="stat-n" data-count="6">6</span>
+    <span class="stat-n" data-count="13">13</span>
     <div class="stat-l">locator strategies</div>
   </div>
   <div class="stat reveal stagger-2">
     <span class="stat-n" data-count="20">20</span>
-    <div class="stat-l">pick history</div>
+    <div class="stat-l">picks remembered</div>
   </div>
   <div class="stat reveal stagger-3">
     <span class="stat-n"><span class="ac" data-count="2">2</span></span>
@@ -584,37 +667,55 @@ footer {
     <div class="feat-row reveal-left stagger-1">
       <span class="fr-num">01</span>
       <span class="fr-tag">click-to-pick</span>
-      <span class="fr-desc">Hover any element to highlight it. Click to generate all locator strategies at once — best ranked first, alternatives listed below.</span>
+      <span class="fr-desc">Hover any element to highlight it. Click to generate all locator strategies at once — best ranked first, alternatives listed below. <code style="font-family:var(--mono);color:var(--accent)">Alt+Shift+L</code> arms the picker without opening the popup.</span>
       <span class="fr-badge">core</span>
     </div>
     <div class="feat-row reveal-left stagger-2">
       <span class="fr-num">02</span>
-      <span class="fr-tag">6 strategies</span>
-      <span class="fr-desc">getByTestId, getByRole, getByLabel, getByPlaceholder, getByText, and CSS — all scored and ranked per Playwright's own preference order.</span>
+      <span class="fr-tag">13 strategies</span>
+      <span class="fr-desc">getByTestId, getByRole, getByLabel, getByPlaceholder, getByAltText, getByText, getByTitle, and CSS tiers — all scored and ranked per Playwright's own preference order.</span>
       <span class="fr-badge">locators</span>
     </div>
     <div class="feat-row reveal-left stagger-3">
       <span class="fr-num">03</span>
+      <span class="fr-tag">multi-pick</span>
+      <span class="fr-desc">Stay armed across clicks and collect a whole form in one pass, with a live count as you go. Every pick lands in history, ready to copy.</span>
+      <span class="fr-badge">workflow</span>
+    </div>
+    <div class="feat-row reveal-left stagger-4">
+      <span class="fr-num">04</span>
+      <span class="fr-tag">dropdown picking</span>
+      <span class="fr-desc">Hold <code style="font-family:var(--mono);color:var(--accent)">Shift</code> and click to let the page open its own dropdowns and menus while the picker stays armed, then pick inside.</span>
+      <span class="fr-badge">interaction</span>
+    </div>
+    <div class="feat-row reveal-left stagger-5">
+      <span class="fr-num">05</span>
       <span class="fr-tag">shadow DOM</span>
       <span class="fr-desc">Drills through open shadow roots to find the real element under your cursor. No manual shadow selector crafting needed.</span>
       <span class="fr-badge">DOM</span>
     </div>
-    <div class="feat-row reveal-left stagger-4">
-      <span class="fr-num">04</span>
+    <div class="feat-row reveal-left stagger-6">
+      <span class="fr-num">06</span>
       <span class="fr-tag">iframe support</span>
       <span class="fr-desc">Detects same-origin iframes and prepends the correct <code style="font-family:var(--mono);color:var(--accent)">frameLocator()</code> chain automatically.</span>
       <span class="fr-badge">frames</span>
     </div>
-    <div class="feat-row reveal-left stagger-5">
-      <span class="fr-num">05</span>
-      <span class="fr-tag">pick history</span>
-      <span class="fr-desc">Stores your last 20 picks with the originating page URL. Reopen the popup and copy any previous locator without re-clicking.</span>
-      <span class="fr-badge">storage</span>
+    <div class="feat-row reveal-left stagger-7">
+      <span class="fr-num">07</span>
+      <span class="fr-tag">Angular-aware</span>
+      <span class="fr-desc">Ignores throwaway <code style="font-family:var(--mono);color:var(--accent)">mat-</code>, <code style="font-family:var(--mono);color:var(--accent)">cdk-</code> and <code style="font-family:var(--mono);color:var(--accent)">ng-reflect-*</code> noise, and prefers <code style="font-family:var(--mono);color:var(--accent)">formcontrolname</code>, which survives production builds.</span>
+      <span class="fr-badge">frameworks</span>
     </div>
-    <div class="feat-row reveal-left stagger-6">
-      <span class="fr-num">06</span>
+    <div class="feat-row reveal-left stagger-8">
+      <span class="fr-num">08</span>
+      <span class="fr-tag">history, your rules</span>
+      <span class="fr-desc">Your last 20 picks stay on your machine with the page they came from. Keep them, wipe them on every browser start, or record nothing at all.</span>
+      <span class="fr-badge">privacy</span>
+    </div>
+    <div class="feat-row reveal-left stagger-9">
+      <span class="fr-num">09</span>
       <span class="fr-tag">Chrome + Firefox</span>
-      <span class="fr-desc">One extension, two browsers. Same picking experience and locator quality on Chrome and Firefox.</span>
+      <span class="fr-desc">One extension, two browsers. Same picking experience and locator quality on Chrome, Edge and Firefox 121+.</span>
       <span class="fr-badge">cross-browser</span>
     </div>
   </div>
@@ -624,7 +725,7 @@ footer {
 <section class="strat-section" id="strategies">
   <div class="sec-header reveal">
     <h2>Playwright's ranking.<br>Strictly.</h2>
-    <p>Fragile CSS selectors rank last. Stable, semantic, accessibility-driven locators surface first — matching Playwright's own recommended order.</p>
+    <p>Fragile CSS selectors rank last. Stable, semantic, accessibility-driven locators surface first — matching Playwright's own recommended order. Eight of the thirteen scored tiers shown, numbered by their real rank; <a href="https://github.com/MithunWijayasiri/Pickwright#generated-locator-priority" style="color:var(--accent)">see the full table</a>.</p>
   </div>
   <div class="strat-list">
     <div class="strat-item reveal stagger-1">
@@ -633,27 +734,37 @@ footer {
       <span class="si-ex">getByTestId('submit-btn')</span>
     </div>
     <div class="strat-item reveal stagger-2">
-      <span class="si-n">02</span>
+      <span class="si-n">03</span>
       <span class="si-name top">getByRole</span>
       <span class="si-ex">getByRole('button', { name: 'Sign in' })</span>
     </div>
     <div class="strat-item reveal stagger-3">
-      <span class="si-n">03</span>
+      <span class="si-n">04</span>
       <span class="si-name">getByLabel</span>
       <span class="si-ex">getByLabel('Email address')</span>
     </div>
     <div class="strat-item reveal stagger-4">
-      <span class="si-n">04</span>
+      <span class="si-n">05</span>
       <span class="si-name">getByPlaceholder</span>
       <span class="si-ex">getByPlaceholder('Search…')</span>
     </div>
     <div class="strat-item reveal stagger-5">
-      <span class="si-n">05</span>
+      <span class="si-n">06</span>
+      <span class="si-name">getByAltText</span>
+      <span class="si-ex">getByAltText('Company logo')</span>
+    </div>
+    <div class="strat-item reveal stagger-6">
+      <span class="si-n">07</span>
       <span class="si-name">getByText</span>
       <span class="si-ex">getByText('Sign in')</span>
     </div>
-    <div class="strat-item reveal stagger-6">
-      <span class="si-n">06</span>
+    <div class="strat-item reveal stagger-7">
+      <span class="si-n">08</span>
+      <span class="si-name">getByTitle</span>
+      <span class="si-ex">getByTitle('Close')</span>
+    </div>
+    <div class="strat-item reveal stagger-8">
+      <span class="si-n">12</span>
       <span class="si-name" style="color:var(--muted)">locator (CSS)</span>
       <span class="si-ex">locator('button[type="submit"]')</span>
     </div>
@@ -670,7 +781,7 @@ footer {
           <span class="step-n">01</span>
           <div class="step-body">
             <div class="step-title">Download from GitHub Releases</div>
-            <div class="step-desc">Grab the latest <code style="font-family:var(--mono);color:var(--accent)">.crx</code> or <code style="font-family:var(--mono);color:var(--accent)">.xpi</code> from the <a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">GitHub Releases page</a> and load it unpacked. Chrome Web Store &amp; Firefox Add-ons listings coming soon.</div>
+            <div class="step-desc">From the <a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">GitHub Releases page</a>: on Chrome or Edge, unzip <code style="font-family:var(--mono);color:var(--accent)">pickwright-chrome-*.zip</code> and load the folder unpacked. On Firefox 121+, install the signed <code style="font-family:var(--mono);color:var(--accent)">.xpi</code> directly. Chrome Web Store &amp; Firefox Add-ons listings coming soon.</div>
           </div>
         </div>
         <div class="step">
@@ -724,7 +835,7 @@ footer {
 <!-- ── CTA ────────────────────────────────────────────────────────────────────── -->
 <div class="cta-strip reveal">
   <h2>Start picking locators<br>in under a minute.</h2>
-  <p style="font-size:14px;color:var(--muted);font-weight:300;max-width:440px">Free, open source, MIT licensed. No account, no API key, no project setup required. Chrome Web Store &amp; Firefox Add-ons listings coming soon.</p>
+  <p style="font-size:14px;color:var(--muted);font-weight:300;max-width:440px">Free, open source, MIT licensed. No account, no API key, no project setup required, and no telemetry — nothing you pick leaves your browser.</p>
   <div class="cta-btns">
     <a class="btn-fill" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download from GitHub</a>
     <a class="btn-border" href="https://github.com/MithunWijayasiri/Pickwright">View source on GitHub →</a>
@@ -737,10 +848,13 @@ footer {
   <ul class="footer-links">
     <li><a href="https://github.com/MithunWijayasiri/Pickwright">github</a></li>
     <li><a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">releases</a></li>
-    <li><a href="https://github.com/MithunWijayasiri/Pickwright" target="_blank" rel="noopener">source</a></li>
+    <li><a href="https://github.com/MithunWijayasiri/Pickwright/blob/master/docs/PRIVACY.md">privacy</a></li>
+    <li><a href="https://github.com/MithunWijayasiri/Pickwright/blob/master/docs/build-from-source.md">build from source</a></li>
   </ul>
   <span class="footer-note">MIT · Playwright locator picker</span>
 </footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
 
 <!-- ── Scripts ────────────────────────────────────────────────────────────────── -->
 <script>
@@ -821,6 +935,19 @@ const statObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 
 statNums.forEach(el => statObserver.observe(el));
+
+// ── Store badges: not published yet ───────────────────────────────────────────
+const toast = document.getElementById('toast');
+let toastTimer;
+
+document.querySelectorAll('[data-store]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    toast.textContent = 'The ' + btn.dataset.store + ' listing is on the way. Grab the build from GitHub Releases in the meantime.';
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+  });
+});
 </script>
 </body>
 </html>

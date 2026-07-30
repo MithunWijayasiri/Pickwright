@@ -11,6 +11,7 @@ paths:
 
 - `tsconfig.json` `noUnusedLocals`/`noUnusedParameters` catch unused locals/params — NOT unused **exports**. `combineScores` shipped dead because it was exported.
 - Don't add an export until a second caller needs it (rule of three). Ported a helper "for completeness" → delete it if unused.
+- A test is not a caller. Never export a private helper so a spec can reach it — drive it through the public API (`getLocator`) and assert the emitted locator string.
 - Prefix intentionally-unused params with `_`.
 - `@types/chrome` provides `chrome.*`; no bundler polyfills.
 
@@ -27,6 +28,6 @@ paths:
 
 ## Before declaring done
 
-- `npx tsc --noEmit` clean.
+- `npm run check` clean (`tsc --noEmit` on `src/` + `tests/`, eslint, `prettier --check`) — same command CI's `Check` job runs.
 - `npm run test` green (builds first; persistent Chromium + unpacked `dist/`).
-- Engine has no unit tests — behavior change must be provable via E2E or it's unverified.
+- Touched `src/locator-engine/`? `npm run test:engine` green too. Locator behavior change must be provable by a unit case or E2E, else it's unverified.

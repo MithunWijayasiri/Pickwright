@@ -6,13 +6,28 @@
 |---------|-------------|
 | `npm run build` | Production build → `dist/` (Chrome manifest; load folder as unpacked extension) |
 | `npm run dev` | Dev build, watch mode |
-| `npm run test` | Playwright E2E (runs `build` first) |
+| `npm run test` | Playwright E2E, `--project=chromium` (runs `build` first) |
+| `npm run test:engine` | Locator engine unit tests, `--project=engine` (builds harness first) |
+| `npm run check` | `typecheck` + `lint` + `format:check` — same command CI's `Check` job runs |
+| `npm run format` | Prettier write (`src/`, `tests/`, `playwright.config.ts`) |
 
-E2E (`tests/`, `@playwright/test`): persistent Chromium w/ unpacked `dist/` loaded, serves `tests/test-page.html` over local HTTP, drives picker via messages relayed through background. Run `npx playwright install chromium` once first. Locator engine has NO unit tests — coverage = E2E + manual (build, reload at `chrome://extensions`, pick on real page). Reload extension after content/background changes; popup changes show on reopen.
+`check` is the pre-push gate. Non-obvious constraints behind it:
+
+- `typecheck` runs `tsc --noEmit` twice — root tsconfig (`src/**`) + `tsconfig.test.json` (`tests/**`, `playwright.config.ts`). Tests stay out of the root config: `ts-loader` builds its program from it and would pull `@playwright/test` node globals into the bundle typecheck.
+- `.prettierrc` needs `endOfLine: auto` — working copies are CRLF (`core.autocrlf=true`, no `.gitattributes`), so prettier's `lf` default fails every file on line endings alone.
+
+Two suites, both real-browser:
+
+- **E2E** (`tests/`): persistent Chromium w/ unpacked `dist/`, serves `tests/test-page.html` over local HTTP, drives picker via messages relayed through background. `npx playwright install chromium` once first.
+- **Engine units** (`tests/engine/`): table-driven, `about:blank`, no extension. Reaches the engine via `dist/engine-harness.js` — webpack entry gated on `TEST_HARNESS=1`, compiled with `tsconfig.test.json` through a second `ts-loader` rule (root `rootDir: ./src` rejects it, TS6059). Not jsdom, on purpose: `isVisible` reads layout, and 0×0 rects would break every uniqueness count while tests still passed. Scope + open groups: `docs/backlog.md`.
+
+Picker UX still needs a manual check (reload at `chrome://extensions`, pick on a real page). Reload after content/background changes; popup changes show on reopen.
 
 ## Architecture
 
 Manifest V3 extension, **Chrome + Firefox** from one codebase. Locator logic = plain DOM, no Playwright dep — only emits Playwright-syntax strings.
+
+CI (`.github/workflows/ci.yml`, PRs to `master`): `Check` job (`npm run check` → `build:firefox` → `web-ext lint`, warnings don't gate) + `E2E Tests` job (engine units, then E2E).
 
 ### Cross-browser build
 
@@ -53,7 +68,5 @@ History written **in background** (`background/index.ts`), NOT popup/content: on
 `inspect.collectMetadata` → `getLocator` (`generate.ts` builds candidates → `score.ts` picks the lowest-scoring **unique** one), from `picker.onMouseMove` + `picker.onClick`.
 
 - Strategy scores live in `playwright-port.ts` `SCORE` (**lower = better**); `score.ts` picks the lowest-scoring unique candidate.
-- Framework-noise filtering (`isStableId` / `isStableClass`) is central — auto-generated identifiers (`mat-`/`cdk-`/`ng-`, hashed classes, etc.) are rejected so they never win.
-- Authoritative noise heuristics, full priority order, uniqueness/chaining invariants: `.claude/rules/locator-engine.md`.
-
-Test-ID attrs (highest priority): `data-testid`, `data-test-id`, `data-cy`.
+- Framework-noise filtering (`isStableId` / `isStableClass`) is central — auto-generated identifiers never win.
+- Invariants that are not obvious from the code: `.claude/rules/locator-engine.md` (loads automatically when editing the engine).

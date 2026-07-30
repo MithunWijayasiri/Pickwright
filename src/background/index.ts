@@ -27,7 +27,11 @@ chrome.commands?.onCommand.addListener((command) => {
     const tabId = tabs[0]?.id;
     if (!tabId) return;
     // Reading lastError silences "Unchecked runtime.lastError" when no content script.
-    chrome.tabs.sendMessage(tabId, { type: MESSAGE_TYPES.TOGGLE_PICKER }, () => chrome.runtime.lastError);
+    chrome.tabs.sendMessage(
+      tabId,
+      { type: MESSAGE_TYPES.TOGGLE_PICKER },
+      () => chrome.runtime.lastError,
+    );
   });
 });
 

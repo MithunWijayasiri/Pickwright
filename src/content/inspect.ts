@@ -1,11 +1,6 @@
-// Element inspection and metadata extraction
-
 import { ElementMetadata } from '../shared/types';
 
-/**
- * Recursively drill into open shadow DOMs to find the deepest element.
- * Exported so picker.ts can use it directly without an overlay dependency.
- */
+// Exported so picker.ts can drill shadow roots without an overlay dependency.
 export function drillIntoShadow(el: Element, x: number, y: number): Element {
   let current = el;
   let shadow = current.shadowRoot;
@@ -20,14 +15,11 @@ export function drillIntoShadow(el: Element, x: number, y: number): Element {
   return current;
 }
 
-/**
- * Detect if element is inside a same-origin iframe and return a frame selector.
- */
+// Cross-origin frames are silently skipped — contentDocument access throws.
 export function getFrameSelector(el: Element): string | null {
   const doc = el.ownerDocument;
   if (!doc || doc === document) return null;
 
-  // Find the iframe element in the parent document that contains this doc
   try {
     const frames = document.querySelectorAll('iframe');
     for (const frame of Array.from(frames)) {
@@ -46,17 +38,27 @@ export function getFrameSelector(el: Element): string | null {
   return null;
 }
 
+// Attribute values reach frameLocator() as a quoted CSS string: backslashes and
+// quotes escape, and control characters need hex escapes — a raw newline
+// terminates the string and makes the selector invalid.
+function cssValue(value: string): string {
+  return (
+    value
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x1f\x7f]/g, (c) => `\\${c.charCodeAt(0).toString(16)} `)
+  );
+}
+
 function buildFrameIdentifier(frame: HTMLIFrameElement): string {
-  if (frame.id) return `iframe#${frame.id}`;
-  if (frame.name) return `iframe[name="${frame.name}"]`;
+  if (frame.id) return `iframe#${CSS.escape(frame.id)}`;
+  if (frame.name) return `iframe[name="${cssValue(frame.name)}"]`;
   const src = frame.getAttribute('src');
-  if (src) return `iframe[src="${src}"]`;
+  if (src) return `iframe[src="${cssValue(src)}"]`;
   return 'iframe';
 }
 
-/**
- * Collect all relevant metadata from an element for locator generation.
- */
 export function collectMetadata(el: Element): ElementMetadata {
   const ariaAttributes: Record<string, string> = {};
   const dataAttributes: Record<string, string> = {};
@@ -89,20 +91,16 @@ export function collectMetadata(el: Element): ElementMetadata {
   };
 }
 
-/**
- * Check if element is an Angular dropdown trigger that should not be activated.
- */
+// True for triggers the picker must not activate while selecting.
 export function isAngularDropdownTrigger(el: Element): boolean {
   const hasPopup = el.getAttribute('aria-haspopup');
   const expanded = el.getAttribute('aria-expanded');
   const role = el.getAttribute('role');
 
-  // Common Angular Material / CDK dropdown patterns
   if (hasPopup === 'true' || hasPopup === 'listbox' || hasPopup === 'menu') return true;
   if (role === 'combobox' || role === 'listbox') return true;
   if (expanded !== null) return true;
 
-  // mat-select, mat-autocomplete triggers
   if (el.classList.contains('mat-select-trigger')) return true;
   if (el.classList.contains('mat-mdc-select-trigger')) return true;
   if (el.tagName.toLowerCase() === 'mat-select') return true;
@@ -110,9 +108,6 @@ export function isAngularDropdownTrigger(el: Element): boolean {
   return false;
 }
 
-/**
- * Build a short label for the tooltip during hover.
- */
 export function buildTooltipLabel(el: Element): string {
   const tag = el.tagName.toLowerCase();
   const id = el.id ? `#${el.id}` : '';

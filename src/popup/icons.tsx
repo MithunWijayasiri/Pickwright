@@ -97,20 +97,62 @@ export const DoubleStackIcon = ({ className }: IconProps) => (
 );
 
 export const LogoMark = ({ className }: IconProps) => (
-  <svg className={className ?? 'hd-mark'} viewBox="0 0 128 128" fill="none" aria-hidden={true} xmlns="http://www.w3.org/2000/svg">
-    <rect width="128" height="128" rx="26" fill="#0e0e0e"/>
-    <circle cx="24"  cy="24"  r="5.5" fill="#00d062" opacity="0.22"/>
-    <circle cx="64"  cy="24"  r="5.5" fill="#00d062" opacity="0.22"/>
-    <circle cx="104" cy="24"  r="5.5" fill="#00d062" opacity="0.22"/>
-    <circle cx="24"  cy="64"  r="5.5" fill="#00d062" opacity="0.22"/>
-    <circle cx="104" cy="64"  r="5.5" fill="#00d062" opacity="0.22"/>
-    <circle cx="24"  cy="104" r="5.5" fill="#00d062" opacity="0.22"/>
-    <circle cx="64"  cy="104" r="5.5" fill="#00d062" opacity="0.22"/>
-    <circle cx="104" cy="104" r="5.5" fill="#00d062" opacity="0.22"/>
-    <line x1="64" y1="12"  x2="64"  y2="46"  stroke="#00d062" strokeWidth="2" strokeLinecap="round" opacity="0.28"/>
-    <line x1="64" y1="82"  x2="64"  y2="116" stroke="#00d062" strokeWidth="2" strokeLinecap="round" opacity="0.28"/>
-    <line x1="12" y1="64"  x2="46"  y2="64"  stroke="#00d062" strokeWidth="2" strokeLinecap="round" opacity="0.28"/>
-    <line x1="82" y1="64"  x2="116" y2="64"  stroke="#00d062" strokeWidth="2" strokeLinecap="round" opacity="0.28"/>
-    <circle cx="64" cy="64" r="16" fill="#00d062"/>
+  <svg
+    className={className ?? 'hd-mark'}
+    viewBox="0 0 128 128"
+    fill="none"
+    aria-hidden={true}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <rect width="128" height="128" rx="26" fill="#0e0e0e" />
+    <circle cx="24" cy="24" r="5.5" fill="#00d062" opacity="0.22" />
+    <circle cx="64" cy="24" r="5.5" fill="#00d062" opacity="0.22" />
+    <circle cx="104" cy="24" r="5.5" fill="#00d062" opacity="0.22" />
+    <circle cx="24" cy="64" r="5.5" fill="#00d062" opacity="0.22" />
+    <circle cx="104" cy="64" r="5.5" fill="#00d062" opacity="0.22" />
+    <circle cx="24" cy="104" r="5.5" fill="#00d062" opacity="0.22" />
+    <circle cx="64" cy="104" r="5.5" fill="#00d062" opacity="0.22" />
+    <circle cx="104" cy="104" r="5.5" fill="#00d062" opacity="0.22" />
+    <line
+      x1="64"
+      y1="12"
+      x2="64"
+      y2="46"
+      stroke="#00d062"
+      strokeWidth="2"
+      strokeLinecap="round"
+      opacity="0.28"
+    />
+    <line
+      x1="64"
+      y1="82"
+      x2="64"
+      y2="116"
+      stroke="#00d062"
+      strokeWidth="2"
+      strokeLinecap="round"
+      opacity="0.28"
+    />
+    <line
+      x1="12"
+      y1="64"
+      x2="46"
+      y2="64"
+      stroke="#00d062"
+      strokeWidth="2"
+      strokeLinecap="round"
+      opacity="0.28"
+    />
+    <line
+      x1="82"
+      y1="64"
+      x2="116"
+      y2="64"
+      stroke="#00d062"
+      strokeWidth="2"
+      strokeLinecap="round"
+      opacity="0.28"
+    />
+    <circle cx="64" cy="64" r="16" fill="#00d062" />
   </svg>
 );

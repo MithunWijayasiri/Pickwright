@@ -42,6 +42,7 @@ function deduplicateRoleCandidates(candidates: LocatorCandidate[]): LocatorCandi
 
   // Keep .nth() candidates — they are the recourse when role+name is not unique.
   return candidates.filter(
-    (c) => !(c.strategy === 'getByRole' && !c.value.includes('name:') && !c.value.includes('.nth(')),
+    (c) =>
+      !(c.strategy === 'getByRole' && !c.value.includes('name:') && !c.value.includes('.nth(')),
   );
 }

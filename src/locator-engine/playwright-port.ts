@@ -15,7 +15,6 @@ export const SCORE = {
   formControlName: 250,
   cssId: 500,
   roleWithoutName: 510,
-  cssInputTypeName: 520,
   cssTagName: 530,
   nth: 10000,
   cssFallback: 10000000,

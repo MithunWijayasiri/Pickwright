@@ -302,171 +302,183 @@ const App = () => {
           </div>
         ) : (
           <>
-        {lastLocator && result && (
-          <div className="result">
-            <div className="result-top">
-              <span className="badge" title={lastReasons.join(' • ')}>{result.badge}</span>
-              <span className="result-sep">·</span>
-              <span className="result-tag">&lt;{lastTag}&gt;</span>
-            </div>
-            <div
-              className="result-code"
-              dangerouslySetInnerHTML={{ __html: highlight(lastLocator) }}
-            />
-            {lastAlternatives.length > 0 && (
-              <div className="alt-list">
-                <div className="alt-head">Alternatives</div>
-                {lastAlternatives.map((alt, i) => (
-                  <div
-                    key={i}
-                    className="alt-row"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => copyAlt(alt, i)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        copyAlt(alt, i);
-                      }
-                    }}
-                    title="Copy alternative"
-                  >
-                    <span
-                      className="alt-code"
-                      dangerouslySetInnerHTML={{ __html: highlight(alt) }}
-                    />
-                    {copiedAltIdx === i ? (
-                      <CheckIcon className="row-copy copied" />
-                    ) : (
-                      <CopyIcon className="row-copy" />
-                    )}
+            {lastLocator && result && (
+              <div className="result">
+                <div className="result-top">
+                  <span className="badge" title={lastReasons.join(' • ')}>
+                    {result.badge}
+                  </span>
+                  <span className="result-sep">·</span>
+                  <span className="result-tag">&lt;{lastTag}&gt;</span>
+                </div>
+                <div
+                  className="result-code"
+                  dangerouslySetInnerHTML={{ __html: highlight(lastLocator) }}
+                />
+                {lastAlternatives.length > 0 && (
+                  <div className="alt-list">
+                    <div className="alt-head">Alternatives</div>
+                    {lastAlternatives.map((alt, i) => (
+                      <div
+                        key={i}
+                        className="alt-row"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => copyAlt(alt, i)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            copyAlt(alt, i);
+                          }
+                        }}
+                        title="Copy alternative"
+                      >
+                        <span
+                          className="alt-code"
+                          dangerouslySetInnerHTML={{ __html: highlight(alt) }}
+                        />
+                        {copiedAltIdx === i ? (
+                          <CheckIcon className="row-copy copied" />
+                        ) : (
+                          <CopyIcon className="row-copy" />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                <div className="result-footer">
+                  <span className="result-hint">last picked</span>
+                  <button
+                    className="btn-copy-result"
+                    onClick={() => copyLocator(lastLocator)}
+                    title="Copy locator"
+                  >
+                    {copiedLocator ? (
+                      <>
+                        <CheckIcon />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <CopyIcon />
+                        Copy
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
-            <div className="result-footer">
-              <span className="result-hint">last picked</span>
-              <button
-                className="btn-copy-result"
-                onClick={() => copyLocator(lastLocator)}
-                title="Copy locator"
-              >
-                {copiedLocator ? (
-                  <><CheckIcon />Copied</>
-                ) : (
-                  <><CopyIcon />Copy</>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
 
-        {pickerActive && multiPickerActive && (
-          <div className="banner">
-            <span className="banner-dot" />
-            <div>
-              <div className="banner-title">Multi-pick active</div>
-              <div className="banner-hint">
-                Click elements to collect locators. Press Stop when done.
-              </div>
-            </div>
-          </div>
-        )}
-        {pickerActive && !multiPickerActive && (
-          <div className="banner">
-            <span className="banner-dot" />
-            <div>
-              <div className="banner-title">Pick mode active</div>
-              <div className="banner-hint">
-                Hover any element on the page, then click to capture.
-              </div>
-            </div>
-          </div>
-        )}
-
-
-
-        <div className="btn-pick-row">
-          {pickerActive && multiPickerActive ? (
-            <button className="btn btn-stop btn-full" onClick={stopMultiPick}>
-              <StopIcon />
-              Stop picking
-              {multiPickCount > 0 && (
-                <span className="btn-count">{multiPickCount}</span>
-              )}
-            </button>
-          ) : pickerActive && !multiPickerActive ? (
-            <button className="btn btn-stop btn-full" onClick={togglePicker}>
-              <StopIcon />
-              Stop picking
-            </button>
-          ) : (
-            <>
-              <button className="btn btn-primary" onClick={togglePicker}>
-                <CrosshairsIcon />
-                Pick element
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={startMultiPick}
-                disabled={settings.historyMode === 'off'}
-                title={settings.historyMode === 'off' ? 'Enable history in Settings to use multi-pick' : ''}
-              >
-                <StackIcon />
-                Pick multiple
-              </button>
-            </>
-          )}
-        </div>
-
-        {(multiPickerActive || settings.historyMode !== 'off') &&
-          (history.length > 0 ? (
-          <div>
-            <div className="history-head">
-              <span className="history-label">History</span>
-              <span className="history-count">
-                {history.length} / {MAX_HISTORY}
-              </span>
-            </div>
-            <div className="history-list">
-              {history.map((entry) => {
-                const strat = getStrategy(entry.locator);
-                const isCopied = copiedTs === entry.timestamp;
-                return (
-                  <div
-                    key={entry.timestamp}
-                    className="row"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => copyRow(entry)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') copyRow(entry);
-                    }}
-                  >
-                    <span className={`pill pill-${strat.pill}`}>{strat.pill}</span>
-                    <div className="row-main">
-                      <div
-                        className="row-locator"
-                        dangerouslySetInnerHTML={{ __html: highlight(entry.locator) }}
-                      />
-                      <div className="row-tag">&lt;{entry.tag}&gt;</div>
-                    </div>
-                    {isCopied ? (
-                      <CheckIcon className="row-copy copied" />
-                    ) : (
-                      <CopyIcon className="row-copy" />
-                    )}
+            {pickerActive && multiPickerActive && (
+              <div className="banner">
+                <span className="banner-dot" />
+                <div>
+                  <div className="banner-title">Multi-pick active</div>
+                  <div className="banner-hint">
+                    Click elements to collect locators. Press Stop when done.
                   </div>
-                );
-              })}
+                </div>
+              </div>
+            )}
+            {pickerActive && !multiPickerActive && (
+              <div className="banner">
+                <span className="banner-dot" />
+                <div>
+                  <div className="banner-title">Pick mode active</div>
+                  <div className="banner-hint">
+                    Hover any element on the page, then click to capture.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="btn-pick-row">
+              {pickerActive && multiPickerActive ? (
+                <button className="btn btn-stop btn-full" onClick={stopMultiPick}>
+                  <StopIcon />
+                  Stop picking
+                  {multiPickCount > 0 && <span className="btn-count">{multiPickCount}</span>}
+                </button>
+              ) : pickerActive && !multiPickerActive ? (
+                <button className="btn btn-stop btn-full" onClick={togglePicker}>
+                  <StopIcon />
+                  Stop picking
+                </button>
+              ) : (
+                <>
+                  <button className="btn btn-primary" onClick={togglePicker}>
+                    <CrosshairsIcon />
+                    Pick element
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={startMultiPick}
+                    disabled={settings.historyMode === 'off'}
+                    title={
+                      settings.historyMode === 'off'
+                        ? 'Enable history in Settings to use multi-pick'
+                        : ''
+                    }
+                  >
+                    <StackIcon />
+                    Pick multiple
+                  </button>
+                </>
+              )}
             </div>
-          </div>
-        ) : (
-          <div className="empty">
-            <HistoryIcon />
-            <p>No locators yet — pick an element to capture its Playwright locator.</p>
-          </div>
-          ))}
+
+            {(multiPickerActive || settings.historyMode !== 'off') &&
+              (history.length > 0 ? (
+                <div>
+                  <div className="history-head">
+                    <span className="history-label">History</span>
+                    <span className="history-count">
+                      {history.length} / {MAX_HISTORY}
+                    </span>
+                  </div>
+                  <div className="history-list">
+                    {history.map((entry) => {
+                      const strat = getStrategy(entry.locator);
+                      const isCopied = copiedTs === entry.timestamp;
+                      return (
+                        <div
+                          key={entry.timestamp}
+                          className="row"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => copyRow(entry)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              // Space would scroll the popup.
+                              e.preventDefault();
+                              copyRow(entry);
+                            }
+                          }}
+                        >
+                          <span className={`pill pill-${strat.pill}`}>{strat.pill}</span>
+                          <div className="row-main">
+                            <div
+                              className="row-locator"
+                              dangerouslySetInnerHTML={{ __html: highlight(entry.locator) }}
+                            />
+                            <div className="row-tag">&lt;{entry.tag}&gt;</div>
+                          </div>
+                          {isCopied ? (
+                            <CheckIcon className="row-copy copied" />
+                          ) : (
+                            <CopyIcon className="row-copy" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="empty">
+                  <HistoryIcon />
+                  <p>No locators yet — pick an element to capture its Playwright locator.</p>
+                </div>
+              ))}
           </>
         )}
       </div>

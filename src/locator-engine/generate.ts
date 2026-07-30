@@ -1,17 +1,11 @@
-// Locator candidate generation
-
 import { ElementMetadata } from '../shared/types';
 import { LocatorCandidate } from './types';
 import { SCORE, isGuidLike, makeSelectorForId } from './playwright-port';
 
 const TEXT_MAX = 50;
 
-/**
- * Generate all possible locator candidates for an element.
- * Priority follows Playwright's scoring (lower = better):
- * testId → role+name → label → placeholder → altText → text → title → CSS id → role-only → CSS.
- * Each candidate carries its real uniqueness (matched against the DOM).
- */
+// Emit order below is irrelevant to ranking — `SCORE` decides that. Each candidate
+// carries its real uniqueness, matched against the DOM.
 export function generateCandidates(el: Element, meta: ElementMetadata): LocatorCandidate[] {
   const candidates: LocatorCandidate[] = [];
   const prefix = meta.frameSelector ? `frameLocator('${esc(meta.frameSelector)}').` : '';
@@ -20,7 +14,7 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     candidates.push(c);
   };
 
-  // 1. getByTestId (only data-testid; data-test-id/data-cy emit as CSS locator)
+  // getByTestId only for data-testid; data-test-id/data-cy emit as CSS locator.
   const testId = meta.dataAttributes['data-testid'];
   if (testId) {
     const css = cssAttr('data-testid', testId);
@@ -34,7 +28,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       cssEquivalent: css,
     });
 
-    // If not unique, try chaining with a parent that has data-testid
     if (!unique) {
       const chained = findChainedTestId(el, testId, prefix);
       if (chained) add(chained);
@@ -54,7 +47,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     });
   }
 
-  // 2. getByRole
   const role = roleOf(el);
   if (role) {
     const name = getAccessibleName(el, meta);
@@ -78,7 +70,7 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     });
   }
 
-  // 2b. getByRole(...).nth(N) — offered when the role alone is ambiguous
+  // Positional fallback, offered only when the role alone is ambiguous.
   if (role && countRoleMatches(el, role, null) > 1) {
     const index = visibleRoleIndex(el, role);
     if (index >= 0 && index <= 5) {
@@ -93,7 +85,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     }
   }
 
-  // 3. getByPlaceholder
   if (meta.placeholder) {
     const css = cssAttr('placeholder', meta.placeholder);
     add({
@@ -116,7 +107,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     }
   }
 
-  // 3b. getByAltText
   const ALT_TAGS = ['APPLET', 'AREA', 'IMG', 'INPUT'];
   if (meta.alt && ALT_TAGS.includes(el.tagName)) {
     const css = cssAttr('alt', meta.alt);
@@ -140,7 +130,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     }
   }
 
-  // 4. getByLabel
   const label = findAssociatedLabel(el);
   if (label) {
     add({
@@ -153,7 +142,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     });
   }
 
-  // 5. getByTitle
   if (meta.title) {
     const css = cssAttr('title', meta.title);
     add({
@@ -176,7 +164,7 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     }
   }
 
-  // 5b. Angular formcontrolname — authored in templates, survives prod builds
+  // formcontrolname is authored in templates, so it survives prod builds.
   if (meta.formControlName) {
     const css = cssAttr('formcontrolname', meta.formControlName);
     add({
@@ -189,7 +177,7 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     });
   }
 
-  // 6. getByText (short, meaningful text only)
+  // Short text only — long strings make brittle locators.
   if (meta.textContent.length > 0 && meta.textContent.length <= TEXT_MAX) {
     add({
       strategy: 'getByText',
@@ -211,7 +199,7 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     }
   }
 
-  // 7. CSS fallback — always unique by construction, so a unique candidate always exists.
+  // Unique by construction, so a unique candidate always exists.
   const cssSelector = buildCssSelector(el, meta);
   add({
     strategy: 'locator',
@@ -338,9 +326,16 @@ function getImplicitRole(tagName: string, el: Element): string | null {
   if (tagName === 'a' || tagName === 'area') return el.hasAttribute('href') ? 'link' : null;
   if (tagName === 'input') return getInputRole(el as HTMLInputElement);
   if (tagName === 'select')
-    return el.hasAttribute('multiple') || (el as HTMLSelectElement).size > 1 ? 'listbox' : 'combobox';
+    return el.hasAttribute('multiple') || (el as HTMLSelectElement).size > 1
+      ? 'listbox'
+      : 'combobox';
   if (tagName === 'img') {
-    if (el.getAttribute('alt') === '' && !el.hasAttribute('title') && !hasGlobalAriaAttribute(el) && !el.hasAttribute('tabindex'))
+    if (
+      el.getAttribute('alt') === '' &&
+      !el.hasAttribute('title') &&
+      !hasGlobalAriaAttribute(el) &&
+      !el.hasAttribute('tabindex')
+    )
       return 'presentation';
     return 'img';
   }
@@ -552,7 +547,10 @@ function suitableTextAlternatives(text: string): { text: string; scoreBonus: num
   // Strip trailing numbers
   const trailingMatch = text.match(/[^.,\w][\d.,]+$/);
   if (trailingMatch) {
-    const alt = trimWordBoundary(text.substring(0, text.length - trailingMatch[0].length).trimEnd(), 80);
+    const alt = trimWordBoundary(
+      text.substring(0, text.length - trailingMatch[0].length).trimEnd(),
+      80,
+    );
     if (alt) result.push({ text: alt, scoreBonus: alt.length <= 30 ? 2 : 1 });
   }
 
@@ -711,7 +709,9 @@ function buildUniqueCssPath(el: Element): string {
     }
 
     const parent: Element | null = current.parentElement;
-    const classes = Array.from(current.classList).filter(isStableClass).map((c) => CSS.escape(c));
+    const classes = Array.from(current.classList)
+      .filter(isStableClass)
+      .map((c) => CSS.escape(c));
     for (let i = 0; i < classes.length; i++) {
       const tok = `${tag}.${classes.slice(0, i + 1).join('.')}`;
       const hit = uniqueWith(tok);
@@ -722,8 +722,7 @@ function buildUniqueCssPath(el: Element): string {
     if (parent) {
       const siblings = Array.from(parent.children);
       const sameTag = siblings.filter((s) => s.tagName === current!.tagName);
-      const tok =
-        sameTag.length > 1 ? `${tag}:nth-child(${siblings.indexOf(current) + 1})` : tag;
+      const tok = sameTag.length > 1 ? `${tag}:nth-child(${siblings.indexOf(current) + 1})` : tag;
       const hit = uniqueWith(tok);
       if (hit) return hit;
       if (!best) best = tok;
@@ -752,7 +751,8 @@ function buildNthChildSelector(el: Element, meta: ElementMetadata): string {
 function getParentHint(parent: Element): string {
   if (parent.id && isStableId(parent.id)) return makeSelectorForId(parent.id);
   const stableClasses = Array.from(parent.classList).filter(isStableClass).slice(0, 1);
-  if (stableClasses.length > 0) return `${parent.tagName.toLowerCase()}.${CSS.escape(stableClasses[0])}`;
+  if (stableClasses.length > 0)
+    return `${parent.tagName.toLowerCase()}.${CSS.escape(stableClasses[0])}`;
   return parent.tagName.toLowerCase();
 }
 
@@ -783,7 +783,11 @@ function cssAttr(name: string, value: string): string {
  * that scopes it to uniqueness. Returns a chained getByTestId locator.
  * Example: getByTestId('parent-testid').getByTestId('child-testid')
  */
-function findChainedTestId(el: Element, childTestId: string, prefix: string): LocatorCandidate | null {
+function findChainedTestId(
+  el: Element,
+  childTestId: string,
+  prefix: string,
+): LocatorCandidate | null {
   let parent = el.parentElement;
   const root = rootOf(el);
 

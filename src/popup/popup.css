@@ -278,7 +278,9 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  transition: background 150ms ease, border-color 150ms ease;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
 }
 
 .btn-copy-result:hover {
@@ -361,7 +363,10 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
 }
 
 .btn-full {
@@ -622,7 +627,9 @@ body {
   margin-top: 2px;
   color: var(--text-faint);
   opacity: 0;
-  transition: opacity 150ms ease, color 150ms ease;
+  transition:
+    opacity 150ms ease,
+    color 150ms ease;
 }
 
 .row:hover .row-copy {
@@ -688,7 +695,9 @@ body {
   text-transform: uppercase;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .seg-btn:hover {

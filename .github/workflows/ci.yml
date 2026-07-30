@@ -1,6 +1,6 @@
 name: CI
 
-# Run lint + the Playwright E2E suite on every pull request to master.
+# Run static checks + the Playwright E2E suite on every pull request to master.
 on:
   pull_request:
     branches: [master]
@@ -10,9 +10,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Both jobs only read the repo; no job needs a writable GITHUB_TOKEN.
+permissions:
+  contents: read
+
 jobs:
-  lint:
-    name: Lint
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -21,7 +25,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run lint
+      # tsc --noEmit + eslint + prettier --check; same command as local `npm run check`.
+      - run: npm run check
+      # Firefox manifest transform + AMO validity — release signs from this build.
+      - run: npm run build:firefox
+      - run: npx web-ext lint --source-dir=dist-firefox
 
   e2e:
     name: E2E Tests
@@ -35,5 +43,8 @@ jobs:
       - run: npm ci
       # Chromium + system deps; the test fixtures auto-add --headless=new when CI is set.
       - run: npx playwright install --with-deps chromium
+      # Engine unit tests first — seconds, and localises locator regressions.
+      - name: Run engine unit tests
+        run: npm run test:engine
       - name: Run E2E suite
         run: npm test

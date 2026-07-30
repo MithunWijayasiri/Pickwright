@@ -15,6 +15,14 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: '**/engine/**',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Engine unit tests: plain about:blank page, no extension loaded.
+    // Needs a real browser — isVisible() reads layout, which jsdom cannot provide.
+    {
+      name: 'engine',
+      testDir: './tests/engine',
       use: { ...devices['Desktop Chrome'] },
     },
   ],
