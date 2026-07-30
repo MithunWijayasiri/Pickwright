@@ -8,10 +8,7 @@ with your data.
 
 ## TL;DR
 
-Pickwright is a free, open-source project. It collects nothing from you: no
-accounts, no analytics, no servers to send data to. It asks only for the
-permissions it needs to pick an element and save your recent locators, and
-everything it stores stays on your computer. The full source is available at
+Pickwright is a free, open-source project. It does not transmit data to external servers. URLs, snippets, and locator metadata are stored locally as described in the selection-history section. It asks only for the permissions it needs to pick an element and save your recent locators, and everything it stores stays on your computer. The full source is available at
 https://github.com/MithunWijayasiri/Pickwright.
 
 ## What data the extension handles
