@@ -121,16 +121,19 @@ Please keep PRs focused and follow the existing code style (enforced via ESLint 
 
 ### AI-assisted contributions
 
-AI-assisted and AI-generated contributions are welcome. What matters is whether the change is a genuine improvement, not which tools produced it — this project is built with AI assistance itself.
+AI-assisted contributions are welcome. This project is built with AI, so the focus is on the quality of the contribution — not the tool used to create it.
 
-You are still the author of what you submit: be able to explain why the change works, and try it in the browser first. Unreviewed model output — invented APIs, unrelated refactors, rewrites nobody asked for — gets closed regardless of how it was written.
+If you submit a change, you should understand how it works, and verify it before opening a pull request. Contributions containing fabricated APIs, unnecessary refactors, unrelated changes, or unverified AI output will be closed.
 
 ## Privacy
 
-Pickwright performs no off-device collection or transmission — no tracking, no
-analytics, no network requests. Your selection history is stored only locally in
-the extension's own browser storage, and you choose whether it persists, clears
-on startup, or is never recorded. See the full [Privacy Policy](docs/PRIVACY.md).
+Pickwright never sends your data anywhere.
+
+- No tracking
+- No analytics
+- No network requests
+
+Selection history is stored only in your browser using the extension's local storage. You can choose to keep it between sessions, clear it on startup, or disable history entirely. See the full [Privacy Policy](docs/PRIVACY.md).
 
 ## License
 
