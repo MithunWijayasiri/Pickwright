@@ -1,10 +1,7 @@
-// Locator scoring explainability logic
+// Reasons shown in the popup alongside the chosen locator.
 
 import { LocatorCandidate, LocatorReason } from './types';
 
-/**
- * Generate human-readable reasons explaining the locator score and decisions.
- */
 export function getLocatorReasons(candidate: LocatorCandidate, _el: Element): LocatorReason[] {
   const reasons: LocatorReason[] = [];
 

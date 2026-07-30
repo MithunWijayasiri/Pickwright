@@ -1,11 +1,7 @@
-// Locator engine unit tests: one HTML snippet per case, assert the emitted
-// locator string. Run via `npm run test:engine` (builds the harness first).
-//
-// Assert the emitted string, never internal candidate arrays — string
-// assertions survive refactors of the candidate pipeline.
-// Private helpers (isStableId, isStableClass, ...) are exercised through the
-// public API on purpose; adding test-only exports is forbidden by
-// .claude/rules/code-hygiene.md.
+// One HTML snippet per case, asserting the emitted locator string only — never
+// internal candidate arrays, so cases survive refactors of the pipeline. Private
+// helpers stay private and are driven through getLocator; no test-only exports.
+// Run via `npm run test:engine` (builds the harness first).
 
 import { test, expect, Page } from '@playwright/test';
 import path from 'path';
@@ -40,9 +36,8 @@ function run(cases: Case[]) {
   }
 }
 
-// Group 1 — priority ladder. One case per SCORE rung, asserting the expected
-// strategy wins when higher rungs are absent. This is the regression net for
-// reordering SCORE in playwright-port.ts.
+// One case per SCORE rung: the named strategy must win when better rungs are
+// absent. Regression net for reordering SCORE.
 test.describe('priority ladder', () => {
   run([
     {
@@ -144,9 +139,8 @@ test.describe('priority ladder', () => {
   ]);
 });
 
-// Group 2 — framework-noise filtering. Each case gives the element ONLY a noisy
-// identifier, so a leak would show up in the output. Regexes mirror
-// isStableId / isStableClass in generate.ts — keep both in sync.
+// Each element gets ONLY a noisy identifier, so a leak shows up in the output.
+// Mirrors the isStableId / isStableClass regexes — keep both in sync.
 test.describe('noise filtering', () => {
   run([
     {
@@ -224,10 +218,9 @@ test.describe('noise filtering', () => {
   ]);
 });
 
-// Group 3 — uniqueness must match the matcher's semantics. Trimmed alternatives
-// resolve as substrings (Playwright's exact: false), so they need substring
-// uniqueness. Pairing a substring matcher with an exact check yields a candidate
-// that can never be selected — the CSS fallback silently wins instead.
+// Trimmed alternatives resolve as substrings (Playwright's exact: false), so they
+// need substring uniqueness. Pair one with an exact check and the candidate is
+// never selectable — the CSS fallback silently wins instead.
 test.describe('uniqueness and matcher semantics', () => {
   run([
     {
@@ -283,8 +276,8 @@ test.describe('uniqueness and matcher semantics', () => {
   ]);
 });
 
-// Group 4 — role resolution and accessible name. Counting is visible-only, which
-// is why these run in a real browser: jsdom's 0x0 rects would make every count wrong.
+// Role counting is visible-only, which is why these need a real browser:
+// jsdom's 0x0 rects would make every count wrong.
 test.describe('role and accessible name', () => {
   run([
     {

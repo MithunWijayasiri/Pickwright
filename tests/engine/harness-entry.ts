@@ -1,6 +1,5 @@
-// Test-only bundle: exposes the locator engine on `window` so engine specs can
-// call it inside a real document. Emitted only when TEST_HARNESS is set at build
-// time (see webpack.config.js) — never ships to users.
+// Exposes the engine on `window` so specs can call it inside a real document.
+// Emitted only when TEST_HARNESS is set at build time — never ships to users.
 
 import { getLocator } from '../../src/locator-engine';
 import { collectMetadata } from '../../src/content/inspect';
