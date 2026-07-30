@@ -37,7 +37,13 @@ https://github.com/MithunWijayasiri/Pickwright.
 
 - It does not make network requests or contact external servers.
 - It does not use analytics, telemetry, cookies, or tracking.
-- It does not collect personally identifiable information.
+- It does not collect personally identifiable information for its own purposes.
+  Note that the page URLs and text snippets saved in your selection history can
+  themselves contain personal data — a name in a heading, an email address in a
+  form field, an account id in a URL — depending on the page you pick on. That
+  data stays in your browser's local storage on your device, is never
+  transmitted, and you can clear it at any time (see "Data retention and
+  deletion").
 - It does not read data from tabs other than the one you are using the picker
   on.
 - It does not sell or transfer data to third parties.

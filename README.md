@@ -88,7 +88,7 @@ Locators are generated and scored in this order (highest priority first):
 | 12 | CSS tag / attribute selector | `locator('input[name="email"]')` |
 | 13 | CSS path fallback | `locator('#login-form > button')` |
 
-Whichever candidate wins, `.nth(n)` is appended when it is the only way to make the locator unique.
+Every candidate above must match exactly one element to be eligible. `.nth(n)` is a last resort, offered only for a role match that has no accessible name and is ambiguous — it is never appended to the other strategies.
 
 ## Development & Configuration
 

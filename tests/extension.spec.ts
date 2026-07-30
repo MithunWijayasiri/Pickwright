@@ -70,6 +70,17 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     );
   });
 
+  test('frameLocator escapes a control character in the iframe name', async () => {
+    // The newline becomes the CSS hex escape `\a `. Passing that selector back
+    // to frameLocator proves it still resolves. The emitted string doubles the
+    // backslash because it is a JS string literal the user pastes into code.
+    await expectLocatorOnHover(
+      '#nl-frame-btn',
+      `frameLocator('iframe[name="outer\\\\a frame"]').getByRole('button', { name: 'Newline Frame Button' })`,
+      { frame: 'iframe[name="outer\\a frame"]' },
+    );
+  });
+
   test('custom data-* CSS fallback when text exceeds the getByText limit', async () => {
     await expectLocatorOnHover('#datacy-div', 'locator(\'[data-cy="container-box"]\')');
   });

@@ -128,6 +128,14 @@ test.describe('priority ladder', () => {
       expected: `getByRole('navigation')`,
     },
     {
+      // Two inputs make role-only (510) non-unique, so the tag+attribute
+      // selector is the lowest-scoring unique candidate ahead of nth (10000).
+      name: 'cssTagName: tag + attribute selector when role alone is ambiguous',
+      html: `<input name="email"><input name="phone">`,
+      pick: 'input[name="email"]',
+      expected: `locator('input[name="email"]')`,
+    },
+    {
       name: 'nth: role .nth(index) when role alone is ambiguous',
       html: `<button>Same</button><button>Same</button>`,
       pick: 'button:nth-of-type(2)',

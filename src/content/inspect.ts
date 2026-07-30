@@ -46,9 +46,17 @@ export function getFrameSelector(el: Element): string | null {
   return null;
 }
 
-// Attribute values reach frameLocator() as a CSS selector, so quotes and backslashes escape here.
+// Attribute values reach frameLocator() as a quoted CSS string: backslashes and
+// quotes escape, and control characters need hex escapes — a raw newline
+// terminates the string and makes the selector invalid.
 function cssValue(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return (
+    value
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x1f\x7f]/g, (c) => `\\${c.charCodeAt(0).toString(16)} `)
+  );
 }
 
 function buildFrameIdentifier(frame: HTMLIFrameElement): string {

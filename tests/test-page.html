@@ -223,6 +223,20 @@
   "
     ></iframe>
 
+    <!-- No id, so the frame identifier falls back to name — which carries a
+         newline, forcing the CSS hex escape in cssValue(). -->
+    <iframe
+      name="outer&#10;frame"
+      srcdoc="
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <button id='nl-frame-btn'>Newline Frame Button</button>
+      </body>
+    </html>
+  "
+    ></iframe>
+
     <script>
       // Initialize Shadow DOM with content
       const host = document.getElementById('shadow-host');
