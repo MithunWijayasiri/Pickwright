@@ -169,6 +169,17 @@ nav::after {
 .theme-toggle:hover { color: var(--text); border-color: var(--border2); }
 .theme-toggle .toggle-icon { font-size: 11px; line-height: 1; }
 
+.nav-kofi {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  padding: 5px 14px;
+  border: 1px solid #ff5e5b; color: #ff5e5b;
+  border-radius: 3px; letter-spacing: 0.04em;
+  display: flex; align-items: center; gap: 5px;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-kofi:hover { background: #ff5e5b; color: #fff; }
+.nav-kofi .kofi-icon { font-size: 12px; line-height: 1; }
+
 .nav-cta {
   font-family: var(--mono); font-size: 11px; font-weight: 700;
   padding: 5px 14px;
@@ -716,6 +727,7 @@ footer {
       <span class="toggle-icon" id="toggleIcon">☀</span>
       <span id="toggleLabel">light</span>
     </button>
+    <a class="nav-kofi" href="https://ko-fi.com/mithunwijayasiri" target="_blank" rel="noopener"><span class="kofi-icon">☕</span>Ko-fi</a>
     <a class="nav-cta" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download</a>
   </div>
 </nav>
@@ -1060,6 +1072,7 @@ footer {
     <li><a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">releases</a></li>
     <li><a href="https://github.com/MithunWijayasiri/Pickwright/blob/master/docs/PRIVACY.md">privacy</a></li>
     <li><a href="https://github.com/MithunWijayasiri/Pickwright/blob/master/docs/build-from-source.md">build from source</a></li>
+    <li><a href="https://ko-fi.com/mithunwijayasiri" target="_blank" rel="noopener">ko-fi</a></li>
   </ul>
   <span class="footer-note">MIT · Playwright locator picker</span>
 </footer>

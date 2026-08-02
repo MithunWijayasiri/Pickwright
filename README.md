@@ -127,13 +127,13 @@ If you submit a change, you should understand how it works, and verify it before
 
 ## Privacy
 
-Pickwright never sends your data anywhere.
+Pickwright never sends your data anywhere. Selection history is stored only in your browser using the extension's local storage. You can choose to keep it between sessions, clear it on startup, or disable history entirely. See the full [Privacy Policy](docs/PRIVACY.md).
 
-- No tracking
-- No analytics
-- No network requests
+## Support
 
-Selection history is stored only in your browser using the extension's local storage. You can choose to keep it between sessions, clear it on startup, or disable history entirely. See the full [Privacy Policy](docs/PRIVACY.md).
+If you find this project useful, consider supporting its development on [Ko-fi](https://ko-fi.com/mithunwijayasiri). Your donations help keep the project maintained, improve existing features, and fund new open-source tools.
+
+Thank you for your support! ❤️
 
 ## License
 
