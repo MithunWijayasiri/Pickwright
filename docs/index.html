@@ -418,6 +418,10 @@ h1 .dim { color: var(--muted); transition: color 0.3s; }
 .mock-forgot:hover, .mock-forgot.picked { border-color: var(--accent); }
 .mock-forgot.picked { background: var(--accent-lo); }
 
+.mock-field:focus-visible, .mock-btn:focus-visible, .mock-forgot:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
 .mock-popup { flex: 0 1 400px; min-width: 0; background: var(--bg2); }
 .mock-popup-bar {
   display: flex; align-items: center; justify-content: space-between;
@@ -827,17 +831,17 @@ footer {
           <div class="mock-form-sub">Click any element to pick it.</div>
 
           <div class="mock-field-label">Email</div>
-          <div class="mock-field" data-key="email">ada@example.com</div>
+          <div class="mock-field" data-key="email" role="button" tabindex="0">ada@example.com</div>
 
           <div class="mock-field-label">Password</div>
-          <div class="mock-field mock-field-muted" data-key="password">••••••••••</div>
+          <div class="mock-field mock-field-muted" data-key="password" role="button" tabindex="0">••••••••••</div>
 
-          <div class="mock-btn mock-btn-solid" data-key="signin">Sign in</div>
+          <div class="mock-btn mock-btn-solid" data-key="signin" role="button" tabindex="0">Sign in</div>
 
-          <div class="mock-btn mock-btn-outline" data-key="sso">Continue with SSO<span class="mock-btn-tag">data-testid</span></div>
+          <div class="mock-btn mock-btn-outline" data-key="sso" role="button" tabindex="0">Continue with SSO<span class="mock-btn-tag">data-testid</span></div>
 
           <div class="mock-forgot-row">
-            <div class="mock-forgot" data-key="forgot">Forgot your password?</div>
+            <div class="mock-forgot" data-key="forgot" role="button" tabindex="0">Forgot your password?</div>
           </div>
         </div>
       </div>
@@ -987,8 +991,8 @@ footer {
   <div class="sb-list" id="sbList"></div>
   <div class="sb-row sb-row-fallback">
     <span class="sb-n">+5</span>
-    <span class="sb-name">fallback tiers</span>
-    <span class="sb-value">structural CSS, nth-child chains and XPath — only when nothing better exists</span>
+    <span class="sb-name">lower tiers</span>
+    <span class="sb-value">other test-ID attributes, formcontrolname, stable #id, role without a name, and nth-child path chains — only when nothing above exists</span>
     <span></span>
   </div>
 </section>
@@ -1245,7 +1249,7 @@ function renderPicker() {
       '</div>' +
     '</div>';
   }).join('');
-  document.getElementById('ppCount').textContent = pickerState.picks.length + ' / 20';
+  document.getElementById('ppCount').textContent = pickerState.picks.length + ' / 5';
 
   document.getElementById('specLines').innerHTML = pickerState.picks.map(k => {
     const e = PICKER_ELEMENTS[k];
@@ -1290,6 +1294,11 @@ function pickElement(key) {
 
 document.querySelectorAll('.mock-field, .mock-btn, .mock-forgot').forEach(node => {
   node.addEventListener('click', () => pickElement(node.dataset.key));
+  node.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    pickElement(node.dataset.key);
+  });
 });
 
 document.getElementById('ppCopy').addEventListener('click', () => {
