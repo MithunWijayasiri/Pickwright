@@ -169,6 +169,17 @@ nav::after {
 .theme-toggle:hover { color: var(--text); border-color: var(--border2); }
 .theme-toggle .toggle-icon { font-size: 11px; line-height: 1; }
 
+.nav-kofi {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  padding: 5px 14px;
+  border: 1px solid #ff5e5b; color: #ff5e5b;
+  border-radius: 3px; letter-spacing: 0.04em;
+  display: flex; align-items: center; gap: 5px;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-kofi:hover { background: #ff5e5b; color: #fff; }
+.nav-kofi .kofi-icon { font-size: 12px; line-height: 1; }
+
 .nav-cta {
   font-family: var(--mono); font-size: 11px; font-weight: 700;
   padding: 5px 14px;
@@ -347,6 +358,134 @@ h1 .dim { color: var(--muted); transition: color 0.3s; }
   max-width: 380px; line-height: 1.65;
 }
 
+/* ─── Interactive picker ─────────────────────────────────────────────────── */
+.picker-section { border-bottom: 1px solid var(--border); }
+.picker-demo { display: flex; align-items: stretch; flex-wrap: wrap; }
+
+.mock-app { flex: 1 1 460px; min-width: 0; border-right: 1px solid var(--border); }
+.mock-app-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.5rem; height: 42px;
+  border-bottom: 1px solid var(--border); background: var(--bg2);
+}
+.mock-app-label {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.mock-app-armed { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.08em; }
+.blink-dot { animation: blink 1.1s step-end infinite; }
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+.mock-app-body { padding: 3.5rem 2.5rem 4rem; display: flex; justify-content: center; }
+.mock-form { width: 100%; max-width: 360px; }
+.mock-form-title { font-family: var(--mono); font-size: 20px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px; }
+.mock-form-sub { font-size: 13px; color: var(--muted); font-weight: 300; margin-bottom: 2rem; }
+.mock-field-label {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 7px;
+}
+.mock-field {
+  height: 42px; border: 1px solid var(--border2); background: var(--bg2);
+  border-radius: 3px; display: flex; align-items: center; padding: 0 12px;
+  font-family: var(--mono); font-size: 12.5px; color: var(--code-text);
+  margin-bottom: 1.25rem; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.mock-field.mock-field-muted { color: var(--muted); margin-bottom: 1.75rem; }
+.mock-field:hover, .mock-field.picked { border-color: var(--accent); }
+.mock-field.picked { background: var(--accent-lo); }
+
+.mock-btn {
+  height: 44px; border-radius: 3px; display: flex; align-items: center; justify-content: center;
+  gap: 10px; font-family: var(--mono); font-size: 12px; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.mock-btn-solid {
+  border: 1px solid var(--text); background: var(--text); color: var(--bg);
+  font-weight: 700; letter-spacing: 0.04em; margin-bottom: 12px;
+}
+.mock-btn-solid.picked { border-color: var(--accent); background: var(--accent); }
+.mock-btn-outline { border: 1px solid var(--border2); background: var(--bg2); color: var(--code-text); }
+.mock-btn-outline:hover, .mock-btn-outline.picked { border-color: var(--accent); }
+.mock-btn-outline.picked { background: var(--accent-lo); }
+.mock-btn-tag { font-size: 9px; color: var(--muted); letter-spacing: 0.08em; }
+
+.mock-forgot-row { display: flex; justify-content: center; margin-top: 1.75rem; }
+.mock-forgot {
+  border: 1px solid var(--border2); background: var(--bg2); border-radius: 3px;
+  padding: 5px 10px; font-size: 12.5px; color: var(--muted); cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mock-forgot:hover, .mock-forgot.picked { border-color: var(--accent); }
+.mock-forgot.picked { background: var(--accent-lo); }
+
+.mock-field:focus-visible, .mock-btn:focus-visible, .mock-forgot:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+.mock-popup { flex: 0 1 400px; min-width: 0; background: var(--bg2); }
+.mock-popup-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.25rem; height: 42px; border-bottom: 1px solid var(--border);
+}
+.mock-popup-brand { display: flex; align-items: center; gap: 9px; }
+.mock-popup-name { font-family: var(--mono); font-size: 11.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.mock-popup-name em { color: var(--accent); font-style: normal; }
+.mock-popup-version {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 2px; padding: 1px 5px;
+}
+.mock-popup-body { padding: 1.25rem; }
+
+.pp-strategy-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.pp-strategy { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--accent); }
+.pp-dot { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+.pp-tag { font-family: var(--mono); font-size: 10px; color: var(--code-kw); }
+.pp-method { font-family: var(--mono); font-size: 14px; font-weight: 700; line-height: 1.6; word-break: break-word; }
+.pp-fn { color: var(--code-fn); }
+.pp-args { color: var(--accent); }
+
+.pp-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+.pp-alts-label { margin: 1.5rem 0 0.6rem; }
+.pp-alts div { font-family: var(--mono); font-size: 11.5px; line-height: 1.85; color: var(--muted); word-break: break-word; }
+
+.pp-row-divider {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border);
+}
+.pp-actions { display: flex; gap: 8px; }
+.pp-copy, .pp-clear {
+  font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  border-radius: 2px; padding: 5px 12px; cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.pp-copy { color: var(--accent); border: 1px solid var(--accent); }
+.pp-copy:hover { background: var(--accent-lo); }
+.pp-clear { color: var(--muted); border: 1px solid var(--border2); font-weight: 400; }
+.pp-clear:hover { color: var(--text); }
+
+.pp-history-head { display: flex; align-items: center; justify-content: space-between; margin: 1.25rem 0 0.75rem; }
+.pp-history { display: flex; flex-direction: column; gap: 10px; min-height: 96px; }
+.pp-history-row { display: flex; gap: 9px; }
+.pp-history-badge {
+  font-family: var(--mono); font-size: 8px; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--code-kw); border: 1px solid var(--border2); border-radius: 2px;
+  padding: 2px 5px; height: fit-content;
+}
+.pp-history-text { overflow: hidden; }
+.pp-history-locator { font-family: var(--mono); font-size: 11px; color: var(--code-text); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.pp-history-tag { font-family: var(--mono); font-size: 9px; color: var(--dim); }
+
+.live-spec { display: flex; align-items: stretch; flex-wrap: wrap; border-top: 1px solid var(--border); }
+.live-spec-text { flex: 0 1 340px; min-width: 0; padding: 2.5rem; border-right: 1px solid var(--border); }
+.live-spec-kicker {
+  font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;
+}
+.live-spec-title { font-family: var(--mono); font-size: 15px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.3; margin-bottom: 0.75rem; }
+.live-spec-text p { font-size: 13px; color: var(--muted); font-weight: 300; line-height: 1.7; }
+.live-spec-count { font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 0.06em; margin-top: 1.5rem; }
+.live-spec .code-block { flex: 1 1 480px; min-width: 0; border: none; border-radius: 0; }
+.spec-line { padding-left: 20px; }
+
 /* ─── Features ───────────────────────────────────────────────────────────── */
 .feat-section { border-bottom: 1px solid var(--border); }
 
@@ -377,33 +516,41 @@ h1 .dim { color: var(--muted); transition: color 0.3s; }
 }
 .feat-row:hover .fr-badge { background: var(--bg3); }
 
-/* ─── Strategies ─────────────────────────────────────────────────────────── */
+/* ─── Live scoreboard ────────────────────────────────────────────────────── */
 .strat-section { border-bottom: 1px solid var(--border); }
 
-.strat-list { display: flex; flex-direction: column; }
+.sb-status {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap; padding: 1.1rem 2.5rem;
+  border-bottom: 1px solid var(--border); background: var(--bg2);
+}
+.sb-status span {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+}
+.sb-status strong { color: var(--text); font-weight: 700; }
 
-.strat-item {
-  display: grid; grid-template-columns: 50px 1fr 1fr;
+.sb-list { display: flex; flex-direction: column; }
+
+.sb-row {
+  display: grid; grid-template-columns: 50px 190px minmax(0,1fr) 96px;
   align-items: center; gap: 2rem;
-  padding: 1.5rem 2.5rem;
+  padding: 1.25rem 2.5rem;
   border-bottom: 1px solid var(--border);
-  transition: background 0.15s, padding-left 0.2s;
-  cursor: default;
+  transition: background 0.15s;
 }
-.strat-item:last-child { border-bottom: none; }
-.strat-item:hover { background: var(--bg2); padding-left: 3rem; }
+.sb-row:hover { background: var(--bg2); }
+.sb-row-fallback { color: var(--dim); border-bottom: none; }
 
-.si-n    { font-family: var(--mono); font-size: 10px; color: var(--dim); }
-.si-name {
-  font-family: var(--mono);
-  font-size: clamp(13px, 2vw, 17px);
-  font-weight: 700; color: var(--text); letter-spacing: -0.01em;
-  transition: color 0.3s;
+.sb-n    { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+.sb-name { font-family: var(--mono); font-size: clamp(13px, 2vw, 17px); font-weight: 700; letter-spacing: -0.01em; }
+.sb-value {
+  font-family: var(--mono); font-size: 12px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
 }
-.si-name.top { color: var(--accent); }
-.si-ex {
-  font-family: var(--mono); font-size: 12px; color: var(--muted);
-  text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.sb-status-badge {
+  justify-self: end; font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 2px;
 }
 
 /* ─── Install ────────────────────────────────────────────────────────────── */
@@ -540,9 +687,13 @@ footer {
   .sec-header { flex-direction: column; gap: 0.75rem; }
   .feat-row { grid-template-columns: 40px 1fr; gap: 1rem; }
   .feat-row .fr-badge, .feat-row .fr-desc { display: none; }
-  .strat-item { grid-template-columns: 40px 1fr; }
-  .strat-item .si-ex { display: none; }
-  .strat-item:hover { padding-left: 2.5rem; }
+  .sb-row { grid-template-columns: 40px 1fr; }
+  .sb-row .sb-value, .sb-row .sb-status-badge { display: none; }
+  .picker-demo, .live-spec { flex-direction: column; }
+  .mock-app, .mock-popup, .live-spec-text {
+    flex: 1 1 auto; border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .live-spec .code-block { flex: 1 1 auto; }
   .install-inner { grid-template-columns: 1fr; }
   .install-left { border-right: none; border-bottom: 1px solid var(--border); }
   nav .nav-links { display: none; }
@@ -554,7 +705,9 @@ footer {
   nav { padding: 0 1.25rem; }
   .hero { padding: 0 1.25rem 3rem; }
   .stats .stat { padding: 1.75rem 1.25rem; }
-  .sec-header, .feat-row, .strat-item, .install-left, .install-right, .cta-strip, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .sec-header, .feat-row, .sb-row, .install-left, .install-right, .cta-strip, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .mock-app-body { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .live-spec-text, .live-spec .cb-body { padding-left: 1.25rem; padding-right: 1.25rem; }
 }
 </style>
 </head>
@@ -566,6 +719,7 @@ footer {
   <div class="nav-left">
     <div class="nav-brand">pick<em>wright</em></div>
     <ul class="nav-links">
+      <li><a href="#picker">picker</a></li>
       <li><a href="#features">features</a></li>
       <li><a href="#strategies">locators</a></li>
       <li><a href="#install">install</a></li>
@@ -577,6 +731,7 @@ footer {
       <span class="toggle-icon" id="toggleIcon">☀</span>
       <span id="toggleLabel">light</span>
     </button>
+    <a class="nav-kofi" href="https://ko-fi.com/mithunwijayasiri" target="_blank" rel="noopener"><span class="kofi-icon">☕</span>Ko-fi</a>
     <a class="nav-cta" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download</a>
   </div>
 </nav>
@@ -657,6 +812,106 @@ footer {
   </div>
 </div>
 
+<!-- ── Interactive picker ───────────────────────────────────────────────────── -->
+<section class="picker-section" id="picker">
+  <div class="sec-header reveal">
+    <h2>Try it here.<br>Click anything.</h2>
+    <p>This is the real thing, running in the page. Pick a field below — the popup, the ranking table further down, and the spec file all update from that one click.</p>
+  </div>
+
+  <div class="picker-demo">
+    <div class="mock-app">
+      <div class="mock-app-bar">
+        <span class="mock-app-label">your app under test</span>
+        <span class="mock-app-armed">PICKER ARMED<span class="blink-dot"> ●</span></span>
+      </div>
+      <div class="mock-app-body">
+        <div class="mock-form">
+          <div class="mock-form-title">Sign in</div>
+          <div class="mock-form-sub">Click any element to pick it.</div>
+
+          <div class="mock-field-label">Email</div>
+          <div class="mock-field" data-key="email" role="button" tabindex="0">ada@example.com</div>
+
+          <div class="mock-field-label">Password</div>
+          <div class="mock-field mock-field-muted" data-key="password" role="button" tabindex="0">••••••••••</div>
+
+          <div class="mock-btn mock-btn-solid" data-key="signin" role="button" tabindex="0">Sign in</div>
+
+          <div class="mock-btn mock-btn-outline" data-key="sso" role="button" tabindex="0">Continue with SSO<span class="mock-btn-tag">data-testid</span></div>
+
+          <div class="mock-forgot-row">
+            <div class="mock-forgot" data-key="forgot" role="button" tabindex="0">Forgot your password?</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mock-popup">
+      <div class="mock-popup-bar">
+        <div class="mock-popup-brand">
+          <span class="mock-popup-name">pick<em>wright</em></span>
+          <span class="mock-popup-version">v1.0.0</span>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8b84" stroke-width="1.3" stroke-linecap="round" aria-hidden="true">
+          <line x1="1.5" y1="5" x2="14.5" y2="5"></line>
+          <line x1="1.5" y1="11" x2="14.5" y2="11"></line>
+          <circle cx="5.5" cy="5" r="2" fill="var(--bg2)"></circle>
+          <circle cx="10.5" cy="11" r="2" fill="var(--bg2)"></circle>
+        </svg>
+      </div>
+      <div class="mock-popup-body">
+        <div class="pp-strategy-row">
+          <span class="pp-strategy" id="ppStrategy"></span>
+          <span class="pp-dot">·</span>
+          <span class="pp-tag" id="ppTag"></span>
+        </div>
+        <div class="pp-method"><span class="pp-fn" id="ppMethod"></span><span class="pp-args" id="ppArgs"></span></div>
+
+        <div class="pp-label pp-alts-label">Alternatives</div>
+        <div class="pp-alts" id="ppAlts"></div>
+
+        <div class="pp-row-divider">
+          <span class="pp-label">Last picked</span>
+          <div class="pp-actions">
+            <span class="pp-copy" id="ppCopy">COPY</span>
+            <span class="pp-clear" id="ppClear">CLEAR</span>
+          </div>
+        </div>
+
+        <div class="pp-history-head">
+          <span class="pp-label">History</span>
+          <span class="pp-count" id="ppCount"></span>
+        </div>
+        <div class="pp-history" id="ppHistory"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="live-spec">
+    <div class="live-spec-text">
+      <div class="live-spec-kicker">// live output</div>
+      <div class="live-spec-title">Every pick lands in your spec file.</div>
+      <p>Pick, copy, paste. The extension writes the locator the way you would — the code on the right is generated from the elements you clicked above.</p>
+      <div class="live-spec-count" id="specCount"></div>
+    </div>
+    <div class="code-block">
+      <div class="cb-head">
+        <span class="cb-name">login.spec.ts</span>
+        <span class="cb-ts">TypeScript</span>
+      </div>
+      <div class="cb-body">
+<div class="cm">// locators picked with Pickwright</div>
+<div><span class="kw">import</span> { test, expect } <span class="kw">from</span> <span class="s">'@playwright/test'</span>;</div>
+<div>&nbsp;</div>
+<div><span class="fn">test</span>(<span class="s">'user signs in'</span>, async ({ page }) =&gt; {</div>
+<div id="specLines"></div>
+<div>});</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ── Features ─────────────────────────────────────────────────────────────── -->
 <section class="feat-section" id="features">
   <div class="sec-header reveal">
@@ -725,49 +980,20 @@ footer {
 <section class="strat-section" id="strategies">
   <div class="sec-header reveal">
     <h2>Playwright's ranking.<br>Strictly.</h2>
-    <p>Fragile CSS selectors rank last. Stable, semantic, accessibility-driven locators surface first — matching Playwright's own recommended order. Eight of the thirteen scored tiers shown, numbered by their real rank; <a href="https://github.com/MithunWijayasiri/Pickwright#generated-locator-priority" style="color:var(--accent)">see the full table</a>.</p>
+    <p>Live scoring for whatever you picked above. Tiers that can't describe the element are struck out; the highest-ranked survivor wins. <a href="https://github.com/MithunWijayasiri/Pickwright#generated-locator-priority" style="color:var(--accent)">See the full table</a>.</p>
   </div>
-  <div class="strat-list">
-    <div class="strat-item reveal stagger-1">
-      <span class="si-n">01</span>
-      <span class="si-name top">getByTestId</span>
-      <span class="si-ex">getByTestId('submit-btn')</span>
-    </div>
-    <div class="strat-item reveal stagger-2">
-      <span class="si-n">03</span>
-      <span class="si-name top">getByRole</span>
-      <span class="si-ex">getByRole('button', { name: 'Sign in' })</span>
-    </div>
-    <div class="strat-item reveal stagger-3">
-      <span class="si-n">04</span>
-      <span class="si-name">getByLabel</span>
-      <span class="si-ex">getByLabel('Email address')</span>
-    </div>
-    <div class="strat-item reveal stagger-4">
-      <span class="si-n">05</span>
-      <span class="si-name">getByPlaceholder</span>
-      <span class="si-ex">getByPlaceholder('Search…')</span>
-    </div>
-    <div class="strat-item reveal stagger-5">
-      <span class="si-n">06</span>
-      <span class="si-name">getByAltText</span>
-      <span class="si-ex">getByAltText('Company logo')</span>
-    </div>
-    <div class="strat-item reveal stagger-6">
-      <span class="si-n">07</span>
-      <span class="si-name">getByText</span>
-      <span class="si-ex">getByText('Sign in')</span>
-    </div>
-    <div class="strat-item reveal stagger-7">
-      <span class="si-n">08</span>
-      <span class="si-name">getByTitle</span>
-      <span class="si-ex">getByTitle('Close')</span>
-    </div>
-    <div class="strat-item reveal stagger-8">
-      <span class="si-n">12</span>
-      <span class="si-name" style="color:var(--muted)">locator (CSS)</span>
-      <span class="si-ex">locator('button[type="submit"]')</span>
-    </div>
+
+  <div class="sb-status">
+    <span>Scoring: <strong id="sbName"></strong> <span id="sbTag"></span></span>
+    <span id="sbMatch"></span>
+  </div>
+
+  <div class="sb-list" id="sbList"></div>
+  <div class="sb-row sb-row-fallback">
+    <span class="sb-n">+5</span>
+    <span class="sb-name">lower tiers</span>
+    <span class="sb-value">other test-ID attributes, formcontrolname, stable #id, role without a name, and nth-child path chains — only when nothing above exists</span>
+    <span></span>
   </div>
 </section>
 
@@ -850,6 +1076,7 @@ footer {
     <li><a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">releases</a></li>
     <li><a href="https://github.com/MithunWijayasiri/Pickwright/blob/master/docs/PRIVACY.md">privacy</a></li>
     <li><a href="https://github.com/MithunWijayasiri/Pickwright/blob/master/docs/build-from-source.md">build from source</a></li>
+    <li><a href="https://ko-fi.com/mithunwijayasiri" target="_blank" rel="noopener">ko-fi</a></li>
   </ul>
   <span class="footer-note">MIT · Playwright locator picker</span>
 </footer>
@@ -948,6 +1175,148 @@ document.querySelectorAll('[data-store]').forEach(btn => {
     toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
   });
 });
+
+// ── Interactive picker demo ───────────────────────────────────────────────────
+const TIERS = [
+  { n: '01', name: 'getByTestId' },
+  { n: '03', name: 'getByRole' },
+  { n: '04', name: 'getByLabel' },
+  { n: '05', name: 'getByPlaceholder' },
+  { n: '06', name: 'getByAltText' },
+  { n: '07', name: 'getByText' },
+  { n: '08', name: 'getByTitle' },
+  { n: '12', name: 'locator (CSS)' }
+];
+
+const PICKER_ELEMENTS = {
+  email: {
+    name: 'Email field', tag: '<input>', badge: 'ROLE', winner: '03', act: 'fill', actArgs: "('ada@example.com')",
+    tiers: { '03': "getByRole('textbox', { name: 'Email' })", '04': "getByLabel('Email')", '05': "getByPlaceholder('you@company.com')", '12': "locator('#email')" }
+  },
+  password: {
+    name: 'Password field', tag: '<input>', badge: 'LABEL', winner: '04', act: 'fill', actArgs: "('hunter2')",
+    tiers: { '04': "getByLabel('Password')", '12': "locator('input[type=\"password\"]')" }
+  },
+  signin: {
+    name: 'Sign in button', tag: '<button>', badge: 'ROLE', winner: '03', act: 'click', actArgs: '()',
+    tiers: { '03': "getByRole('button', { name: 'Sign in' })", '07': "getByText('Sign in')", '12': "locator('form.auth > button[type=\"submit\"]')" }
+  },
+  sso: {
+    name: 'SSO button', tag: '<button>', badge: 'TESTID', winner: '01', act: 'click', actArgs: '()',
+    tiers: { '01': "getByTestId('sso-btn')", '03': "getByRole('button', { name: 'Continue with SSO' })", '07': "getByText('Continue with SSO')", '12': "locator('button.sso')" }
+  },
+  forgot: {
+    name: 'Help link', tag: '<a>', badge: 'ROLE', winner: '03', act: 'click', actArgs: '()',
+    tiers: { '03': "getByRole('link', { name: 'Forgot your password?' })", '07': "getByText('Forgot your password?')", '12': "locator('a.auth-help')" }
+  }
+};
+
+const STRATEGY_LABEL = { '01': 'GETBYTESTID', '03': 'GETBYROLE', '04': 'GETBYLABEL', '05': 'GETBYPLACEHOLDER', '06': 'GETBYALTTEXT', '07': 'GETBYTEXT', '08': 'GETBYTITLE', '12': 'LOCATOR' };
+
+function splitLocator(loc) {
+  const i = loc.indexOf('(');
+  return { method: loc.slice(0, i), args: loc.slice(i) };
+}
+
+const pickerState = { picked: 'signin', picks: ['signin'], copied: false };
+
+function renderPicker() {
+  const el = PICKER_ELEMENTS[pickerState.picked];
+  const win = splitLocator(el.tiers[el.winner]);
+  const alts = TIERS.filter(t => t.n !== el.winner && el.tiers[t.n]).map(t => el.tiers[t.n]).slice(0, 2);
+
+  document.querySelectorAll('.mock-field, .mock-btn, .mock-forgot').forEach(node => {
+    node.classList.toggle('picked', node.dataset.key === pickerState.picked);
+  });
+
+  document.getElementById('ppStrategy').textContent = STRATEGY_LABEL[el.winner];
+  document.getElementById('ppTag').textContent = el.tag;
+  document.getElementById('ppMethod').textContent = win.method;
+  document.getElementById('ppArgs').textContent = win.args;
+  document.getElementById('ppAlts').innerHTML = alts.map(a => '<div>' + a + '</div>').join('');
+  document.getElementById('ppCopy').textContent = pickerState.copied ? 'COPIED' : 'COPY';
+
+  document.getElementById('ppHistory').innerHTML = pickerState.picks.slice().reverse().slice(0, 4).map(k => {
+    const e = PICKER_ELEMENTS[k];
+    const full = e.tiers[e.winner];
+    const short = full.length > 34 ? full.slice(0, 33) + '…' : full;
+    const safeTag = e.tag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return '<div class="pp-history-row">' +
+      '<span class="pp-history-badge">' + e.badge + '</span>' +
+      '<div class="pp-history-text">' +
+        '<div class="pp-history-locator">' + short + '</div>' +
+        '<div class="pp-history-tag">' + safeTag + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('ppCount').textContent = pickerState.picks.length + ' / 5';
+
+  document.getElementById('specLines').innerHTML = pickerState.picks.map(k => {
+    const e = PICKER_ELEMENTS[k];
+    const w = splitLocator(e.tiers[e.winner]);
+    return '<div class="spec-line">' +
+      '<div class="cm">// ↓ picked — ' + w.method + '</div>' +
+      '<div><span class="kw">await </span>page.' +
+        '<span class="fn">' + w.method + '</span><span class="s">' + w.args + '</span>' +
+        '<span class="fn">.' + e.act + '</span><span class="s">' + e.actArgs + '</span>;' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('specCount').textContent = pickerState.picks.length + ' PICK(S) IN THIS SESSION';
+
+  document.getElementById('sbName').textContent = el.name;
+  document.getElementById('sbTag').textContent = el.tag;
+  document.getElementById('sbMatch').textContent = TIERS.filter(t => el.tiers[t.n]).length + ' of 13 tiers matched';
+
+  document.getElementById('sbList').innerHTML = TIERS.map(t => {
+    const v = el.tiers[t.n];
+    const isWin = t.n === el.winner;
+    const valueColor = isWin ? 'var(--accent)' : v ? 'var(--muted)' : 'var(--dim)';
+    const nameColor = isWin ? 'var(--text)' : v ? 'var(--muted)' : 'var(--dim)';
+    const status = isWin ? 'picked' : v ? 'match' : 'skip';
+    const statusColor = isWin ? 'var(--accent)' : 'var(--muted)';
+    const statusBorder = isWin ? 'var(--accent)' : 'var(--border)';
+    return '<div class="sb-row">' +
+      '<span class="sb-n">' + t.n + '</span>' +
+      '<span class="sb-name" style="color:' + nameColor + '">' + t.name + '</span>' +
+      '<span class="sb-value" style="color:' + valueColor + ';text-decoration:' + (v ? 'none' : 'line-through') + '">' + (v || 'no stable value on this element') + '</span>' +
+      '<span class="sb-status-badge" style="color:' + statusColor + ';border:1px solid ' + statusBorder + '">' + status + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+function pickElement(key) {
+  pickerState.picked = key;
+  pickerState.copied = false;
+  pickerState.picks = pickerState.picks.concat([key]).slice(-5);
+  renderPicker();
+}
+
+document.querySelectorAll('.mock-field, .mock-btn, .mock-forgot').forEach(node => {
+  node.addEventListener('click', () => pickElement(node.dataset.key));
+  node.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    pickElement(node.dataset.key);
+  });
+});
+
+document.getElementById('ppCopy').addEventListener('click', () => {
+  const el = PICKER_ELEMENTS[pickerState.picked];
+  const win = splitLocator(el.tiers[el.winner]);
+  const text = 'page.' + win.method + win.args + '.' + el.act + el.actArgs + ';';
+  if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+  pickerState.copied = true;
+  renderPicker();
+});
+
+document.getElementById('ppClear').addEventListener('click', () => {
+  pickerState.picks = [];
+  pickerState.copied = false;
+  renderPicker();
+});
+
+renderPicker();
 </script>
 </body>
 </html>
