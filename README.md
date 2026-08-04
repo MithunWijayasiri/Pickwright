@@ -6,39 +6,27 @@ A Manifest V3 browser extension for **Chrome** and **Firefox** that lets you pic
 
 ## Features
 
-- **Element Picker** — hover to highlight, click to select without triggering page actions
-- **Playwright Locators** — generates `getByTestId`, `getByRole`, `getByLabel`, `getByPlaceholder`, `getByAltText`, `getByTitle`, `getByText`, `.nth()` and CSS fallback locators
+- **Element Picker** — hover, highlight, and select elements without triggering page actions
+- **Playwright Locators** — generates locators from test IDs, accessibility attributes, and CSS fallbacks
 - **Smart Scoring** — ranks candidates by stability, accessibility, and uniqueness
-- **Clipboard Copy** — selected locator is instantly copied to clipboard with a toast confirmation
-- **Multi-Pick** — **Pick multiple** keeps the picker armed across clicks so you can collect a whole form in one pass, with a live count on the Stop button
-- **Recent History** — last 20 locators stored for quick reuse, with a per-entry copy
-- **Settings** — light/dark theme, and a history mode of **Keep**, **Auto-clear** (wiped on browser startup) or **Off** (nothing recorded)
-- **Angular Support** — detects dropdown triggers and generates stable `formcontrolname` locators (dev-only `ng-reflect-*` attributes are ignored)
-- **Dropdown Picking** — hold **Shift** and click to let the page open dropdowns/menus while the picker stays armed, then pick inside
-- **Alternatives** — the popup lists up to 3 alternative locators for the last pick, click to copy
-- **Keyboard Shortcut** — `Alt+Shift+L` toggles the picker without opening the popup
-- **Shadow DOM** — traverses open shadow roots for accurate element targeting
-- **Iframe Support** — fully highlights and selects elements inside same-origin frames (prepends `frameLocator('...')` prefix; cross-origin frames fall back to the frame boundary itself)
+- **History & Settings** — copies locators automatically, stores the last 20, supports alternatives and multi-pick, and offers theme and history controls
+- **Advanced Support** — keyboard shortcut, dropdown picking, Angular controls, open Shadow DOM, and same-origin iframe support
 
 ## Installation
 
-Grab the latest packages from the [**Releases page**](https://github.com/MithunWijayasiri/Pickwright/releases/latest), then follow the steps for your browser.
+Download the package for your browser from the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
 
 ### Chrome / Edge
 
-1. Download **`pickwright-chrome-v<version>.zip`** from the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
-2. Unzip it into a folder you'll keep — the extension loads from this folder, so deleting or moving it removes Pickwright.
-3. Open **`chrome://extensions`** (on Edge, **`edge://extensions`**).
-4. Turn on **Developer mode** with the toggle in the top-right corner.
-5. Click **Load unpacked** and select the unzipped folder.
-6. Pin Pickwright via the puzzle-piece icon in the toolbar for one-click access.
+1. Download **`pickwright-chrome-v<version>.zip`** and unzip it into a permanent folder.
+2. Open **`chrome://extensions`** (on Edge, **`edge://extensions`**).
+3. Enable **Developer mode**, click **Load unpacked**, and select the unzipped folder.
 
 ### Firefox
 
-1. Download **`pickwright-firefox-v<version>.xpi`** from the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
+1. Download **`pickwright-firefox-v<version>.xpi`**.
 2. Open **`about:addons`** in Firefox.
-3. Click the gear icon ⚙ → **Install Add-on From File…** (or simply drag the `.xpi` onto the Firefox window).
-4. Select the downloaded `.xpi` and confirm the prompt.
+3. Click the gear icon → **Install Add-on From File…**, select the `.xpi`, and confirm.
 
 The `.xpi` is signed, so it stays installed across restarts. Requires Firefox 121 or later.
 
@@ -46,67 +34,36 @@ The `.xpi` is signed, so it stays installed across restarts. Requires Firefox 12
 
 ## Usage
 
-1. Navigate to any webpage (does **not** work on `chrome://`, `chrome-extension://`, or Chrome Web Store pages)
-2. Click the **Pickwright** icon in the toolbar
-3. Click **Pick element** — the button switches to **Stop picking** and your cursor changes to a crosshair
-4. Hover over elements — a blue highlight box follows your cursor with a tag/class tooltip
-5. **Click any element** to:
-   - Generate the best Playwright locator
-   - Copy it to clipboard automatically
-   - See a toast confirmation in the bottom-right corner
-6. Press **Esc** at any time to cancel picking mode
-7. Reopen the popup to see the **last captured locator** plus your **recent history** (scrollable, last 20) — click any entry to recopy it
+1. Open any webpage (browser-internal and Chrome Web Store pages are unsupported).
+2. Open the **Pickwright** popup and select **Pick element**.
+3. Hover over an element and click it.
+4. Pickwright generates and copies the best Playwright locator. Reopen the popup to view recent history.
 
 ### Picking several elements
 
-Click **Pick multiple** instead of **Pick element** to stay in picking mode across clicks. Each element you click is copied and added to history, the Stop button shows how many you've collected, and picking ends when you press **Stop picking** or **Esc**. This needs history enabled — the button is disabled while the history mode is **Off**.
+Click **Pick multiple** to keep picking across clicks. Each selection is copied and added to history until you press **Stop picking** or **Esc**. History must be enabled.
 
 ### Settings
 
-Open the gear icon in the popup header for:
-
-- **Theme** — Light or Dark.
-- **History** — **Keep** stores locators across browser restarts, **Auto-clear** wipes them on browser startup, **Off** records nothing and clears what's already stored.
+Open the gear icon to choose a light or dark theme and set history to **Keep**, **Auto-clear**, or **Off**.
 
 ### Generated Locator Priority
 
-Locators are generated and scored in this order (highest priority first):
+See [Generated Locator Priority](docs/build-from-source.md#generated-locator-priority) for the scoring order and examples. Candidates must match exactly one element; `.nth(n)` is reserved for ambiguous unnamed role matches.
 
-| Priority | Strategy | Example |
-|----------|----------|---------|
-| 1 | `getByTestId` (`data-testid`) | `getByTestId('submit-btn')` |
-| 2 | Other test-ID attribute as CSS (`data-test-id`, `data-cy`) | `locator('[data-cy="submit-btn"]')` |
-| 3 | `getByRole` + name | `getByRole('button', { name: 'Submit' })` |
-| 4 | `getByLabel` | `getByLabel('Email address')` |
-| 5 | `getByPlaceholder` | `getByPlaceholder('Search...')` |
-| 6 | `getByAltText` | `getByAltText('Company logo')` |
-| 7 | `getByText` | `getByText('Sign in')` |
-| 8 | `getByTitle` | `getByTitle('Close')` |
-| 9 | Angular `formcontrolname` | `locator('[formcontrolname="email"]')` |
-| 10 | CSS `#id` (stable ids only) | `locator('#login-form')` |
-| 11 | `getByRole` without name | `getByRole('button')` |
-| 12 | CSS tag / attribute selector | `locator('input[name="email"]')` |
-| 13 | CSS path fallback | `locator('#login-form > button')` |
-
-Every candidate above must match exactly one element to be eligible. `.nth(n)` is a last resort, offered only for a role match that has no accessible name and is ambiguous — it is never appended to the other strategies.
-
-## Development & Configuration
+## Development
 
 Build commands, the development workflow, E2E testing, and configuration details (manifest permissions, supported test-ID attributes) live in [Build From Source](docs/build-from-source.md).
 
 ## Troubleshooting
 
-- **Extension fails to load**: Ensure you loaded the compiled `dist/` directory, not the project root. Run `npm run build` first.
-- **Picker doesn't activate or highlight**: Refresh the page after reloading the extension. Content scripts are blocked on `chrome://` and Chrome Web Store pages.
-- **Wrong element targeted**: Elements inside **closed** shadow roots or cross-origin iframes have restricted access. The picker will target the shadow host or iframe boundary.
-- **Clipboard is empty**: If clipboard copy fails, check the page's console for Content Security Policy (CSP) restriction blocks.
+- **Extension fails to load**: Run `npm run build` and load `dist/`, not the project root.
+- **Picker doesn't activate**: Reload the extension and refresh the target page. Browser-internal and Chrome Web Store pages are unsupported.
+- **Wrong element or empty clipboard**: Closed shadow roots and cross-origin iframes have restricted access. For clipboard issues, check the page console for CSP errors.
 
 ## Browser Compatibility
 
-- Chrome 88+ (Manifest V3)
-- Edge 88+ (Chromium-based)
-- Firefox 121+ (Manifest V3)
-- Other Chromium browsers with MV3 support
+Chrome 88+, Edge 88+, Firefox 121+, and other Chromium browsers with Manifest V3 support.
 
 ## Contributing
 
@@ -119,11 +76,8 @@ Contributions are welcome! To get started:
 
 Please keep PRs focused and follow the existing code style (enforced via ESLint + Prettier).
 
-### AI-assisted contributions
-
-AI-assisted contributions are welcome. This project is built with AI, so the focus is on the quality of the contribution — not the tool used to create it.
-
-If you submit a change, you should understand how it works, and verify it before opening a pull request. Contributions containing fabricated APIs, unnecessary refactors, unrelated changes, or unverified AI output will be closed.
+> [!NOTE]
+> AI-assisted contributions are welcome. Please understand and verify your changes before submitting a pull request.
 
 ## Privacy
 
@@ -132,8 +86,6 @@ Pickwright never sends your data anywhere. Selection history is stored only in y
 ## Support
 
 If you find this project useful, consider supporting its development on [Ko-fi](https://ko-fi.com/mithunwijayasiri). Your donations help keep the project maintained, improve existing features, and fund new open-source tools.
-
-Thank you for your support! ❤️
 
 ## License
 

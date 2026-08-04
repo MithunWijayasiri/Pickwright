@@ -88,3 +88,25 @@ The extension recognizes these as stable "test id"-style attributes:
 - `data-cy`
 
 > **Note:** `data-test-id` and `data-cy` are emitted as `locator('[data-test-id="..."]')` CSS selectors. To use `getByTestId(...)` for these, configure [`testIdAttribute`](https://playwright.dev/docs/api/class-playwrightassertions) in your Playwright config.
+
+### Generated Locator Priority
+
+Locators are generated and scored in this order (highest priority first):
+
+| Priority | Strategy | Example |
+|----------|----------|---------|
+| 1 | `getByTestId` (`data-testid`) | `getByTestId('submit-btn')` |
+| 2 | Other test-ID attribute as CSS (`data-test-id`, `data-cy`) | `locator('[data-cy="submit-btn"]')` |
+| 3 | `getByRole` + name | `getByRole('button', { name: 'Submit' })` |
+| 4 | `getByLabel` | `getByLabel('Email address')` |
+| 5 | `getByPlaceholder` | `getByPlaceholder('Search...')` |
+| 6 | `getByAltText` | `getByAltText('Company logo')` |
+| 7 | `getByText` | `getByText('Sign in')` |
+| 8 | `getByTitle` | `getByTitle('Close')` |
+| 9 | Angular `formcontrolname` | `locator('[formcontrolname="email"]')` |
+| 10 | CSS `#id` (stable ids only) | `locator('#login-form')` |
+| 11 | `getByRole` without name | `getByRole('button')` |
+| 12 | CSS tag / attribute selector | `locator('input[name="email"]')` |
+| 13 | CSS path fallback | `locator('#login-form > button')` |
+
+Candidates must match exactly one element. `.nth(n)` is a last resort for ambiguous role matches without an accessible name.
