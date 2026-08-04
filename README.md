@@ -87,6 +87,8 @@ Pickwright never sends your data anywhere. Selection history is stored only in y
 
 If you find this project useful, consider supporting its development on [Ko-fi](https://ko-fi.com/mithunwijayasiri). Your donations help keep the project maintained, improve existing features, and fund new open-source tools.
 
+Thank you for your support! ❤️
+
 ## License
 
 MIT
