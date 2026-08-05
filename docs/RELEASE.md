@@ -1,9 +1,9 @@
 # Releasing Pickwright
 
 Releases are cut manually via the **Release** GitHub Actions workflow
-(`.github/workflows/release.yml`). It builds Chrome + Firefox packages, signs
-the Firefox build via AMO, and publishes a GitHub Release — but only after the
-E2E suite passes.
+(`.github/workflows/release.yml`). It builds Chrome + Firefox packages, optionally
+signs the Firefox build via AMO, and publishes a GitHub Release — but only after
+the E2E suite passes.
 
 ## One-time setup
 
@@ -30,9 +30,10 @@ The Firefox add-on identity (`browser_specific_settings.gecko.id`) and data-coll
    - run the E2E suite (gate — release is skipped if it fails)
    - sync the version into `package.json` + `src/manifest.json`
    - build `dist/` (Chrome) and `dist-firefox/` (Firefox) with per-browser manifests
-   - zip both unsigned builds, and AMO-sign the Firefox build into a `.xpi`
+   - zip the unsigned Chrome and Firefox builds
+   - when `firefox_sign` is `true`, AMO-sign the Firefox build and collect the signed `.xpi`
    - commit the version bump back to the branch and push tag `v<version>`
-   - create a GitHub Release with the Chrome zip, Firefox zip, and signed `.xpi`
+   - create a GitHub Release with both unsigned ZIPs; include the signed `.xpi` only when `firefox_sign` is `true`
 
 ## Notes
 
