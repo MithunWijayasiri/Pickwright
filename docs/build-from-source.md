@@ -7,13 +7,15 @@ Most users should install Pickwright from the [Releases page](https://github.com
 ```bash
 git clone https://github.com/MithunWijayasiri/Pickwright.git
 cd Pickwright
-npm install
-npm run build
+npm ci
+npm run build:chrome
 ```
 
-This produces a `dist/` folder — that's the unpacked extension you load into your browser. The same `dist/` works in both Chrome and Firefox.
+This produces the Chrome unpacked extension in `dist/`. Build Firefox separately with `npm run build:firefox`; its unpacked extension is in `dist-firefox/`.
 
 ## Step 2 — Load into Chrome
+
+Build with `npm run build:chrome` before loading the extension.
 
 1. Open Chrome and go to **`chrome://extensions`**
 2. Enable **Developer mode** using the toggle in the top-right corner
@@ -25,12 +27,14 @@ This produces a `dist/` folder — that's the unpacked extension you load into y
 
 ## Step 2 (alt) — Load into Firefox
 
+Build with `npm run build:firefox` before loading the extension.
+
 1. Open Firefox and go to **`about:debugging#/runtime/this-firefox`**
 2. Click **Load Temporary Add-on…**
-3. Select the **`dist/manifest.json`** file (not the folder) inside the project
+3. Select the **`dist-firefox/manifest.json`** file (not the folder) inside the project
 4. Pickwright appears under **Temporary Extensions** and is pinned to the toolbar
 
-> **Note:** Temporary add-ons are removed when Firefox restarts — reload them the same way after each restart. After rebuilding, click **Reload** on the add-on in `about:debugging` and refresh the target page. Requires Firefox 121 or later.
+> **Note:** Temporary add-ons are removed when Firefox restarts — reload them the same way after each restart. After rebuilding, click **Reload** on the add-on in `about:debugging` and refresh the target page. Requires Firefox 140 or later.
 
 ## Development
 
@@ -43,7 +47,8 @@ This produces a `dist/` folder — that's the unpacked extension you load into y
 
 | Command | Description |
 |---------|-------------|
-| `npm run build` | Production build → `dist/` |
+| `npm run build:chrome` | Production Chrome build → `dist/` |
+| `npm run build:firefox` | Production Firefox build → `dist-firefox/` |
 | `npm run dev` | Development build with watch mode |
 | `npm run lint` | Run ESLint on source files |
 | `npm run format` | Format code with Prettier |
@@ -79,6 +84,7 @@ The test runs Chromium in headed mode using a persistent profile, mounts the unp
 |-----------|---------|
 | `activeTab` | Access the active tab for element picking |
 | `storage` | Persist recent locator history |
+| `<all_urls>` content script | Listen for the picker toggle on supported pages; page inspection begins only after explicit activation |
 
 ### Supported Test ID Attributes
 
