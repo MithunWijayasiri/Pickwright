@@ -1,9 +1,9 @@
 # Releasing Pickwright
 
 Releases are cut manually via the **Release** GitHub Actions workflow
-(`.github/workflows/release.yml`). It builds Chrome + Firefox packages, signs
-the Firefox build via AMO, and publishes a GitHub Release — but only after the
-E2E suite passes.
+(`.github/workflows/release.yml`). It builds Chrome + Firefox packages, optionally
+signs the Firefox build via AMO, and publishes a GitHub Release — but only after
+the E2E suite passes.
 
 ## One-time setup
 
@@ -17,9 +17,7 @@ Add these repository secrets under **Settings → Secrets and variables → Acti
 > Until these exist, trigger the workflow with **`firefox_sign = false`** to ship
 > an unsigned Firefox zip. `GITHUB_TOKEN` is provided automatically.
 
-The Firefox add-on identity (`browser_specific_settings.gecko.id`) lives in
-`src/manifest.json`. The `unlisted` signing channel auto-registers it with AMO
-on first sign — no manual listing step required.
+The Firefox add-on identity (`browser_specific_settings.gecko.id`) and data-collection declaration live in `src/manifest.json`. The `unlisted` signing channel is for self-distribution and does not create a public AMO listing.
 
 ## Cutting a release
 
@@ -32,9 +30,10 @@ on first sign — no manual listing step required.
    - run the E2E suite (gate — release is skipped if it fails)
    - sync the version into `package.json` + `src/manifest.json`
    - build `dist/` (Chrome) and `dist-firefox/` (Firefox) with per-browser manifests
-   - zip both, and AMO-sign the Firefox build into a `.xpi`
+   - zip the unsigned Chrome and Firefox builds
+   - when `firefox_sign` is `true`, AMO-sign the Firefox build and collect the signed `.xpi`
    - commit the version bump back to the branch and push tag `v<version>`
-   - create a GitHub Release with the Chrome zip, Firefox zip, and signed `.xpi`
+   - create a GitHub Release with both unsigned ZIPs; include the signed `.xpi` only when `firefox_sign` is `true`
 
 ## Notes
 
@@ -42,3 +41,5 @@ on first sign — no manual listing step required.
   `github-actions[bot]` to push, or the version-bump commit step will fail.
 - Local build equivalents: `npm run build:chrome`, `npm run build:firefox`,
   `npm run set-version <version>`.
+- Listed AMO submission and unlisted self-distribution are separate workflows;
+  select the AMO signing channel accordingly.

@@ -28,7 +28,7 @@ Download the package for your browser from the [latest release](https://github.c
 2. Open **`about:addons`** in Firefox.
 3. Click the gear icon → **Install Add-on From File…**, select the `.xpi`, and confirm.
 
-The `.xpi` is signed, so it stays installed across restarts. Requires Firefox 121 or later.
+The `.xpi` is signed, so it stays installed across restarts. Requires Firefox 140 or later.
 
 > **Want the latest unreleased changes, or developing the extension?** See [Build From Source](docs/build-from-source.md).
 
@@ -63,7 +63,7 @@ Build commands, the development workflow, E2E testing, and configuration details
 
 ## Browser Compatibility
 
-Chrome 88+, Edge 88+, Firefox 121+, and other Chromium browsers with Manifest V3 support.
+Chrome 88+, Edge 88+, Firefox 140+, and other Chromium browsers with Manifest V3 support.
 
 ## Contributing
 
