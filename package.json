@@ -1,6 +1,6 @@
 {
   "name": "pickwright",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Chrome extension to pick page elements and generate Playwright-friendly locators",
   "private": true,
   "scripts": {
