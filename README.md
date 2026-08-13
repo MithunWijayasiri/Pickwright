@@ -14,21 +14,32 @@ A Manifest V3 browser extension for **Chrome** and **Firefox** that lets you pic
 
 ## Installation
 
-Download the package for your browser from the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
+Install from the official stores:
 
-### Chrome / Edge
+- **[Chrome Web Store](https://chromewebstore.google.com/detail/pickwright-playwright-loc/kgikopoehffaodbicnhajokkmhgjofjo)** — for Chrome and Edge
+- **[Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/pickwright/)** — for Firefox
+
+<details>
+<summary>Manual install</summary>
+
+Prefer to load it yourself, or need a pre-release build? Download the package for your browser from the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
+
+#### Chrome / Edge
 
 1. Download **`pickwright-chrome-v<version>.zip`** and unzip it into a permanent folder.
 2. Open **`chrome://extensions`** (on Edge, **`edge://extensions`**).
 3. Enable **Developer mode**, click **Load unpacked**, and select the unzipped folder.
 
-### Firefox
+#### Firefox
 
 1. Download **`pickwright-firefox-v<version>.xpi`**.
 2. Open **`about:addons`** in Firefox.
 3. Click the gear icon → **Install Add-on From File…**, select the `.xpi`, and confirm.
 
 The `.xpi` is signed, so it stays installed across restarts. Requires Firefox 140 or later.
+
+</details>
+&nbsp;
 
 > **Want the latest unreleased changes, or developing the extension?** See [Build From Source](docs/build-from-source.md).
 
