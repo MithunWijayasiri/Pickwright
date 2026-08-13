@@ -311,19 +311,6 @@ h1 .dim { color: var(--muted); transition: color 0.3s; }
 }
 .hero-alt:hover { color: var(--accent); }
 
-/* ─── Toast ──────────────────────────────────────────────────────────────── */
-#toast {
-  position: fixed; bottom: 24px; right: 24px; z-index: 99;
-  padding: 13px 18px; max-width: 320px;
-  background: var(--bg3); color: var(--text);
-  border: 1px solid var(--accent); border-left-width: 3px; border-radius: 4px;
-  font-family: var(--mono); font-size: 12px; line-height: 1.5;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
-  opacity: 0; transform: translateY(12px); pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-#toast.show { opacity: 1; transform: translateY(0); }
-
 /* Load animations */
 @keyframes fade-up   { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fade-down { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
@@ -710,7 +697,6 @@ footer {
   .install-inner { grid-template-columns: 1fr; }
   .install-left { border-right: none; border-bottom: 1px solid var(--border); }
   nav .nav-links { display: none; }
-  #toast { left: 16px; right: 16px; bottom: 16px; max-width: none; }
   .cta-strip { align-items: flex-start; }
 }
 
@@ -775,7 +761,7 @@ footer {
       <p class="hero-sub">Click any element. Get the Playwright locator — testId, role, label, or CSS — scored and ready to paste.</p>
       <div class="hero-btns">
         <div class="badge-row">
-          <button class="badge" data-store="Chrome Web Store">
+          <a class="badge" href="https://chromewebstore.google.com/detail/pickwright-playwright-loc/kgikopoehffaodbicnhajokkmhgjofjo" target="_blank" rel="noopener">
             <svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true">
               <path d="M24 24 L3.22 12 A24 24 0 0 1 44.78 12 Z" fill="#EA4335"/>
               <path d="M24 24 L44.78 12 A24 24 0 0 1 24 48 Z" fill="#FBBC05"/>
@@ -784,22 +770,22 @@ footer {
               <circle cx="24" cy="24" r="8.5" fill="#4285F4"/>
             </svg>
             <span class="badge-txt">
-              <span class="badge-kicker">Coming soon to the</span>
+              <span class="badge-kicker">Available on the</span>
               <span class="badge-store">Chrome Web Store</span>
             </span>
-          </button>
-          <button class="badge" data-store="Firefox Add-ons">
+          </a>
+          <a class="badge" href="https://addons.mozilla.org/en-US/firefox/addon/pickwright/" target="_blank" rel="noopener">
             <svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true">
               <circle cx="24" cy="24" r="23" fill="url(#ffGrad)"/>
               <path d="M24 7c5 3 7 7 6.5 11.5 2-1.5 4.5-1 6 1.5-1 8.5-6 15-12.5 15S11 28.5 12 20c2.5 3 5.5 3 7.5 1-1.5-6 1-11 4.5-14z" fill="#fff" opacity="0.24"/>
             </svg>
             <span class="badge-txt">
-              <span class="badge-kicker">Coming soon to</span>
+              <span class="badge-kicker">Available on</span>
               <span class="badge-store">Firefox Add-ons</span>
             </span>
-          </button>
+          </a>
         </div>
-        <a class="hero-alt" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Available now on GitHub Releases →</a>
+        <a class="hero-alt" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Or grab a build from GitHub Releases →</a>
       </div>
     </div>
   </div>
@@ -1019,8 +1005,8 @@ footer {
         <div class="step">
           <span class="step-n">01</span>
           <div class="step-body">
-            <div class="step-title">Download from GitHub Releases</div>
-            <div class="step-desc">From the <a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">GitHub Releases page</a>: on Chrome or Edge, unzip <code style="font-family:var(--mono);color:var(--accent)">pickwright-chrome-*.zip</code> and load the folder unpacked. On Firefox 140+, install the signed <code style="font-family:var(--mono);color:var(--accent)">.xpi</code> directly. Chrome Web Store &amp; Firefox Add-ons listings coming soon.</div>
+            <div class="step-title">Install from the store</div>
+            <div class="step-desc">Add it from the <a href="https://chromewebstore.google.com/detail/pickwright-playwright-loc/kgikopoehffaodbicnhajokkmhgjofjo" target="_blank" rel="noopener">Chrome Web Store</a> or <a href="https://addons.mozilla.org/en-US/firefox/addon/pickwright/" target="_blank" rel="noopener">Firefox Add-ons</a>. Prefer to load it yourself? Grab a build from <a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">GitHub Releases</a>: on Chrome or Edge, unzip <code style="font-family:var(--mono);color:var(--accent)">pickwright-chrome-*.zip</code> and load the folder unpacked. On Firefox 140+, install the signed <code style="font-family:var(--mono);color:var(--accent)">.xpi</code> directly.</div>
           </div>
         </div>
         <div class="step">
@@ -1076,7 +1062,9 @@ footer {
   <h2>Start picking locators<br>in under a minute.</h2>
   <p style="font-size:14px;color:var(--muted);font-weight:300;max-width:440px">Free, open source, MIT licensed. No account, no API key, no project setup required, and no telemetry — nothing you pick leaves your browser.</p>
   <div class="cta-btns">
-    <a class="btn-fill" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download from GitHub</a>
+    <a class="btn-fill" href="https://chromewebstore.google.com/detail/pickwright-playwright-loc/kgikopoehffaodbicnhajokkmhgjofjo" target="_blank" rel="noopener">Add to Chrome</a>
+    <a class="btn-fill" href="https://addons.mozilla.org/en-US/firefox/addon/pickwright/" target="_blank" rel="noopener">Add to Firefox</a>
+    <a class="btn-border" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download from GitHub</a>
     <a class="btn-border" href="https://github.com/MithunWijayasiri/Pickwright">View source on GitHub →</a>
   </div>
 </div>
@@ -1093,8 +1081,6 @@ footer {
   </ul>
   <span class="footer-note">MIT · Playwright locator picker</span>
 </footer>
-
-<div id="toast" role="status" aria-live="polite"></div>
 
 <!-- ── Scripts ────────────────────────────────────────────────────────────────── -->
 <script>
@@ -1175,19 +1161,6 @@ const statObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 
 statNums.forEach(el => statObserver.observe(el));
-
-// ── Store badges: not published yet ───────────────────────────────────────────
-const toast = document.getElementById('toast');
-let toastTimer;
-
-document.querySelectorAll('[data-store]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    toast.textContent = 'The ' + btn.dataset.store + ' listing is on the way. Grab the build from GitHub Releases in the meantime.';
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
-  });
-});
 
 // ── Interactive picker demo ───────────────────────────────────────────────────
 const TIERS = [
