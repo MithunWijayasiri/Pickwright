@@ -2,6 +2,11 @@
 
 <p align="center"><img src="docs/pickwright-banner.png" alt="Pickwright banner" /></p>
 
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/pickwright-playwright-loc/kgikopoehffaodbicnhajokkmhgjofjo"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Available%20on-Chrome%20Web%20Store-4285F4?logo=googlechrome&logoColor=white"></a>
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/pickwright/"><img alt="Firefox Add-ons" src="https://img.shields.io/badge/Get%20the%20add--on-Firefox%20Add--ons-FF7139?logo=firefox&logoColor=white"></a>
+</p>
+
 A Manifest V3 browser extension for **Chrome** and **Firefox** that lets you pick any element on a page and generates a Playwright-friendly locator, ready to paste into your test code.
 
 ## Features
@@ -24,13 +29,13 @@ Install from the official stores:
 
 Prefer to load it yourself, or need a pre-release build? Download the package for your browser from the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
 
-#### Chrome / Edge
+### Chrome / Edge
 
 1. Download **`pickwright-chrome-v<version>.zip`** and unzip it into a permanent folder.
 2. Open **`chrome://extensions`** (on Edge, **`edge://extensions`**).
 3. Enable **Developer mode**, click **Load unpacked**, and select the unzipped folder.
 
-#### Firefox
+### Firefox
 
 1. Download **`pickwright-firefox-v<version>.xpi`**.
 2. Open **`about:addons`** in Firefox.
