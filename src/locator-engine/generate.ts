@@ -267,8 +267,10 @@ const IMPLICIT_ROLE_BY_TAG: Record<string, string> = {
   p: 'paragraph',
   pre: 'generic',
   progress: 'progressbar',
+  ruby: 'ruby',
   strong: 'strong',
   sub: 'subscript',
+  summary: 'summary',
   sup: 'superscript',
   svg: 'img',
   table: 'table',
@@ -614,6 +616,7 @@ function buildBaseCssSelector(el: Element, meta: ElementMetadata): string {
     return `${meta.tagName}${cssAttr('placeholder', meta.placeholder)}`;
   }
 
+  // meta.role is the explicit [role] attribute only; roleOf() is explicit || implicit.
   if (meta.role) {
     return `${meta.tagName}${cssAttr('role', meta.role)}`;
   }
