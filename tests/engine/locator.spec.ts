@@ -343,6 +343,12 @@ test.describe('role and accessible name', () => {
       expected: `getByText('Save')`,
     },
     {
+      name: 'visibility:hidden skips direct text but includes visibility:visible descendant (#31)',
+      html: `<button><span style="visibility:hidden">Hidden <span style="visibility:visible">Save</span></span></button>`,
+      pick: 'button',
+      expected: `getByRole('button', { name: 'Save' })`,
+    },
+    {
       name: 'nth not emitted past index 5',
       html: `<button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button>`,
       pick: 'button:nth-of-type(7)',
