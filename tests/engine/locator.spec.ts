@@ -325,6 +325,24 @@ test.describe('role and accessible name', () => {
       expected: `getByRole('button', { name: 'Same' })`,
     },
     {
+      name: 'display:none descendant skipped, so the element matches itself (#31)',
+      html: `<button><span style="display:none">Hidden </span>Save</button>`,
+      pick: 'button',
+      expected: `getByRole('button', { name: 'Save' })`,
+    },
+    {
+      name: 'aria-hidden descendant skipped, same self-match rule (#31)',
+      html: `<button><span aria-hidden="true">Hidden </span>Save</button>`,
+      pick: 'button',
+      expected: `getByRole('button', { name: 'Save' })`,
+    },
+    {
+      name: 'text: hidden descendant excluded from getByText, so it matches itself (#31)',
+      html: `<div><span style="display:none">Hidden </span>Save</div>`,
+      pick: 'div',
+      expected: `getByText('Save')`,
+    },
+    {
       name: 'nth not emitted past index 5',
       html: `<button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button>`,
       pick: 'button:nth-of-type(7)',

@@ -1,4 +1,5 @@
 import { ElementMetadata } from '../shared/types';
+import { getAccessibleText } from './accessible-text';
 import { LocatorCandidate } from './types';
 import { SCORE, isGuidLike, makeSelectorForId } from './playwright-port';
 
@@ -49,7 +50,7 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
 
   const role = roleOf(el);
   if (role) {
-    const name = getAccessibleName(el, meta);
+    const name = getAccessibleName(el);
     if (name) {
       add({
         strategy: 'getByRole',
@@ -177,17 +178,19 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     });
   }
 
-  // Short text only — long strings make brittle locators.
-  if (meta.textContent.length > 0 && meta.textContent.length <= TEXT_MAX) {
+  // Short text only — long strings make brittle locators. Same walker as the
+  // competitor side, so an element can match itself.
+  const text = normalizeText(getAccessibleText(el));
+  if (text.length > 0 && text.length <= TEXT_MAX) {
     add({
       strategy: 'getByText',
-      value: `${prefix}getByText('${esc(meta.textContent)}')`,
+      value: `${prefix}getByText('${esc(text)}')`,
       score: SCORE.text,
       reason: 'Visible text — may break on i18n changes',
-      unique: countTextMatches(el, meta.textContent) === 1,
+      unique: countTextMatches(el, text) === 1,
       cssEquivalent: null,
     });
-    for (const alt of suitableTextAlternatives(meta.textContent)) {
+    for (const alt of suitableTextAlternatives(text)) {
       add({
         strategy: 'getByText',
         value: `${prefix}getByText('${esc(alt.text)}')`,
@@ -374,7 +377,7 @@ const NAME_FROM_CONTENT_ROLES = new Set([
   'treeitem',
 ]);
 
-function getAccessibleName(el: Element, meta?: ElementMetadata): string | null {
+function getAccessibleName(el: Element): string | null {
   const ariaLabel = el.getAttribute('aria-label');
   if (ariaLabel) return ariaLabel.slice(0, 60);
 
@@ -398,8 +401,8 @@ function getAccessibleName(el: Element, meta?: ElementMetadata): string | null {
 
   const role = roleOf(el);
   if (role && NAME_FROM_CONTENT_ROLES.has(role)) {
-    const text = meta ? meta.textContent : normalizeText(el.textContent ?? '');
-    if (text) return text.slice(0, 60);
+    const text = normalizeText(getAccessibleText(el)).slice(0, 60);
+    if (text) return text;
   }
 
   return null;
@@ -461,7 +464,7 @@ function countTextMatches(el: Element, text: string): number {
   let count = 0;
   for (const cand of rootOf(el).querySelectorAll('*')) {
     if (!isVisible(cand)) continue;
-    if (normalizeText(cand.textContent ?? '') === text) {
+    if (normalizeText(getAccessibleText(cand)) === text) {
       if (++count > 1) return count;
     }
   }
@@ -487,9 +490,9 @@ function countLabelMatches(el: Element, label: string): number {
  * element's text does (so only the innermost match counts, never its ancestors).
  */
 function matchesTextSubstring(el: Element, text: string): boolean {
-  if (!normalizeText(el.textContent ?? '').includes(text)) return false;
+  if (!normalizeText(getAccessibleText(el)).includes(text)) return false;
   for (const child of el.children) {
-    if (normalizeText(child.textContent ?? '').includes(text)) return false;
+    if (normalizeText(getAccessibleText(child)).includes(text)) return false;
   }
   return true;
 }
