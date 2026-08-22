@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
     "format": "prettier --write \"{src,tests}/**/*.{ts,tsx,css,html}\" \"playwright.config.ts\"",
     "format:check": "prettier --check \"{src,tests}/**/*.{ts,tsx,css,html}\" \"playwright.config.ts\"",
-    "test:scripts": "node --test scripts/**/*.test.js",
+    "test:scripts": "node --test scripts/set-version.test.js",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test:scripts",
     "test": "npm run build && playwright test --project=chromium",
     "test:engine": "cross-env TEST_HARNESS=1 webpack --mode production && playwright test --project=engine"
