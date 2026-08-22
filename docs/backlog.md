@@ -87,7 +87,9 @@ UI (`popup/App.tsx` + `popup.css`): collapsible toggle, loop `reasons[]`, style 
 
 Sources (microsoft/playwright `main`): `packages/injected/src/selectorGenerator.ts` (orchestrator, core ported), `roleUtils.ts` (ARIA roles + accname), `selectorUtils.ts` (element text, labels), `domUtils.ts` (visibility, shadow), `packages/isomorphic/stringUtils.ts` (escaping), `locatorUtils.ts` (`getBy*` builders), `locatorGenerators.ts` (token → per-language syntax).
 
-Already ported: `isGuidLike`, `makeSelectorForId`, lower-is-better scores, length penalty, `buildUniqueCssPath`, real per-strategy uniqueness, interactive-parent retarget (`picker.ts`), `.nth()` alternative, `suitableTextAlternatives`, `getByAltText`, `getByTitle`, implicit role map phases 1–3 (incl. `ruby`/`summary` — #31), name-from-content role subset, visibility-filtered counting, `visibility:hidden`→`visibility:visible` override (`accessible-text.ts` — #31).
+Already ported: `isGuidLike`, `makeSelectorForId`, lower-is-better scores, length penalty, `buildUniqueCssPath`, real per-strategy uniqueness, interactive-parent retarget (`picker.ts`), `.nth()` alternative, `suitableTextAlternatives`, `getByAltText`, `getByTitle`, implicit role map phases 1–3, name-from-content role subset, visibility-filtered counting, `visibility:hidden`→`visibility:visible` override (`accessible-text.ts` — #31).
+
+`ruby`/`summary` are not real ARIA roles (Chromium computes role `text` for both; `getByRole('ruby')`/`getByRole('summary')` match 0 elements) — removed from the implicit role map, CSS fallback applies.
 
 | # | Item | Worth | Notes |
 |---|---|---|---|
