@@ -6,7 +6,7 @@ const path = require('path');
 
 function normalizeVersion(raw) {
   const version = raw.replace(/^v/, '');
-  if (!/^\d+\.\d+\.\d+$/.test(version)) {
+  if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) {
     throw new Error(`Invalid version "${raw}" — expected semver like 1.2.3`);
   }
   return version;

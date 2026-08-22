@@ -14,7 +14,10 @@ function writeTempJson(dir, name, data) {
 test('normalizeVersion strips a leading v and validates semver', () => {
   assert.equal(normalizeVersion('v1.2.3'), '1.2.3');
   assert.equal(normalizeVersion('1.2.3'), '1.2.3');
+  assert.equal(normalizeVersion('0.2.3'), '0.2.3');
   assert.throws(() => normalizeVersion('not-a-version'), /Invalid version/);
+  assert.throws(() => normalizeVersion('v01.2.3'), /Invalid version/);
+  assert.throws(() => normalizeVersion('1.02.3'), /Invalid version/);
 });
 
 test('setVersion updates package.json, manifest.json, and both package-lock.json version fields', () => {
