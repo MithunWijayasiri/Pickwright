@@ -1,6 +1,6 @@
 // Pickwright content script — picker orchestration
 
-import { MESSAGE_TYPES, Message } from '../shared/messaging';
+import { broadcast, CommandMessage, CommandResponseMap, MESSAGE_TYPES } from '../shared/messaging';
 import {
   createOverlay,
   removeOverlay,
@@ -16,7 +16,6 @@ let pickerActive = false;
 let multiPickerActive = false;
 let lastHoveredElement: Element | null = null;
 let lastLocatorStr = '';
-let pickCount = 0;
 
 // Events to suppress on document so the page never reacts while picking.
 // 'click' has its own dedicated handler and is NOT listed here.
@@ -45,12 +44,12 @@ function deactivatePicker(): void {
   if (!pickerActive) return;
   pickerActive = false;
   multiPickerActive = false;
-  pickCount = 0;
   detachListeners();
   removeOverlay();
   document.documentElement.style.cursor = '';
   lastHoveredElement = null;
   lastLocatorStr = '';
+  broadcast({ type: MESSAGE_TYPES.PICKER_DEACTIVATED });
 }
 
 // --- Event handlers (document capture phase) ---
@@ -129,7 +128,7 @@ function onClick(e: MouseEvent): void {
   copyToClipboard(locatorStr);
   showToast(locatorStr, isAngularDropdownTrigger(el));
 
-  chrome.runtime.sendMessage({
+  broadcast({
     type: MESSAGE_TYPES.ELEMENT_SELECTED,
     payload: {
       locator: locatorStr,
@@ -144,8 +143,6 @@ function onClick(e: MouseEvent): void {
 
   if (!multiPickerActive) {
     deactivatePicker();
-  } else {
-    pickCount++;
   }
 }
 
@@ -153,12 +150,7 @@ function onKeyDown(e: KeyboardEvent): void {
   if (e.key === 'Escape') {
     e.preventDefault();
     e.stopImmediatePropagation();
-    const wasMulti = multiPickerActive;
     deactivatePicker();
-    chrome.runtime.sendMessage({
-      type: MESSAGE_TYPES.PICKER_STATE_CHANGED,
-      payload: { active: false, multi: wasMulti },
-    });
   }
 }
 
@@ -466,40 +458,58 @@ function showToast(text: string, isDropdown: boolean): void {
 
 // --- Message listener ---
 
-chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) => {
-  if (message.type === MESSAGE_TYPES.TOGGLE_PICKER) {
-    if (pickerActive) {
+// Handles every CommandMessage the background relays here (see COMMAND_TYPES
+// in messaging.ts). The `never` default makes an unhandled command a compile
+// error instead of a silently dropped message.
+chrome.runtime.onMessage.addListener((message: CommandMessage, _sender, sendResponse) => {
+  switch (message.type) {
+    case MESSAGE_TYPES.TOGGLE_PICKER: {
+      if (pickerActive) {
+        deactivatePicker();
+      } else {
+        activatePicker();
+      }
+      const response: CommandResponseMap[typeof MESSAGE_TYPES.TOGGLE_PICKER] = {
+        active: pickerActive,
+      };
+      sendResponse(response);
+      return;
+    }
+
+    case MESSAGE_TYPES.MULTI_PICK_START: {
+      multiPickerActive = true;
+      if (!pickerActive) {
+        activatePicker();
+      }
+      const response: CommandResponseMap[typeof MESSAGE_TYPES.MULTI_PICK_START] = {
+        active: pickerActive,
+        multi: true,
+      };
+      sendResponse(response);
+      return;
+    }
+
+    case MESSAGE_TYPES.MULTI_PICK_STOP: {
       deactivatePicker();
-    } else {
-      activatePicker();
+      const response: CommandResponseMap[typeof MESSAGE_TYPES.MULTI_PICK_STOP] = {
+        active: false,
+      };
+      sendResponse(response);
+      return;
     }
-    sendResponse({ active: pickerActive });
-    return;
-  }
 
-  if (message.type === MESSAGE_TYPES.MULTI_PICK_TOGGLE) {
-    multiPickerActive = true;
-    pickCount = 0;
-    if (!pickerActive) {
-      activatePicker();
+    case MESSAGE_TYPES.GET_PICKER_STATE: {
+      const response: CommandResponseMap[typeof MESSAGE_TYPES.GET_PICKER_STATE] = {
+        active: pickerActive,
+        multi: multiPickerActive,
+      };
+      sendResponse(response);
+      return;
     }
-    sendResponse({ active: pickerActive, multi: true });
-    return;
-  }
 
-  if (message.type === MESSAGE_TYPES.MULTI_PICK_STOP) {
-    const count = pickCount;
-    deactivatePicker();
-    chrome.runtime.sendMessage({
-      type: MESSAGE_TYPES.MULTI_PICK_STATE_CHANGED,
-      payload: { active: false },
-    });
-    sendResponse({ active: false, count });
-    return;
-  }
-
-  if (message.type === MESSAGE_TYPES.GET_PICKER_STATE) {
-    sendResponse({ active: pickerActive, multi: multiPickerActive });
-    return;
+    default: {
+      const unhandled: never = message;
+      return unhandled;
+    }
   }
 });

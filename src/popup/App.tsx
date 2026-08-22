@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MESSAGE_TYPES, Message } from '../shared/messaging';
+import { MESSAGE_TYPES, Message, sendCommand } from '../shared/messaging';
 import { getHistory, clearHistory, HistoryEntry } from '../shared/storage';
 import {
   getSettings,
@@ -110,7 +110,7 @@ const App = () => {
     getSettings()
       .then(setSettingsState)
       .catch(() => setSettingsState(DEFAULT_SETTINGS));
-    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_PICKER_STATE }, (response) => {
+    sendCommand(MESSAGE_TYPES.GET_PICKER_STATE).then((response) => {
       if (response?.active) {
         setPickerActive(true);
         if (response.multi) {
@@ -131,30 +131,17 @@ const App = () => {
     });
 
     const listener = (message: Message) => {
-      if (message.type === MESSAGE_TYPES.PICKER_STATE_CHANGED) {
-        setPickerActive(message.payload.active);
-        if (!message.payload.active) {
-          setMultiPickerActive(false);
-          setMultiPickCount(0);
-        }
-      }
-      if (message.type === MESSAGE_TYPES.MULTI_PICK_STATE_CHANGED) {
-        setMultiPickerActive(message.payload.active);
-        if (!message.payload.active) {
-          setPickerActive(false);
-          setMultiPickCount(0);
-        }
+      if (message.type === MESSAGE_TYPES.PICKER_DEACTIVATED) {
+        setPickerActive(false);
+        setMultiPickerActive(false);
+        setMultiPickCount(0);
       }
       if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
         setLastLocator(message.payload.locator);
         setLastTag(message.payload.tag);
         setLastAlternatives(message.payload.alternatives);
         setLastReasons(message.payload.reasons ?? []);
-        if (!message.payload.multiPick) {
-          // Single-pick: deactivate and close popup
-          setPickerActive(false);
-        } else {
-          // Multi-pick: increment counter, stay active
+        if (message.payload.multiPick) {
           setMultiPickCount((c) => c + 1);
         }
         // Delay to let the background worker finish writing to storage.
@@ -165,19 +152,19 @@ const App = () => {
     return () => chrome.runtime.onMessage.removeListener(listener);
   }, []);
 
+  // Deactivation-path state resets come from the PICKER_DEACTIVATED broadcast
+  // (see the listener above), not from these commands' responses.
   const togglePicker = () => {
-    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.TOGGLE_PICKER }, (response) => {
-      if (response) {
-        setPickerActive(response.active);
-        if (response.active) {
-          window.close();
-        }
+    sendCommand(MESSAGE_TYPES.TOGGLE_PICKER).then((response) => {
+      if (response?.active) {
+        setPickerActive(true);
+        window.close();
       }
     });
   };
 
   const startMultiPick = () => {
-    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.MULTI_PICK_TOGGLE }, (response) => {
+    sendCommand(MESSAGE_TYPES.MULTI_PICK_START).then((response) => {
       if (response) {
         setPickerActive(response.active);
         setMultiPickerActive(response.multi);
@@ -188,11 +175,7 @@ const App = () => {
   };
 
   const stopMultiPick = () => {
-    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.MULTI_PICK_STOP }, () => {
-      setPickerActive(false);
-      setMultiPickerActive(false);
-      setMultiPickCount(0);
-    });
+    sendCommand(MESSAGE_TYPES.MULTI_PICK_STOP);
   };
 
   // Copy the locator shown in the result card. Uses lastLocator directly so it
