@@ -8,7 +8,7 @@ import {
   HistoryMode,
   DEFAULT_SETTINGS,
 } from '../shared/settings';
-import { getStrategy, highlight } from './locatorUtils';
+import { pillFor, highlight, LocatorReason, LocatorStrategy } from '../locator-engine';
 import {
   CrosshairsIcon,
   StopIcon,
@@ -69,9 +69,10 @@ const App = () => {
   const [multiPickerActive, setMultiPickerActive] = useState(false);
   const [multiPickCount, setMultiPickCount] = useState(0);
   const [lastLocator, setLastLocator] = useState<string | null>(null);
+  const [lastStrategy, setLastStrategy] = useState<LocatorStrategy | null>(null);
   const [lastTag, setLastTag] = useState<string>('');
   const [lastAlternatives, setLastAlternatives] = useState<string[]>([]);
-  const [lastReasons, setLastReasons] = useState<string[]>([]);
+  const [lastReasons, setLastReasons] = useState<LocatorReason[]>([]);
   const [copiedAltIdx, setCopiedAltIdx] = useState<number | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [copiedTs, setCopiedTs] = useState<number | null>(null);
@@ -124,6 +125,7 @@ const App = () => {
       setHistory(h);
       if (h[0]) {
         setLastLocator(h[0].locator);
+        setLastStrategy(h[0].strategy ?? 'locator');
         setLastTag(h[0].tag);
         setLastAlternatives(h[0].alternatives ?? []);
         setLastReasons(h[0].reasons ?? []);
@@ -147,6 +149,7 @@ const App = () => {
       }
       if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
         setLastLocator(message.payload.locator);
+        setLastStrategy(message.payload.strategy);
         setLastTag(message.payload.tag);
         setLastAlternatives(message.payload.alternatives);
         setLastReasons(message.payload.reasons ?? []);
@@ -227,8 +230,6 @@ const App = () => {
     }
   };
 
-  const result = lastLocator ? getStrategy(lastLocator) : null;
-
   return (
     <div className="pw">
       <header className="hd">
@@ -302,11 +303,11 @@ const App = () => {
           </div>
         ) : (
           <>
-            {lastLocator && result && (
+            {lastLocator && lastStrategy && (
               <div className="result">
                 <div className="result-top">
-                  <span className="badge" title={lastReasons.join(' • ')}>
-                    {result.badge}
+                  <span className="badge" title={lastReasons.map((r) => r.message).join(' • ')}>
+                    {lastStrategy}
                   </span>
                   <span className="result-sep">·</span>
                   <span className="result-tag">&lt;{lastTag}&gt;</span>
@@ -438,7 +439,7 @@ const App = () => {
                   </div>
                   <div className="history-list">
                     {history.map((entry) => {
-                      const strat = getStrategy(entry.locator);
+                      const pill = entry.strategy ? pillFor(entry.strategy) : 'css';
                       const isCopied = copiedTs === entry.timestamp;
                       return (
                         <div
@@ -455,7 +456,7 @@ const App = () => {
                             }
                           }}
                         >
-                          <span className={`pill pill-${strat.pill}`}>{strat.pill}</span>
+                          <span className={`pill pill-${pill}`}>{pill}</span>
                           <div className="row-main">
                             <div
                               className="row-locator"

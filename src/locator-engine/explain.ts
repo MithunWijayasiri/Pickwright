@@ -1,8 +1,9 @@
 // Reasons shown in the popup alongside the chosen locator.
 
 import { LocatorCandidate, LocatorReason } from './types';
+import { hasRoleName, isNthSelector } from './predicates';
 
-export function getLocatorReasons(candidate: LocatorCandidate, _el: Element): LocatorReason[] {
+export function getLocatorReasons(candidate: LocatorCandidate): LocatorReason[] {
   const reasons: LocatorReason[] = [];
 
   // 1. Strategy Base Reasons
@@ -60,7 +61,7 @@ export function getLocatorReasons(candidate: LocatorCandidate, _el: Element): Lo
 
   // 3. Strategy heuristics / bonuses / penalties
   if (candidate.strategy === 'getByRole') {
-    if (candidate.value.includes('name:')) {
+    if (hasRoleName(candidate)) {
       reasons.push({
         code: 'role-with-name',
         message: 'Accessible name present, making the role selector highly specific',
@@ -82,7 +83,7 @@ export function getLocatorReasons(candidate: LocatorCandidate, _el: Element): Lo
   }
 
   if (candidate.strategy === 'locator' && candidate.cssEquivalent) {
-    if (/:nth-(child|of-type)/.test(candidate.cssEquivalent)) {
+    if (isNthSelector(candidate.cssEquivalent)) {
       reasons.push({
         code: 'css-nth',
         message: 'nth-child/nth-of-type selector is highly fragile to DOM order changes',

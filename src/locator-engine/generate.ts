@@ -3,6 +3,7 @@ import { getAccessibleText } from './accessible-text';
 import { countMatches, indexOfMatch, isSoleSelectorMatch, rootOf } from './probe';
 import { LocatorCandidate } from './types';
 import { SCORE, isGuidLike, makeSelectorForId } from './playwright-port';
+import { isNthSelector } from './predicates';
 
 const TEXT_MAX = 50;
 
@@ -25,7 +26,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       strategy: 'getByTestId',
       value: `${prefix}getByTestId('${esc(testId)}')`,
       score: SCORE.testId,
-      reason: 'data-testid is the most stable selector',
       unique,
       cssEquivalent: css,
     });
@@ -43,7 +43,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       strategy: 'locator',
       value: `${prefix}locator('${esc(css)}')`,
       score: SCORE.otherTestId,
-      reason: `${altTestAttr} as CSS selector (configure testIdAttribute for getByTestId)`,
       unique: isUnique(css, el),
       cssEquivalent: css,
     });
@@ -58,7 +57,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         strategy: 'getByRole',
         value: `${prefix}getByRole('${esc(role)}', { name: '${esc(name)}' })`,
         score: SCORE.roleWithName,
-        reason: 'Role + accessible name is stable and semantic',
         unique: countRoleMatches(el, role, name) === 1,
         cssEquivalent: null,
       });
@@ -67,7 +65,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       strategy: 'getByRole',
       value: `${prefix}getByRole('${esc(role)}')`,
       score: SCORE.roleWithoutName,
-      reason: 'Role without name — less specific',
       unique: roleAloneCount === 1,
       cssEquivalent: null,
     });
@@ -81,7 +78,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         strategy: 'getByRole',
         value: `${prefix}getByRole('${esc(role)}').nth(${index})`,
         score: SCORE.nth,
-        reason: 'Role with positional index — breaks when element order changes',
         unique: true,
         cssEquivalent: null,
       });
@@ -94,7 +90,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       strategy: 'getByPlaceholder',
       value: `${prefix}getByPlaceholder('${esc(meta.placeholder)}')`,
       score: SCORE.placeholder,
-      reason: 'Placeholder text as locator',
       unique: isUnique(css, el),
       cssEquivalent: css,
     });
@@ -103,7 +98,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         strategy: 'getByPlaceholder',
         value: `${prefix}getByPlaceholder('${esc(alt.text)}')`,
         score: SCORE.placeholder - alt.scoreBonus,
-        reason: 'Placeholder text (trimmed)',
         unique: countAttrSubstring(el, 'placeholder', alt.text) === 1,
         cssEquivalent: null,
       });
@@ -117,7 +111,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       strategy: 'getByAltText',
       value: `${prefix}getByAltText('${esc(meta.alt)}')`,
       score: SCORE.altText,
-      reason: 'Alt text on image/input',
       unique: isUnique(css, el),
       cssEquivalent: css,
     });
@@ -126,7 +119,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         strategy: 'getByAltText',
         value: `${prefix}getByAltText('${esc(alt.text)}')`,
         score: SCORE.altText - alt.scoreBonus,
-        reason: 'Alt text (trimmed)',
         unique: countAttrSubstring(el, 'alt', alt.text) === 1,
         cssEquivalent: null,
       });
@@ -139,7 +131,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       strategy: 'getByLabel',
       value: `${prefix}getByLabel('${esc(label)}')`,
       score: SCORE.label,
-      reason: 'Label association is accessibility-friendly',
       unique: countLabelMatches(el, label) === 1,
       cssEquivalent: null,
     });
@@ -151,7 +142,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       strategy: 'getByTitle',
       value: `${prefix}getByTitle('${esc(meta.title)}')`,
       score: SCORE.title,
-      reason: 'Title attribute as locator',
       unique: isUnique(css, el),
       cssEquivalent: css,
     });
@@ -160,7 +150,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         strategy: 'getByTitle',
         value: `${prefix}getByTitle('${esc(alt.text)}')`,
         score: SCORE.title - alt.scoreBonus,
-        reason: 'Title attribute (trimmed)',
         unique: countAttrSubstring(el, 'title', alt.text) === 1,
         cssEquivalent: null,
       });
@@ -174,7 +163,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       strategy: 'locator',
       value: `${prefix}locator('${esc(css)}')`,
       score: SCORE.formControlName,
-      reason: 'formcontrolname is a stable Angular reactive-form attribute',
       unique: isUnique(css, el),
       cssEquivalent: css,
     });
@@ -188,7 +176,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       strategy: 'getByText',
       value: `${prefix}getByText('${esc(text)}')`,
       score: SCORE.text,
-      reason: 'Visible text — may break on i18n changes',
       unique: countTextMatches(el, text) === 1,
       cssEquivalent: null,
     });
@@ -197,7 +184,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
         strategy: 'getByText',
         value: `${prefix}getByText('${esc(alt.text)}')`,
         score: SCORE.text - alt.scoreBonus,
-        reason: 'Visible text (trimmed)',
         unique: isUniqueTextSubstring(el, alt.text),
         cssEquivalent: null,
       });
@@ -210,7 +196,6 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
     strategy: 'locator',
     value: `${prefix}locator('${esc(cssSelector)}')`,
     score: cssScore(cssSelector),
-    reason: 'CSS fallback — less stable',
     unique: isUnique(cssSelector, el),
     cssEquivalent: cssSelector,
   });
@@ -221,7 +206,7 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
 // Score for the generated CSS fallback, based on what it ended up using.
 function cssScore(selector: string): number {
   if (selector.startsWith('#') || selector.startsWith('[id=')) return SCORE.cssId;
-  if (/:nth-(child|of-type)/.test(selector)) return SCORE.nth;
+  if (isNthSelector(selector)) return SCORE.nth;
   return SCORE.cssTagName;
 }
 
@@ -760,7 +745,6 @@ function findChainedTestId(
           strategy: 'getByTestId',
           value: `${prefix}getByTestId('${esc(parentTestId)}').getByTestId('${esc(childTestId)}')`,
           score: SCORE.testId + 1, // Slightly worse than single unique testId
-          reason: 'Chained getByTestId for uniqueness',
           unique: true,
           cssEquivalent: chainedCss,
         };

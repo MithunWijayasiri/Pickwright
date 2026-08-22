@@ -1,5 +1,7 @@
 // Message types for communication between popup, background, and content scripts
 
+import { LocatorReason, LocatorStrategy } from '../locator-engine/types';
+
 export const MESSAGE_TYPES = {
   TOGGLE_PICKER: 'TOGGLE_PICKER',
   PICKER_STATE_CHANGED: 'PICKER_STATE_CHANGED',
@@ -27,11 +29,11 @@ export interface ElementSelectedMessage {
   type: typeof MESSAGE_TYPES.ELEMENT_SELECTED;
   payload: {
     locator: string;
+    strategy: LocatorStrategy;
     alternatives: string[];
-    reasons: string[];
+    reasons: LocatorReason[];
     tag: string;
     textSnippet: string;
-    score: number;
     multiPick?: boolean;
   };
 }

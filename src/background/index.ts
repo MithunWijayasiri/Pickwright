@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
             url: tabUrl,
             timestamp: Date.now(),
             locator: payload.locator,
-            score: payload.score,
+            strategy: payload.strategy,
             tag: payload.tag,
             textSnippet: payload.textSnippet,
             alternatives: payload.alternatives,
