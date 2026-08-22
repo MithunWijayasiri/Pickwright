@@ -125,7 +125,7 @@ const App = () => {
       setHistory(h);
       if (h[0]) {
         setLastLocator(h[0].locator);
-        setLastStrategy(h[0].strategy ?? null);
+        setLastStrategy(h[0].strategy ?? 'locator');
         setLastTag(h[0].tag);
         setLastAlternatives(h[0].alternatives ?? []);
         setLastReasons(h[0].reasons ?? []);
