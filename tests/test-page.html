@@ -237,6 +237,11 @@
   "
     ></iframe>
 
+    <!-- No id/name/src on either — identifier alone is ambiguous ('iframe'
+         matches both), forcing the :nth-child positional fallback. -->
+    <iframe srcdoc="<button id='dup-frame-btn-1'>Dup Frame Button 1</button>"></iframe>
+    <iframe srcdoc="<button id='dup-frame-btn-2'>Dup Frame Button 2</button>"></iframe>
+
     <script>
       // Initialize Shadow DOM with content
       const host = document.getElementById('shadow-host');
