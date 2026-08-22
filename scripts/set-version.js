@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Sync a release version into package.json and src/manifest.json.
+// Sync a release version into package.json, src/manifest.json, and package-lock.json.
 // Usage: node scripts/set-version.js <version>   (a leading "v" is stripped)
 const fs = require('fs');
 const path = require('path');
@@ -27,3 +27,13 @@ for (const file of targets) {
   fs.writeFileSync(file, JSON.stringify(json, null, 2) + '\n');
   console.log(`Updated ${path.basename(file)} → ${version}`);
 }
+
+// package-lock.json (lockfileVersion 3) repeats the version in two places.
+const lockfile = path.resolve(__dirname, '../package-lock.json');
+const lockJson = JSON.parse(fs.readFileSync(lockfile, 'utf8'));
+lockJson.version = version;
+if (lockJson.packages && lockJson.packages['']) {
+  lockJson.packages[''].version = version;
+}
+fs.writeFileSync(lockfile, JSON.stringify(lockJson, null, 2) + '\n');
+console.log(`Updated ${path.basename(lockfile)} → ${version}`);
