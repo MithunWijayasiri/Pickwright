@@ -337,6 +337,12 @@ test.describe('role and accessible name', () => {
       expected: `getByRole('button', { name: 'Save' })`,
     },
     {
+      name: 'aria-hidden="TRUE" (mixed case) skipped same as lowercase',
+      html: `<button><span aria-hidden="TRUE">Hidden </span>Save</button>`,
+      pick: 'button',
+      expected: `getByRole('button', { name: 'Save' })`,
+    },
+    {
       name: 'text: hidden descendant excluded from getByText, so it matches itself (#31)',
       html: `<div><span style="display:none">Hidden </span>Save</div>`,
       pick: 'div',
@@ -347,6 +353,18 @@ test.describe('role and accessible name', () => {
       html: `<button><span style="visibility:hidden">Hidden <span style="visibility:visible">Save</span></span></button>`,
       pick: 'button',
       expected: `getByRole('button', { name: 'Save' })`,
+    },
+    {
+      name: 'ruby has no role (not a real ARIA role) — CSS/text fallback wins (#31)',
+      html: `<ruby>Base</ruby>`,
+      pick: 'ruby',
+      expected: `getByText('Base')`,
+    },
+    {
+      name: 'summary has no role (not a real ARIA role) — CSS/text fallback wins (#31)',
+      html: `<details><summary>More info</summary></details>`,
+      pick: 'summary',
+      expected: `getByText('More info')`,
     },
     {
       name: 'nth not emitted past index 5',

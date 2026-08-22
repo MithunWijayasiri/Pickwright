@@ -12,7 +12,7 @@ export function getAccessibleText(node: Node): string {
   if (node.nodeType === Node.ELEMENT_NODE) {
     const el = node as Element;
 
-    if (el.getAttribute('aria-hidden') === 'true') {
+    if (el.getAttribute('aria-hidden')?.toLowerCase() === 'true') {
       return '';
     }
 
