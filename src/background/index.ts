@@ -1,6 +1,12 @@
 // Pickwright background service worker
 
-import { MESSAGE_TYPES, Message } from '../shared/messaging';
+import {
+  COMMAND_FALLBACKS,
+  COMMAND_TYPES,
+  CommandMessage,
+  MESSAGE_TYPES,
+  Message,
+} from '../shared/messaging';
 import { addToHistory, clearHistory, HistoryEntry } from '../shared/storage';
 import { getSettings } from '../shared/settings';
 
@@ -36,52 +42,49 @@ chrome.commands?.onCommand.addListener((command) => {
 });
 
 chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) => {
-  // Messages from a content script carry sender.tab.
-  if (sender.tab) {
+  // Dispatch on message type, not on sender.tab: a genuine default_popup view
+  // has no tab, but Playwright can only drive it by opening popup.html as a
+  // real tab, which does carry sender.tab. Typing the dispatch keeps both cases
+  // correct instead of relying on that transport detail.
+  if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
     // Persist picked elements here — the popup is usually closed by the time
     // the user clicks the page, so it can't reliably write history itself.
-    if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
-      const tabUrl = sender.tab.url ?? '';
-      const payload = message.payload;
-      getSettings()
-        .then(({ historyMode }) => {
-          if (historyMode === 'off') return;
-          const entry: HistoryEntry = {
-            url: tabUrl,
-            timestamp: Date.now(),
-            locator: payload.locator,
-            strategy: payload.strategy,
-            tag: payload.tag,
-            textSnippet: payload.textSnippet,
-            alternatives: payload.alternatives,
-            reasons: payload.reasons,
-          };
-          addToHistory(entry);
-        })
-        .catch((error) => {
-          console.error('Failed to persist element selection history', error);
-        });
-    }
+    const tabUrl = sender.tab?.url ?? '';
+    const payload = message.payload;
+    getSettings()
+      .then(({ historyMode }) => {
+        if (historyMode === 'off') return;
+        const entry: HistoryEntry = {
+          url: tabUrl,
+          timestamp: Date.now(),
+          locator: payload.locator,
+          strategy: payload.strategy,
+          tag: payload.tag,
+          textSnippet: payload.textSnippet,
+          alternatives: payload.alternatives,
+          reasons: payload.reasons,
+        };
+        return addToHistory(entry);
+      })
+      .catch((error) => {
+        console.error('Failed to persist element selection history', error);
+      });
     return;
   }
 
   // Relay popup commands to the active tab's content script.
-  if (
-    message.type === MESSAGE_TYPES.TOGGLE_PICKER ||
-    message.type === MESSAGE_TYPES.GET_PICKER_STATE ||
-    message.type === MESSAGE_TYPES.MULTI_PICK_TOGGLE ||
-    message.type === MESSAGE_TYPES.MULTI_PICK_STOP
-  ) {
+  if (COMMAND_TYPES.has(message.type)) {
+    const fallback = COMMAND_FALLBACKS[message.type as CommandMessage['type']];
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;
       if (!tabId) {
-        sendResponse({ active: false });
+        sendResponse(fallback);
         return;
       }
       chrome.tabs.sendMessage(tabId, message, (response) => {
         // Handle case where content script isn't ready
         if (chrome.runtime.lastError) {
-          sendResponse({ active: false });
+          sendResponse(fallback);
           return;
         }
         sendResponse(response);

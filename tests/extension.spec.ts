@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures';
 import type { Page } from '@playwright/test';
+import { MESSAGE_TYPES } from '../src/shared/messaging';
 
 // The fixtures (extensionContext/serverUrl/extensionId) are worker-scoped, so a
 // single browser is shared across this file. Each test gets a fresh page with
@@ -19,11 +20,11 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     if (!background) {
       background = await extensionContext.waitForEvent('serviceworker');
     }
-    await background.evaluate(async () => {
+    await background.evaluate(async (toggleType) => {
       const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!activeTab?.id) throw new Error('Active tab not found via chrome.tabs.query');
-      await chrome.tabs.sendMessage(activeTab.id, { type: 'TOGGLE_PICKER' });
-    });
+      await chrome.tabs.sendMessage(activeTab.id, { type: toggleType });
+    }, MESSAGE_TYPES.TOGGLE_PICKER);
 
     await expect(page.locator('#pickwright-highlight')).toBeAttached();
     await expect(page.locator('#pickwright-tooltip')).toBeAttached();
@@ -225,5 +226,38 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     await expect(historyRows).toHaveCount(1);
     await expect(historyRows.locator('.row-locator')).toContainText(expectedLocator);
     await popupPage.close();
+  });
+
+  test('popup commands reach the content script through the background relay', async ({
+    extensionContext,
+    extensionId,
+  }) => {
+    // extensionContext.newPage() activates the new tab; re-activate the content
+    // page before navigating popupPage so its very first GET_PICKER_STATE call
+    // (fired on mount) reaches it via the relay's active-tab lookup, not itself.
+    const popupPage = await extensionContext.newPage();
+    try {
+      await page.bringToFront();
+      await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+
+      // beforeEach activated the picker directly on the content script; stop it
+      // here via the real popup -> background -> content TOGGLE_PICKER relay.
+      await popupPage.getByRole('button', { name: 'Stop picking' }).click();
+      await expect(page.locator('#pickwright-highlight')).toBeHidden();
+      await expect(popupPage.getByRole('button', { name: 'Pick element' })).toBeVisible();
+
+      // Start multi-pick through the same relay path.
+      await popupPage.getByRole('button', { name: 'Pick multiple' }).click();
+      await expect(page.locator('#pickwright-highlight')).toBeAttached();
+      await expect(popupPage.getByRole('button', { name: 'Stop picking' })).toBeVisible();
+
+      // Stopping relays MULTI_PICK_STOP; content's PICKER_DEACTIVATED broadcast
+      // must reach this same popup instance and reset it back to idle.
+      await popupPage.getByRole('button', { name: 'Stop picking' }).click();
+      await expect(page.locator('#pickwright-highlight')).toBeHidden();
+      await expect(popupPage.getByRole('button', { name: 'Pick element' })).toBeVisible();
+    } finally {
+      await popupPage.close();
+    }
   });
 });
