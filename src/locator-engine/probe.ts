@@ -22,7 +22,9 @@ export function rootOf(el: Element): SearchRoot {
 export function isVisible(el: Element): boolean {
   try {
     const style = window.getComputedStyle(el);
-    if (style.display === 'none' || style.visibility === 'hidden') return false;
+    // collapse behaves like hidden off table elements but can keep nonzero
+    // geometry, so anything other than visible is excluded before the rect check.
+    if (style.display === 'none' || style.visibility !== 'visible') return false;
     const rect = el.getBoundingClientRect();
     return rect.width > 0 || rect.height > 0;
   } catch {

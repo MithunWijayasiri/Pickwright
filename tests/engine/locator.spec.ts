@@ -138,10 +138,18 @@ test.describe('priority ladder', () => {
       expected: `locator('input[name="email"]')`,
     },
     {
-      name: 'nth: role .nth(index) when role alone is ambiguous',
-      html: `<button>Same</button><button>Same</button>`,
+      name: 'hidden siblings excluded, so role+name stays unique',
+      html: `<button style="display:none">Same</button><button>Same</button>`,
       pick: 'button:nth-of-type(2)',
-      expected: `getByRole('button').nth(1)`,
+      expected: `getByRole('button', { name: 'Same' })`,
+    },
+    {
+      // visibility:collapse keeps nonzero geometry off tables, so it must be
+      // excluded before the rect check or the count inflates.
+      name: 'visibility:collapse siblings excluded like hidden (#32)',
+      html: `<div style="visibility:collapse"><button>Same</button></div><button>Same</button>`,
+      pick: 'body > button',
+      expected: `getByRole('button', { name: 'Same' })`,
     },
   ]);
 });
