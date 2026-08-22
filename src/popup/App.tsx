@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { MESSAGE_TYPES, Message, sendCommand } from '../shared/messaging';
-import { getHistory, clearHistory, HistoryEntry } from '../shared/storage';
+import {
+  getHistory,
+  clearHistory,
+  onHistoryChange,
+  HistoryEntry,
+  MAX_HISTORY,
+} from '../shared/storage';
 import {
   getSettings,
   setSettings,
@@ -20,8 +26,6 @@ import {
   BackIcon,
   StackIcon,
 } from './icons';
-
-const MAX_HISTORY = 20;
 
 type Theme = 'dark' | 'light';
 type View = 'main' | 'settings';
@@ -101,9 +105,9 @@ const App = () => {
       return;
     }
     // Turning history off wipes existing entries and hides the section.
+    // onHistoryChange picks up the resulting storage write.
     if (patch.historyMode === 'off') {
       clearHistory();
-      setHistory([]);
     }
   };
 
@@ -147,12 +151,15 @@ const App = () => {
         if (message.payload.multiPick) {
           setMultiPickCount((c) => c + 1);
         }
-        // Delay to let the background worker finish writing to storage.
-        setTimeout(() => getHistory().then(setHistory), 200);
+        // History list itself updates via the onHistoryChange subscription below.
       }
     };
     chrome.runtime.onMessage.addListener(listener);
-    return () => chrome.runtime.onMessage.removeListener(listener);
+    const unsubscribeHistory = onHistoryChange(setHistory);
+    return () => {
+      chrome.runtime.onMessage.removeListener(listener);
+      unsubscribeHistory();
+    };
   }, []);
 
   // Deactivation-path state resets come from the PICKER_DEACTIVATED broadcast

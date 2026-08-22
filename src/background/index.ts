@@ -49,26 +49,21 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
   if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
     // Persist picked elements here — the popup is usually closed by the time
     // the user clicks the page, so it can't reliably write history itself.
-    const tabUrl = sender.tab?.url ?? '';
     const payload = message.payload;
-    getSettings()
-      .then(({ historyMode }) => {
-        if (historyMode === 'off') return;
-        const entry: HistoryEntry = {
-          url: tabUrl,
-          timestamp: Date.now(),
-          locator: payload.locator,
-          strategy: payload.strategy,
-          tag: payload.tag,
-          textSnippet: payload.textSnippet,
-          alternatives: payload.alternatives,
-          reasons: payload.reasons,
-        };
-        return addToHistory(entry);
-      })
-      .catch((error) => {
-        console.error('Failed to persist element selection history', error);
-      });
+    const entry: HistoryEntry = {
+      url: sender.tab?.url ?? '',
+      timestamp: Date.now(),
+      locator: payload.locator,
+      strategy: payload.strategy,
+      tag: payload.tag,
+      textSnippet: payload.textSnippet,
+      alternatives: payload.alternatives,
+      reasons: payload.reasons,
+    };
+    // addToHistory no-ops when historyMode is 'off'.
+    addToHistory(entry).catch((error) => {
+      console.error('Failed to persist element selection history', error);
+    });
     return;
   }
 
