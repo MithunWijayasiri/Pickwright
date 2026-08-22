@@ -4,11 +4,9 @@ import { scoreAndSelect } from './score';
 import { LocatorResult } from './types';
 
 export * from './types';
-export { generateCandidates } from './generate';
-export { scoreAndSelect } from './score';
-export { getLocatorReasons } from './explain';
+export * from './present';
 
 export function getLocator(el: Element, meta: ElementMetadata): LocatorResult {
   const candidates = generateCandidates(el, meta);
-  return scoreAndSelect(candidates, el);
+  return scoreAndSelect(candidates);
 }

@@ -47,19 +47,6 @@ export const HistoryIcon = ({ className }: IconProps) => (
   </svg>
 );
 
-export const SunIcon = ({ className }: IconProps) => (
-  <svg {...base(className)}>
-    <circle cx="8" cy="8" r="3.2" />
-    <path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3.05 3.05l1.13 1.13M11.82 11.82l1.13 1.13M3.05 12.95l1.13-1.13M11.82 4.18l1.13-1.13" />
-  </svg>
-);
-
-export const MoonIcon = ({ className }: IconProps) => (
-  <svg {...base(className)}>
-    <path d="M13.5 9.2A5.5 5.5 0 1 1 6.8 2.5a4.3 4.3 0 0 0 6.7 6.7Z" />
-  </svg>
-);
-
 export const SettingsIcon = ({ className }: IconProps) => (
   <svg {...base(className)}>
     <line x1="2.5" y1="5" x2="13.5" y2="5" />
@@ -86,73 +73,5 @@ export const StackIcon = ({ className }: IconProps) => (
     <rect x="2.5" y="2.5" width="11" height="8" rx="1.5" />
     <path d="M3.5 11v1.5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V11" />
     <path d="M5 13.5V15a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.5" />
-  </svg>
-);
-
-export const DoubleStackIcon = ({ className }: IconProps) => (
-  <svg {...base(className)}>
-    <rect x="2.5" y="3.5" width="11" height="8" rx="1.5" />
-    <path d="M3.5 12v1.5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V12" />
-  </svg>
-);
-
-export const LogoMark = ({ className }: IconProps) => (
-  <svg
-    className={className ?? 'hd-mark'}
-    viewBox="0 0 128 128"
-    fill="none"
-    aria-hidden={true}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <rect width="128" height="128" rx="26" fill="#0e0e0e" />
-    <circle cx="24" cy="24" r="5.5" fill="#00d062" opacity="0.22" />
-    <circle cx="64" cy="24" r="5.5" fill="#00d062" opacity="0.22" />
-    <circle cx="104" cy="24" r="5.5" fill="#00d062" opacity="0.22" />
-    <circle cx="24" cy="64" r="5.5" fill="#00d062" opacity="0.22" />
-    <circle cx="104" cy="64" r="5.5" fill="#00d062" opacity="0.22" />
-    <circle cx="24" cy="104" r="5.5" fill="#00d062" opacity="0.22" />
-    <circle cx="64" cy="104" r="5.5" fill="#00d062" opacity="0.22" />
-    <circle cx="104" cy="104" r="5.5" fill="#00d062" opacity="0.22" />
-    <line
-      x1="64"
-      y1="12"
-      x2="64"
-      y2="46"
-      stroke="#00d062"
-      strokeWidth="2"
-      strokeLinecap="round"
-      opacity="0.28"
-    />
-    <line
-      x1="64"
-      y1="82"
-      x2="64"
-      y2="116"
-      stroke="#00d062"
-      strokeWidth="2"
-      strokeLinecap="round"
-      opacity="0.28"
-    />
-    <line
-      x1="12"
-      y1="64"
-      x2="46"
-      y2="64"
-      stroke="#00d062"
-      strokeWidth="2"
-      strokeLinecap="round"
-      opacity="0.28"
-    />
-    <line
-      x1="82"
-      y1="64"
-      x2="116"
-      y2="64"
-      stroke="#00d062"
-      strokeWidth="2"
-      strokeLinecap="round"
-      opacity="0.28"
-    />
-    <circle cx="64" cy="64" r="16" fill="#00d062" />
   </svg>
 );

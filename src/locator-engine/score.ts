@@ -4,8 +4,9 @@
 
 import { LocatorCandidate, LocatorResult } from './types';
 import { getLocatorReasons } from './explain';
+import { hasRoleName, isNthRoleCandidate } from './predicates';
 
-export function scoreAndSelect(candidates: LocatorCandidate[], el: Element): LocatorResult {
+export function scoreAndSelect(candidates: LocatorCandidate[]): LocatorResult {
   // The CSS fallback is unique by construction, so a unique candidate always exists.
   const unique = candidates.filter((c) => c.unique);
   const pool = unique.length > 0 ? unique : candidates;
@@ -24,7 +25,7 @@ export function scoreAndSelect(candidates: LocatorCandidate[], el: Element): Loc
   const deduped = deduplicateRoleCandidates(byValue);
 
   if (deduped[0]) {
-    deduped[0].reasons = getLocatorReasons(deduped[0], el);
+    deduped[0].reasons = getLocatorReasons(deduped[0]);
   }
 
   return {
@@ -35,14 +36,11 @@ export function scoreAndSelect(candidates: LocatorCandidate[], el: Element): Loc
 
 /** Drop the role-only candidate when a role+name candidate is present. */
 function deduplicateRoleCandidates(candidates: LocatorCandidate[]): LocatorCandidate[] {
-  const hasRoleWithName = candidates.some(
-    (c) => c.strategy === 'getByRole' && c.value.includes('name:'),
-  );
+  const hasRoleWithName = candidates.some((c) => hasRoleName(c));
   if (!hasRoleWithName) return candidates;
 
   // Keep .nth() candidates — they are the recourse when role+name is not unique.
   return candidates.filter(
-    (c) =>
-      !(c.strategy === 'getByRole' && !c.value.includes('name:') && !c.value.includes('.nth(')),
+    (c) => !(c.strategy === 'getByRole' && !hasRoleName(c) && !isNthRoleCandidate(c)),
   );
 }

@@ -10,7 +10,7 @@ import {
   TOAST_ID,
 } from './overlay';
 import { collectMetadata, isAngularDropdownTrigger, drillIntoShadow } from './inspect';
-import { getLocator } from '../locator-engine';
+import { getLocator, highlightInline } from '../locator-engine';
 
 let pickerActive = false;
 let multiPickerActive = false;
@@ -78,6 +78,13 @@ function onMouseMove(e: MouseEvent): void {
     lastHoveredElement = el;
     const meta = collectMetadata(el);
     const result = getLocator(el, meta);
+    // best is undefined only if generateCandidates ever returned nothing — the CSS
+    // fallback makes that unreachable, but the type stays honest so this guards it.
+    if (!result.best) {
+      lastLocatorStr = '';
+      hideHighlight();
+      return;
+    }
     lastLocatorStr = result.best.value;
   }
 
@@ -123,21 +130,23 @@ function onClick(e: MouseEvent): void {
   const meta = collectMetadata(el);
 
   const result = getLocator(el, meta);
-  const locatorStr = result.best.value;
+  const best = result.best;
+  // See the onMouseMove guard above: unreachable per the engine's uniqueness invariant.
+  if (!best) return;
 
-  copyToClipboard(locatorStr);
-  showToast(locatorStr, isAngularDropdownTrigger(el));
+  copyToClipboard(best.value);
+  showToast(best.value, isAngularDropdownTrigger(el));
 
   broadcast({
     type: MESSAGE_TYPES.ELEMENT_SELECTED,
     payload: {
-      locator: locatorStr,
+      locator: best.value,
+      strategy: best.strategy,
       alternatives: result.alternatives.map((a) => a.value),
+      reasons: best.reasons ?? [],
       tag: meta.tagName,
       textSnippet: meta.textContent.slice(0, 40),
-      score: result.best.score,
       multiPick: multiPickerActive,
-      reasons: (result.best.reasons ?? []).map((r) => r.message),
     },
   });
 
@@ -328,15 +337,6 @@ function copyToClipboard(text: string): void {
 
 // --- Toast ---
 
-function highlightToInline(s: string): string {
-  const escapeHtml = (str: string) =>
-    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return escapeHtml(s)
-    .replace(/(getBy[A-Za-z]+)/g, '<span style="color:#79b8ff">$1</span>')
-    .replace(/('[^']*')/g, '<span style="color:#00d062">$1</span>')
-    .replace(/\b(name|exact|hasText|level)\b(?=\s*:)/g, '<span style="color:#ffa657">$1</span>');
-}
-
 function showToast(text: string, isDropdown: boolean): void {
   // Drop any toast still on screen so rapid picks don't stack duplicate IDs.
   document.getElementById(TOAST_ID)?.remove();
@@ -408,7 +408,7 @@ function showToast(text: string, isDropdown: boolean): void {
     textOverflow: 'ellipsis',
     color: '#f2f2f0',
   });
-  codeRow.innerHTML = highlightToInline(text);
+  codeRow.innerHTML = highlightInline(text);
   innerContent.appendChild(codeRow);
 
   if (isDropdown) {
