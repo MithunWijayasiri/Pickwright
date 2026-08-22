@@ -1,6 +1,12 @@
 // Pickwright background service worker
 
-import { COMMAND_TYPES, MESSAGE_TYPES, Message } from '../shared/messaging';
+import {
+  COMMAND_FALLBACKS,
+  COMMAND_TYPES,
+  CommandMessage,
+  MESSAGE_TYPES,
+  Message,
+} from '../shared/messaging';
 import { addToHistory, clearHistory, HistoryEntry } from '../shared/storage';
 import { getSettings } from '../shared/settings';
 
@@ -58,7 +64,7 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
           alternatives: payload.alternatives,
           reasons: payload.reasons,
         };
-        addToHistory(entry);
+        return addToHistory(entry);
       })
       .catch((error) => {
         console.error('Failed to persist element selection history', error);
@@ -68,16 +74,17 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
 
   // Relay popup commands to the active tab's content script.
   if (COMMAND_TYPES.has(message.type)) {
+    const fallback = COMMAND_FALLBACKS[message.type as CommandMessage['type']];
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;
       if (!tabId) {
-        sendResponse({ active: false });
+        sendResponse(fallback);
         return;
       }
       chrome.tabs.sendMessage(tabId, message, (response) => {
         // Handle case where content script isn't ready
         if (chrome.runtime.lastError) {
-          sendResponse({ active: false });
+          sendResponse(fallback);
           return;
         }
         sendResponse(response);

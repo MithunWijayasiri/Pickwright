@@ -34,22 +34,29 @@ export type CommandMessage =
   | MultiPickStartMessage
   | MultiPickStopMessage;
 
-// Single source of truth for which types the background relays; the content
-// script's listener switch must handle exactly this set (enforced by its
-// exhaustive switch, see picker.ts).
-export const COMMAND_TYPES: ReadonlySet<string> = new Set<CommandMessage['type']>([
-  MESSAGE_TYPES.TOGGLE_PICKER,
-  MESSAGE_TYPES.GET_PICKER_STATE,
-  MESSAGE_TYPES.MULTI_PICK_START,
-  MESSAGE_TYPES.MULTI_PICK_STOP,
-]);
-
 export interface CommandResponseMap {
   [MESSAGE_TYPES.TOGGLE_PICKER]: { active: boolean };
   [MESSAGE_TYPES.GET_PICKER_STATE]: { active: boolean; multi: boolean };
   [MESSAGE_TYPES.MULTI_PICK_START]: { active: boolean; multi: boolean };
   [MESSAGE_TYPES.MULTI_PICK_STOP]: { active: boolean };
 }
+
+// Response the background sends when relaying to the content script fails
+// (no active tab, or chrome.runtime.lastError). Keyed by CommandResponseMap
+// so a new CommandMessage member is a compile error until its fallback shape
+// is filled in here too.
+export const COMMAND_FALLBACKS: { [K in CommandMessage['type']]: CommandResponseMap[K] } = {
+  [MESSAGE_TYPES.TOGGLE_PICKER]: { active: false },
+  [MESSAGE_TYPES.GET_PICKER_STATE]: { active: false, multi: false },
+  [MESSAGE_TYPES.MULTI_PICK_START]: { active: false, multi: false },
+  [MESSAGE_TYPES.MULTI_PICK_STOP]: { active: false },
+};
+
+// Single source of truth for which types the background relays; derived from
+// COMMAND_FALLBACKS so it can't drift from CommandResponseMap. The content
+// script's listener switch must handle exactly this set (enforced by its
+// exhaustive switch, see picker.ts).
+export const COMMAND_TYPES: ReadonlySet<string> = new Set(Object.keys(COMMAND_FALLBACKS));
 
 // Content -> broadcast. Received by background and popup, no direct response.
 export interface PickerDeactivatedMessage {
@@ -84,6 +91,12 @@ export function sendCommand<T extends CommandMessage['type']>(
 ): Promise<CommandResponseMap[T] | undefined> {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({ type }, (response: CommandResponseMap[T] | undefined) => {
+      // Reading lastError silences "Unchecked runtime.lastError" when the
+      // background isn't reachable (e.g. extension context invalidated).
+      if (chrome.runtime.lastError) {
+        resolve(undefined);
+        return;
+      }
       resolve(response);
     });
   });

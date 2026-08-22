@@ -236,26 +236,28 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     // page before navigating popupPage so its very first GET_PICKER_STATE call
     // (fired on mount) reaches it via the relay's active-tab lookup, not itself.
     const popupPage = await extensionContext.newPage();
-    await page.bringToFront();
-    await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+    try {
+      await page.bringToFront();
+      await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    // beforeEach activated the picker directly on the content script; stop it
-    // here via the real popup -> background -> content TOGGLE_PICKER relay.
-    await popupPage.getByRole('button', { name: 'Stop picking' }).click();
-    await expect(page.locator('#pickwright-highlight')).toBeHidden();
-    await expect(popupPage.getByRole('button', { name: 'Pick element' })).toBeVisible();
+      // beforeEach activated the picker directly on the content script; stop it
+      // here via the real popup -> background -> content TOGGLE_PICKER relay.
+      await popupPage.getByRole('button', { name: 'Stop picking' }).click();
+      await expect(page.locator('#pickwright-highlight')).toBeHidden();
+      await expect(popupPage.getByRole('button', { name: 'Pick element' })).toBeVisible();
 
-    // Start multi-pick through the same relay path.
-    await popupPage.getByRole('button', { name: 'Pick multiple' }).click();
-    await expect(page.locator('#pickwright-highlight')).toBeAttached();
-    await expect(popupPage.getByRole('button', { name: 'Stop picking' })).toBeVisible();
+      // Start multi-pick through the same relay path.
+      await popupPage.getByRole('button', { name: 'Pick multiple' }).click();
+      await expect(page.locator('#pickwright-highlight')).toBeAttached();
+      await expect(popupPage.getByRole('button', { name: 'Stop picking' })).toBeVisible();
 
-    // Stopping relays MULTI_PICK_STOP; content's PICKER_DEACTIVATED broadcast
-    // must reach this same popup instance and reset it back to idle.
-    await popupPage.getByRole('button', { name: 'Stop picking' }).click();
-    await expect(page.locator('#pickwright-highlight')).toBeHidden();
-    await expect(popupPage.getByRole('button', { name: 'Pick element' })).toBeVisible();
-
-    await popupPage.close();
+      // Stopping relays MULTI_PICK_STOP; content's PICKER_DEACTIVATED broadcast
+      // must reach this same popup instance and reset it back to idle.
+      await popupPage.getByRole('button', { name: 'Stop picking' }).click();
+      await expect(page.locator('#pickwright-highlight')).toBeHidden();
+      await expect(popupPage.getByRole('button', { name: 'Pick element' })).toBeVisible();
+    } finally {
+      await popupPage.close();
+    }
   });
 });
