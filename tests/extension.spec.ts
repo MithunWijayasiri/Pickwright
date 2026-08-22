@@ -238,6 +238,11 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     // against a clean state regardless of file order.
     await historyGroup.getByRole('radio', { name: 'Keep' }).click();
 
+    // With History back on, the section re-renders from storage — count must
+    // stay 0 here, proving CLEAR_HISTORY cleared the persisted entry rather
+    // than the row just being hidden while off.
+    await expect(historyRows).toHaveCount(0);
+
     await popupPage.close();
   });
 
