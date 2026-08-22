@@ -225,6 +225,19 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     const historyRows = popupPage.locator('.row');
     await expect(historyRows).toHaveCount(1);
     await expect(historyRows.locator('.row-locator')).toContainText(expectedLocator);
+
+    // Turning History off routes the clear through background (CLEAR_HISTORY)
+    // rather than popup writing chrome.storage directly — exercises that path.
+    await popupPage.getByRole('button', { name: 'Settings' }).click();
+    const historyGroup = popupPage.getByRole('radiogroup', { name: 'History' });
+    await historyGroup.getByRole('radio', { name: 'Off' }).click();
+    await expect(historyRows).toHaveCount(0);
+
+    // Settings persist across this worker-scoped context — restore the default
+    // so later tests (e.g. "Pick multiple", disabled when history is off) run
+    // against a clean state regardless of file order.
+    await historyGroup.getByRole('radio', { name: 'Keep' }).click();
+
     await popupPage.close();
   });
 
