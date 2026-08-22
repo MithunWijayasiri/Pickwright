@@ -26,6 +26,13 @@ async function locatorFor(page: Page, html: string, pick: string): Promise<strin
   return page.evaluate((sel) => window.__pickwrightEngine.locatorFor(sel), pick);
 }
 
+/** cssEquivalent of the best candidate, so specs can assert it resolves to one element. */
+async function cssEquivalentFor(page: Page, html: string, pick: string): Promise<string | null> {
+  await page.setContent(html);
+  await page.addScriptTag({ path: HARNESS });
+  return page.evaluate((sel) => window.__pickwrightEngine.cssEquivalentFor(sel), pick);
+}
+
 function run(cases: Case[]) {
   for (const c of cases) {
     test(c.name, async ({ page }) => {
@@ -131,10 +138,18 @@ test.describe('priority ladder', () => {
       expected: `locator('input[name="email"]')`,
     },
     {
-      name: 'nth: role .nth(index) when role alone is ambiguous',
-      html: `<button>Same</button><button>Same</button>`,
+      name: 'hidden siblings excluded, so role+name stays unique',
+      html: `<button style="display:none">Same</button><button>Same</button>`,
       pick: 'button:nth-of-type(2)',
-      expected: `getByRole('button').nth(1)`,
+      expected: `getByRole('button', { name: 'Same' })`,
+    },
+    {
+      // visibility:collapse keeps nonzero geometry off tables, so it must be
+      // excluded before the rect check or the count inflates.
+      name: 'visibility:collapse siblings excluded like hidden (#32)',
+      html: `<div style="visibility:collapse"><button>Same</button></div><button>Same</button>`,
+      pick: 'body > button',
+      expected: `getByRole('button', { name: 'Same' })`,
     },
   ]);
 });
@@ -371,6 +386,47 @@ test.describe('role and accessible name', () => {
       html: `<button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button>`,
       pick: 'button:nth-of-type(7)',
       expectNot: /\.nth\(/,
+    },
+  ]);
+});
+
+// The winner's CSS equivalent must resolve to exactly one element — the
+// guarantee score.ts relies on ("CSS fallback is unique by construction").
+// Fixtures drive the deepest fallback paths; a fake DOM would break the counts.
+test.describe('resolve-to-one invariant', () => {
+  const cases: Case[] = [
+    {
+      name: 'buildUniqueCssPath: noise-class nesting collapses to a unique path',
+      html: `<div><div class="css-abc123"><span>Same</span></div><div class="css-abc123"><span>Same</span></div></div>`,
+      pick: 'div:nth-child(2) > span',
+      expected: `locator('div:nth-child(2) > span')`,
+    },
+    {
+      name: 'nth-of-type fallback stays unique across seven identical buttons',
+      html: `<div><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button><button>Same</button></div>`,
+      pick: 'button:nth-of-type(7)',
+      expected: `locator('div > button:nth-of-type(7)')`,
+    },
+  ];
+  for (const c of cases) {
+    test(c.name, async ({ page }) => {
+      expect(await locatorFor(page, c.html, c.pick)).toBe(c.expected);
+      const css = await cssEquivalentFor(page, c.html, c.pick);
+      expect(css).not.toBeNull();
+      expect(await page.locator(css!).count()).toBe(1);
+    });
+  }
+});
+
+// Parent-scoped test-ID chain — previously covered only by E2E.
+test.describe('chained getByTestId', () => {
+  run([
+    {
+      name: 'duplicate data-testid chains through the nearest scoping parent',
+      html: `<div data-testid="card-alpha"><button data-testid="action">Alpha</button></div>
+<div data-testid="card-beta"><button data-testid="action">Beta</button></div>`,
+      pick: '[data-testid="card-beta"] > button',
+      expected: `getByTestId('card-beta').getByTestId('action')`,
     },
   ]);
 });

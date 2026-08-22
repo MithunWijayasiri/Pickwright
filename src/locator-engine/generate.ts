@@ -1,5 +1,6 @@
 import { ElementMetadata } from '../shared/types';
 import { getAccessibleText } from './accessible-text';
+import { countMatches, indexOfMatch, isSoleSelectorMatch, rootOf } from './probe';
 import { LocatorCandidate } from './types';
 import { SCORE, isGuidLike, makeSelectorForId } from './playwright-port';
 
@@ -49,6 +50,7 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
   }
 
   const role = roleOf(el);
+  const roleAloneCount = role ? countRoleMatches(el, role, null) : 0;
   if (role) {
     const name = getAccessibleName(el);
     if (name) {
@@ -66,13 +68,13 @@ export function generateCandidates(el: Element, meta: ElementMetadata): LocatorC
       value: `${prefix}getByRole('${esc(role)}')`,
       score: SCORE.roleWithoutName,
       reason: 'Role without name — less specific',
-      unique: countRoleMatches(el, role, null) === 1,
+      unique: roleAloneCount === 1,
       cssEquivalent: null,
     });
   }
 
   // Positional fallback, offered only when the role alone is ambiguous.
-  if (role && countRoleMatches(el, role, null) > 1) {
+  if (role && roleAloneCount > 1) {
     const index = visibleRoleIndex(el, role);
     if (index >= 0 && index <= 5) {
       add({
@@ -410,9 +412,8 @@ function getAccessibleName(el: Element): string | null {
 
 function findAssociatedLabel(el: Element): string | null {
   if (el.id) {
-    const root = el.getRootNode() as Document | ShadowRoot;
     const selector = `label[for="${CSS.escape(el.id)}"]`;
-    const label = (root as Document).querySelector?.(selector) ?? document.querySelector(selector);
+    const label = rootOf(el).querySelector(selector);
     if (label?.textContent) return label.textContent.trim().slice(0, 60);
   }
   const parent = el.closest('label');
@@ -420,66 +421,34 @@ function findAssociatedLabel(el: Element): string | null {
   return null;
 }
 
-// --- Uniqueness counting (walks the element's root node, visible only) ---
-
-function rootOf(el: Element): Document | ShadowRoot {
-  return el.getRootNode() as Document | ShadowRoot;
-}
-
-function isVisible(el: Element): boolean {
-  try {
-    const style = window.getComputedStyle(el);
-    if (style.display === 'none' || style.visibility === 'hidden') return false;
-    const rect = el.getBoundingClientRect();
-    return rect.width > 0 || rect.height > 0;
-  } catch {
-    return true;
-  }
-}
+// --- Uniqueness counting — the walk lives in probe.ts; each strategy here
+// supplies only its matcher. `visibleOnly` is opt-in per counter: CSS-path
+// checks stay visibility-blind on purpose.
 
 function countRoleMatches(el: Element, role: string, name: string | null): number {
-  let count = 0;
-  for (const cand of rootOf(el).querySelectorAll('*')) {
-    if (!isVisible(cand)) continue;
-    if (roleOf(cand) !== role) continue;
-    if (name !== null && getAccessibleName(cand) !== name) continue;
-    if (++count > 1) return count;
-  }
-  return count;
+  return countMatches(
+    rootOf(el),
+    (cand) => roleOf(cand) === role && (name === null || getAccessibleName(cand) === name),
+    { visibleOnly: true },
+  );
 }
 
 /** 0-based index of `el` among visible same-role elements in its root, or -1. */
 function visibleRoleIndex(el: Element, role: string): number {
-  let index = 0;
-  for (const cand of rootOf(el).querySelectorAll('*')) {
-    if (!isVisible(cand)) continue;
-    if (roleOf(cand) !== role) continue;
-    if (cand === el) return index;
-    index++;
-  }
-  return -1;
+  return indexOfMatch(rootOf(el), (cand) => roleOf(cand) === role, el, { visibleOnly: true });
 }
 
 function countTextMatches(el: Element, text: string): number {
-  let count = 0;
-  for (const cand of rootOf(el).querySelectorAll('*')) {
-    if (!isVisible(cand)) continue;
-    if (normalizeText(getAccessibleText(cand)) === text) {
-      if (++count > 1) return count;
-    }
-  }
-  return count;
+  return countMatches(rootOf(el), (cand) => normalizeText(getAccessibleText(cand)) === text, {
+    visibleOnly: true,
+  });
 }
 
 function countLabelMatches(el: Element, label: string): number {
-  let count = 0;
-  for (const cand of rootOf(el).querySelectorAll('input, textarea, select, [role]')) {
-    if (!isVisible(cand)) continue;
-    if (findAssociatedLabel(cand) === label) {
-      if (++count > 1) return count;
-    }
-  }
-  return count;
+  return countMatches(rootOf(el), (cand) => findAssociatedLabel(cand) === label, {
+    visibleOnly: true,
+    scopeSelector: 'input, textarea, select, [role]',
+  });
 }
 
 // --- Substring matching for trimmed text/attr alternatives ---
@@ -500,24 +469,20 @@ function matchesTextSubstring(el: Element, text: string): boolean {
 /** True when `el` is the sole substring match for `text` in its root. */
 function isUniqueTextSubstring(el: Element, text: string): boolean {
   if (!matchesTextSubstring(el, text)) return false;
-  let count = 0;
-  for (const cand of rootOf(el).querySelectorAll('*')) {
-    if (!isVisible(cand)) continue;
-    if (matchesTextSubstring(cand, text) && ++count > 1) return false;
-  }
-  return count === 1;
+  return (
+    countMatches(rootOf(el), (cand) => matchesTextSubstring(cand, text), {
+      visibleOnly: true,
+    }) === 1
+  );
 }
 
 /** Count visible elements whose `attr` value contains `text` as a substring. */
 function countAttrSubstring(el: Element, attr: string, text: string): number {
-  let count = 0;
-  for (const cand of rootOf(el).querySelectorAll(`[${attr}]`)) {
-    if (!isVisible(cand)) continue;
-    if (normalizeText(cand.getAttribute(attr) ?? '').includes(text)) {
-      if (++count > 1) return count;
-    }
-  }
-  return count;
+  return countMatches(
+    rootOf(el),
+    (cand) => normalizeText(cand.getAttribute(attr) ?? '').includes(text),
+    { visibleOnly: true, scopeSelector: `[${attr}]` },
+  );
 }
 
 function normalizeText(s: string): string {
@@ -631,12 +596,7 @@ function buildBaseCssSelector(el: Element, meta: ElementMetadata): string {
 
 /** True when `selector` matches exactly `el` within its root node. */
 function isUnique(selector: string, el: Element): boolean {
-  try {
-    const matches = rootOf(el).querySelectorAll(selector);
-    return matches.length === 1 && matches[0] === el;
-  } catch {
-    return false;
-  }
+  return isSoleSelectorMatch(rootOf(el), selector, el);
 }
 
 function augmentWithStableDescendant(base: string, el: Element): string | null {
@@ -693,13 +653,7 @@ function buildUniqueCssPath(el: Element): string {
 
   const uniqueWith = (prefix: string): string | null => {
     const selector = [prefix, ...tokens].join(' > ');
-    try {
-      const matches = root.querySelectorAll(selector);
-      if (matches.length === 1 && matches[0] === el) return selector;
-    } catch {
-      /* invalid intermediate selector */
-    }
-    return null;
+    return isSoleSelectorMatch(root, selector, el) ? selector : null;
   };
 
   let current: Element | null = el;
@@ -722,7 +676,7 @@ function buildUniqueCssPath(el: Element): string {
       const tok = `${tag}.${classes.slice(0, i + 1).join('.')}`;
       const hit = uniqueWith(tok);
       if (hit) return hit;
-      if (!best && parent && parent.querySelectorAll(tok).length === 1) best = tok;
+      if (!best && parent && isSoleSelectorMatch(parent, tok, current)) best = tok;
     }
 
     if (parent) {
@@ -801,20 +755,15 @@ function findChainedTestId(
     const parentTestId = parent.getAttribute('data-testid');
     if (parentTestId) {
       const chainedCss = `${cssAttr('data-testid', parentTestId)} ${cssAttr('data-testid', childTestId)}`;
-      try {
-        const matches = root.querySelectorAll(chainedCss);
-        if (matches.length === 1 && matches[0] === el) {
-          return {
-            strategy: 'getByTestId',
-            value: `${prefix}getByTestId('${esc(parentTestId)}').getByTestId('${esc(childTestId)}')`,
-            score: SCORE.testId + 1, // Slightly worse than single unique testId
-            reason: 'Chained getByTestId for uniqueness',
-            unique: true,
-            cssEquivalent: chainedCss,
-          };
-        }
-      } catch {
-        // Invalid selector, skip
+      if (isSoleSelectorMatch(root, chainedCss, el)) {
+        return {
+          strategy: 'getByTestId',
+          value: `${prefix}getByTestId('${esc(parentTestId)}').getByTestId('${esc(childTestId)}')`,
+          score: SCORE.testId + 1, // Slightly worse than single unique testId
+          reason: 'Chained getByTestId for uniqueness',
+          unique: true,
+          cssEquivalent: chainedCss,
+        };
       }
     }
     parent = parent.parentElement;
