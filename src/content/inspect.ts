@@ -1,4 +1,5 @@
 import { ElementMetadata } from '../shared/types';
+import { getAccessibleText } from '../locator-engine/accessible-text';
 
 // Exported so picker.ts can drill shadow roots without an overlay dependency.
 export function drillIntoShadow(el: Element, x: number, y: number): Element {
@@ -113,37 +114,4 @@ export function buildTooltipLabel(el: Element): string {
   const id = el.id ? `#${el.id}` : '';
   const cls = el.classList.length > 0 ? `.${Array.from(el.classList).slice(0, 2).join('.')}` : '';
   return `${tag}${id}${cls}`;
-}
-
-function getAccessibleText(node: Node): string {
-  if (node.nodeType === Node.TEXT_NODE) {
-    return node.textContent ?? '';
-  }
-
-  if (node.nodeType === Node.ELEMENT_NODE) {
-    const el = node as Element;
-
-    // Ignore aria-hidden subtrees
-    if (el.getAttribute('aria-hidden') === 'true') {
-      return '';
-    }
-
-    // Ignore visually hidden subtrees
-    try {
-      const style = window.getComputedStyle(el);
-      if (style.display === 'none' || style.visibility === 'hidden') {
-        return '';
-      }
-    } catch {
-      // Fallback for non-window/test contexts
-    }
-
-    let text = '';
-    for (const child of Array.from(el.childNodes)) {
-      text += getAccessibleText(child);
-    }
-    return text;
-  }
-
-  return '';
 }

@@ -6,7 +6,7 @@ Priority: **A1** (parent >> child chaining) is the largest remaining locator-qua
 
 ## Engine unit tests — phase 3
 
-Suite: `tests/engine/locator.spec.ts`, 43 cases, `npm run test:engine`. Phases 1–2 (priority ladder, noise filters, uniqueness/matcher semantics, role + accessible name) done. Remaining groups:
+Suite: `tests/engine/locator.spec.ts`, 47 cases, `npm run test:engine`. Phases 1–2 (priority ladder, noise filters, uniqueness/matcher semantics, role + accessible name) done — includes #31 self-match (display:none/aria-hidden) + visibility:hidden→visible override. Remaining groups:
 
 - **Test-ID handling** — `data-testid` → `getByTestId`; `data-test-id` / `data-cy` → `locator(css)`; duplicate `data-testid` → chained parent scope via `findChainedTestId`.
 - **Resolve-to-one invariant** — assert in *every* case that a CSS-shaped result matches exactly one element (`page.locator(...).count()`). Cheap, catches `buildUniqueCssPath` returning a non-unique path.
@@ -87,12 +87,14 @@ UI (`popup/App.tsx` + `popup.css`): collapsible toggle, loop `reasons[]`, style 
 
 Sources (microsoft/playwright `main`): `packages/injected/src/selectorGenerator.ts` (orchestrator, core ported), `roleUtils.ts` (ARIA roles + accname), `selectorUtils.ts` (element text, labels), `domUtils.ts` (visibility, shadow), `packages/isomorphic/stringUtils.ts` (escaping), `locatorUtils.ts` (`getBy*` builders), `locatorGenerators.ts` (token → per-language syntax).
 
-Already ported: `isGuidLike`, `makeSelectorForId`, lower-is-better scores, length penalty, `buildUniqueCssPath`, real per-strategy uniqueness, interactive-parent retarget (`picker.ts`), `.nth()` alternative, `suitableTextAlternatives`, `getByAltText`, `getByTitle`, implicit role map phases 1–3, name-from-content role subset, visibility-filtered counting.
+Already ported: `isGuidLike`, `makeSelectorForId`, lower-is-better scores, length penalty, `buildUniqueCssPath`, real per-strategy uniqueness, interactive-parent retarget (`picker.ts`), `.nth()` alternative, `suitableTextAlternatives`, `getByAltText`, `getByTitle`, implicit role map phases 1–3, name-from-content role subset, visibility-filtered counting, `visibility:hidden`→`visibility:visible` override (`accessible-text.ts` — #31).
+
+`ruby`/`summary` are not real ARIA roles (Chromium computes role `text` for both; `getByRole('ruby')`/`getByRole('summary')` match 0 elements) — removed from the implicit role map, CSS fallback applies.
 
 | # | Item | Worth | Notes |
 |---|---|---|---|
 | C2 | Full `getElementAccessibleName` | MED-HIGH, large | Real accname algorithm: `aria-labelledby` chains, `::before/::after` content, recursion, hidden handling. Current: `aria-label` → `aria-labelledby` → label → title → text, with title-before-text an intentional divergence. Name-from-content subset already ported. Mismatch → wrong `getByRole` name. |
-| D2 | `elementText` / `getElementLabels` | MED | Visible-text-only extraction (skips hidden subtrees, shadow-aware) and full label collection. Current: normalized `textContent` (includes hidden); `findAssociatedLabel` covers `for=` + ancestor `<label>` only. |
+| D2 | `elementText` / `getElementLabels` | MED | Visible-text-only extraction (skips hidden subtrees, shadow-aware) and full label collection. Current: `getAccessibleText` (`src/locator-engine/accessible-text.ts`) skips `aria-hidden`/`display:none` and `visibility:hidden` direct text (keeps `visibility:visible` descendants); `findAssociatedLabel` covers `for=` + ancestor `<label>` only. |
 | D3 | Cross-shadow traversal | MED | `parentElementOrShadowHost`, `closestCrossShadow`. Needed for A1 inside web components. CSS path currently stays within one root. |
 | E1 | `escapeForTextSelector` / `escapeForAttributeSelector` | MED | Exact vs substring, RegExp inputs, quote normalization. Current escaping is naive (iframe attr values now handle control chars; text does not). |
 | C1 ph4 | Scoped grid roles | LOW | `td`/`th` → `gridcell` inside `role=grid/treegrid`. ~15 lines. Real data-grids carry explicit `role`, which `roleOf` already honors, so this only fires for a bare `<td>` in `<table role=grid>`. Do it if a real case appears. Plan: `docs/c1-full-role-map-plan.md`. |
