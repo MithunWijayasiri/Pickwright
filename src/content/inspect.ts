@@ -53,11 +53,33 @@ function cssValue(value: string): string {
 }
 
 function buildFrameIdentifier(frame: HTMLIFrameElement): string {
+  const candidate = frameIdentifierCandidate(frame);
+  if (candidate && document.querySelectorAll(candidate).length === 1) return candidate;
+  return uniqueFramePath(frame);
+}
+
+function frameIdentifierCandidate(frame: HTMLIFrameElement): string | null {
   if (frame.id) return `iframe#${CSS.escape(frame.id)}`;
   if (frame.name) return `iframe[name="${cssValue(frame.name)}"]`;
   const src = frame.getAttribute('src');
   if (src) return `iframe[src="${cssValue(src)}"]`;
-  return 'iframe';
+  return null;
+}
+
+// Positional fallback for a frame with no id/name/src, or one that shares its
+// identifier with another frame elsewhere on the page. :nth-child is always
+// well-defined regardless of tag mix, so the resulting path is guaranteed unique.
+function uniqueFramePath(el: Element): string {
+  const parts: string[] = [];
+  let node: Element | null = el;
+  while (node) {
+    const parent: Element | null = node.parentElement;
+    if (!parent) break;
+    const index = Array.from(parent.children).indexOf(node) + 1;
+    parts.unshift(`${node.tagName.toLowerCase()}:nth-child(${index})`);
+    node = parent;
+  }
+  return parts.join(' > ');
 }
 
 export function collectMetadata(el: Element): ElementMetadata {

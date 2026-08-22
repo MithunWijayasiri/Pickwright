@@ -81,6 +81,23 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     );
   });
 
+  test('frameLocator disambiguates duplicate anonymous iframes', async () => {
+    // Neither duplicate has id/name/src, so the identifier alone ('iframe')
+    // would match both — the emitted selector must still resolve to exactly
+    // the frame that was hovered, not the ambiguous ('iframe') string.
+    const secondDupFrame = page.locator('iframe').nth(3).contentFrame();
+    await secondDupFrame.locator('#dup-frame-btn-2').hover();
+
+    const tooltip = await page.locator('#pickwright-tooltip').textContent();
+    const match = tooltip?.match(/^frameLocator\('(.+)'\)\.getByRole/);
+    if (!match) throw new Error(`Unexpected tooltip: ${tooltip}`);
+    expect(match[1]).not.toBe('iframe');
+
+    const resolved = page.frameLocator(match[1]).locator('#dup-frame-btn-2');
+    await expect(resolved).toHaveCount(1);
+    await expect(resolved).toHaveText('Dup Frame Button 2');
+  });
+
   test('custom data-* CSS fallback when text exceeds the getByText limit', async () => {
     await expectLocatorOnHover('#datacy-div', 'locator(\'[data-cy="container-box"]\')');
   });
