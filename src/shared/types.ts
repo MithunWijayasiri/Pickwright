@@ -11,5 +11,6 @@ export interface ElementMetadata {
   name: string | null;
   formControlName: string | null;
   dataAttributes: Record<string, string>;
-  frameSelector: string | null;
+  // Ordered outer-to-inner frame selector chain; empty when el is in the top document.
+  frameSelectors: string[];
 }

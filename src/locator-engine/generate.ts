@@ -11,7 +11,7 @@ const TEXT_MAX = 50;
 // carries its real uniqueness, matched against the DOM.
 export function generateCandidates(el: Element, meta: ElementMetadata): LocatorCandidate[] {
   const candidates: LocatorCandidate[] = [];
-  const prefix = meta.frameSelector ? `frameLocator('${esc(meta.frameSelector)}').` : '';
+  const prefix = meta.frameSelectors.map((sel) => `frameLocator('${esc(sel)}').`).join('');
   const add = (c: LocatorCandidate) => {
     penalizeForLength(c);
     candidates.push(c);

@@ -54,16 +54,36 @@ function deactivatePicker(): void {
 
 // --- Event handlers (document capture phase) ---
 
+// Cumulative offset from a (possibly nested-iframe) window's viewport to the
+// top document's viewport, by walking up through each ancestor iframe's rect.
+function offsetToTop(view: Window): { x: number; y: number } {
+  let x = 0;
+  let y = 0;
+  let win: Window = view;
+
+  while (win !== window) {
+    const frame = win.frameElement as HTMLIFrameElement | null;
+    if (!frame) break;
+    const rect = frame.getBoundingClientRect();
+    x += rect.left;
+    y += rect.top;
+    if (win.parent === win) break;
+    win = win.parent;
+  }
+
+  return { x, y };
+}
+
 function onMouseMove(e: MouseEvent): void {
   let clientX = e.clientX;
   let clientY = e.clientY;
 
-  // Translate coordinates if event originated inside a same-origin iframe
-  const iframe = e.view && e.view !== window ? (e.view.frameElement as HTMLIFrameElement) : null;
-  if (iframe) {
-    const rect = iframe.getBoundingClientRect();
-    clientX += rect.left;
-    clientY += rect.top;
+  // Translate coordinates up through every nested same-origin iframe the event
+  // originated inside, so resolveAt always receives top-document coordinates.
+  if (e.view && e.view !== window) {
+    const offset = offsetToTop(e.view);
+    clientX += offset.x;
+    clientY += offset.y;
   }
 
   const el = resolveAt(clientX, clientY);
@@ -88,17 +108,14 @@ function onMouseMove(e: MouseEvent): void {
     lastLocatorStr = result.best.value;
   }
 
-  // Offset element bounding rect by iframe position if nested
+  // Offset element bounding rect up through every nested iframe it sits inside
   let elRect = el.getBoundingClientRect();
-  const elIframe =
-    el.ownerDocument !== document && el.ownerDocument.defaultView?.frameElement
-      ? (el.ownerDocument.defaultView.frameElement as HTMLIFrameElement)
-      : null;
-  if (elIframe) {
-    const iframeRect = elIframe.getBoundingClientRect();
+  const elView = el.ownerDocument.defaultView;
+  if (elView && elView !== window) {
+    const offset = offsetToTop(elView);
     elRect = new DOMRect(
-      elRect.left + iframeRect.left,
-      elRect.top + iframeRect.top,
+      elRect.left + offset.x,
+      elRect.top + offset.y,
       elRect.width,
       elRect.height,
     );
@@ -117,11 +134,10 @@ function onClick(e: MouseEvent): void {
   let clientX = e.clientX;
   let clientY = e.clientY;
 
-  const iframe = e.view && e.view !== window ? (e.view.frameElement as HTMLIFrameElement) : null;
-  if (iframe) {
-    const rect = iframe.getBoundingClientRect();
-    clientX += rect.left;
-    clientY += rect.top;
+  if (e.view && e.view !== window) {
+    const offset = offsetToTop(e.view);
+    clientX += offset.x;
+    clientY += offset.y;
   }
 
   const el = resolveAt(clientX, clientY);
@@ -179,24 +195,36 @@ function onIframeLoad(e: Event): void {
   }
 }
 
+function bindDocumentListeners(doc: Document): void {
+  unbindDocumentListeners(doc);
+  doc.addEventListener('mousemove', onMouseMove, true);
+  doc.addEventListener('click', onClick, true);
+  doc.addEventListener('keydown', onKeyDown, true);
+  doc.addEventListener('load', onIframeLoad, true);
+  for (const evt of SUPPRESSED_EVENTS) {
+    doc.addEventListener(evt, suppressEvent, true);
+  }
+}
+
+function unbindDocumentListeners(doc: Document): void {
+  doc.removeEventListener('mousemove', onMouseMove, true);
+  doc.removeEventListener('click', onClick, true);
+  doc.removeEventListener('keydown', onKeyDown, true);
+  doc.removeEventListener('load', onIframeLoad, true);
+  for (const evt of SUPPRESSED_EVENTS) {
+    doc.removeEventListener(evt, suppressEvent, true);
+  }
+}
+
+// Recurses into nested same-origin iframes so hover/click/load listeners
+// reach every depth, not just direct children of the top document.
 function bindToIframe(frame: HTMLIFrameElement): void {
   try {
     const doc = frame.contentDocument;
-    if (doc) {
-      // Ensure we don't double-register listeners if bindToIframe is called multiple times
-      doc.removeEventListener('mousemove', onMouseMove, true);
-      doc.removeEventListener('click', onClick, true);
-      doc.removeEventListener('keydown', onKeyDown, true);
-      for (const evt of SUPPRESSED_EVENTS) {
-        doc.removeEventListener(evt, suppressEvent, true);
-      }
-
-      doc.addEventListener('mousemove', onMouseMove, true);
-      doc.addEventListener('click', onClick, true);
-      doc.addEventListener('keydown', onKeyDown, true);
-      for (const evt of SUPPRESSED_EVENTS) {
-        doc.addEventListener(evt, suppressEvent, true);
-      }
+    if (!doc) return;
+    bindDocumentListeners(doc);
+    for (const child of Array.from(doc.querySelectorAll('iframe'))) {
+      bindToIframe(child);
     }
   } catch {
     // Ignore cross-origin frames
@@ -206,29 +234,20 @@ function bindToIframe(frame: HTMLIFrameElement): void {
 function unbindFromIframe(frame: HTMLIFrameElement): void {
   try {
     const doc = frame.contentDocument;
-    if (doc) {
-      doc.removeEventListener('mousemove', onMouseMove, true);
-      doc.removeEventListener('click', onClick, true);
-      doc.removeEventListener('keydown', onKeyDown, true);
-      for (const evt of SUPPRESSED_EVENTS) {
-        doc.removeEventListener(evt, suppressEvent, true);
-      }
+    if (!doc) return;
+    for (const child of Array.from(doc.querySelectorAll('iframe'))) {
+      unbindFromIframe(child);
     }
+    unbindDocumentListeners(doc);
   } catch {
     // Ignore cross-origin frames
   }
 }
 
 function attachListeners(): void {
-  document.addEventListener('mousemove', onMouseMove, true);
-  document.addEventListener('click', onClick, true);
-  document.addEventListener('keydown', onKeyDown, true);
-  document.addEventListener('load', onIframeLoad, true);
-  for (const evt of SUPPRESSED_EVENTS) {
-    document.addEventListener(evt, suppressEvent, true);
-  }
+  bindDocumentListeners(document);
 
-  // Attach same-origin iframe event handlers for existing iframes
+  // Attach same-origin iframe event handlers for existing iframes, recursively
   const frames = document.querySelectorAll('iframe');
   for (const frame of Array.from(frames)) {
     bindToIframe(frame);
@@ -236,19 +255,12 @@ function attachListeners(): void {
 }
 
 function detachListeners(): void {
-  document.removeEventListener('mousemove', onMouseMove, true);
-  document.removeEventListener('click', onClick, true);
-  document.removeEventListener('keydown', onKeyDown, true);
-  document.removeEventListener('load', onIframeLoad, true);
-  for (const evt of SUPPRESSED_EVENTS) {
-    document.removeEventListener(evt, suppressEvent, true);
-  }
-
-  // Detach same-origin iframe event handlers
   const frames = document.querySelectorAll('iframe');
   for (const frame of Array.from(frames)) {
     unbindFromIframe(frame);
   }
+
+  unbindDocumentListeners(document);
 }
 
 // --- Element resolution ---

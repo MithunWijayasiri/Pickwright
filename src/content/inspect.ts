@@ -16,27 +16,25 @@ export function drillIntoShadow(el: Element, x: number, y: number): Element {
   return current;
 }
 
-// Cross-origin frames are silently skipped — contentDocument access throws.
-export function getFrameSelector(el: Element): string | null {
-  const doc = el.ownerDocument;
-  if (!doc || doc === document) return null;
+// Ordered outer-to-inner chain, one identifier per frame boundary crossed to
+// reach el's document from the top document. Cross-origin frames are silently
+// skipped — contentDocument/frameElement access throws or returns null.
+export function getFrameSelectorChain(el: Element): string[] {
+  const chain: string[] = [];
+  let doc: Document | null = el.ownerDocument;
 
-  try {
-    const frames = document.querySelectorAll('iframe');
-    for (const frame of Array.from(frames)) {
-      try {
-        if (frame.contentDocument === doc) {
-          return buildFrameIdentifier(frame);
-        }
-      } catch {
-        // cross-origin iframe, skip
-      }
+  while (doc && doc !== document) {
+    try {
+      const frame = doc.defaultView?.frameElement as HTMLIFrameElement | null;
+      if (!frame) break;
+      chain.unshift(buildFrameIdentifier(frame));
+      doc = frame.ownerDocument;
+    } catch {
+      break;
     }
-  } catch {
-    // access denied
   }
 
-  return null;
+  return chain;
 }
 
 // Attribute values reach frameLocator() as a quoted CSS string: backslashes and
@@ -53,8 +51,9 @@ function cssValue(value: string): string {
 }
 
 function buildFrameIdentifier(frame: HTMLIFrameElement): string {
+  const scope = frame.ownerDocument;
   const candidate = frameIdentifierCandidate(frame);
-  if (candidate && document.querySelectorAll(candidate).length === 1) return candidate;
+  if (candidate && scope.querySelectorAll(candidate).length === 1) return candidate;
   return uniqueFramePath(frame);
 }
 
@@ -105,7 +104,7 @@ export function collectMetadata(el: Element): ElementMetadata {
     // ng-reflect-* is intentionally ignored — it exists only in Angular dev builds.
     formControlName: el.getAttribute('formcontrolname'),
     dataAttributes,
-    frameSelector: getFrameSelector(el),
+    frameSelectors: getFrameSelectorChain(el),
   };
 }
 
