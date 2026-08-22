@@ -25,7 +25,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      # tsc --noEmit + eslint + prettier --check; same command as local `npm run check`.
+      # tsc --noEmit + eslint + prettier --check + scripts/ unit tests; same command as local `npm run check`.
       - run: npm run check
       # Firefox manifest transform + AMO validity — release signs from this build.
       - run: npm run build:firefox
