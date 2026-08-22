@@ -50,8 +50,10 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
     // Persist picked elements here — the popup is usually closed by the time
     // the user clicks the page, so it can't reliably write history itself.
     const payload = message.payload;
+    const url = sender.tab?.url;
+    if (!url) return;
     const entry: HistoryEntry = {
-      url: sender.tab?.url ?? '',
+      url,
       timestamp: Date.now(),
       locator: payload.locator,
       strategy: payload.strategy,
