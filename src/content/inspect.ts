@@ -61,13 +61,10 @@ function buildFrameIdentifier(frame: HTMLIFrameElement): string {
 }
 
 export function collectMetadata(el: Element): ElementMetadata {
-  const ariaAttributes: Record<string, string> = {};
   const dataAttributes: Record<string, string> = {};
 
   for (const attr of Array.from(el.attributes)) {
-    if (attr.name.startsWith('aria-')) {
-      ariaAttributes[attr.name] = attr.value;
-    } else if (attr.name.startsWith('data-')) {
+    if (attr.name.startsWith('data-')) {
       dataAttributes[attr.name] = attr.value;
     }
   }
@@ -79,8 +76,6 @@ export function collectMetadata(el: Element): ElementMetadata {
     id: el.id || null,
     classes: Array.from(el.classList),
     textContent,
-    ariaAttributes,
-    role: el.getAttribute('role'),
     placeholder: el.getAttribute('placeholder'),
     title: el.getAttribute('title'),
     alt: el.getAttribute('alt'),
@@ -88,7 +83,7 @@ export function collectMetadata(el: Element): ElementMetadata {
     // ng-reflect-* is intentionally ignored — it exists only in Angular dev builds.
     formControlName: el.getAttribute('formcontrolname'),
     dataAttributes,
-    frameSelector: null, // set by caller if in iframe
+    frameSelector: getFrameSelector(el),
   };
 }
 

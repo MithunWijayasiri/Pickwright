@@ -9,12 +9,7 @@ import {
   isPickerElement,
   TOAST_ID,
 } from './overlay';
-import {
-  collectMetadata,
-  getFrameSelector,
-  isAngularDropdownTrigger,
-  drillIntoShadow,
-} from './inspect';
+import { collectMetadata, isAngularDropdownTrigger, drillIntoShadow } from './inspect';
 import { getLocator } from '../locator-engine';
 
 let pickerActive = false;
@@ -83,7 +78,6 @@ function onMouseMove(e: MouseEvent): void {
   if (el !== lastHoveredElement) {
     lastHoveredElement = el;
     const meta = collectMetadata(el);
-    meta.frameSelector = getFrameSelector(el);
     const result = getLocator(el, meta);
     lastLocatorStr = result.best.value;
   }
@@ -128,7 +122,6 @@ function onClick(e: MouseEvent): void {
   if (!el) return;
 
   const meta = collectMetadata(el);
-  meta.frameSelector = getFrameSelector(el);
 
   const result = getLocator(el, meta);
   const locatorStr = result.best.value;

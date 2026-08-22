@@ -614,9 +614,11 @@ function buildBaseCssSelector(el: Element, meta: ElementMetadata): string {
     return `${meta.tagName}${cssAttr('placeholder', meta.placeholder)}`;
   }
 
-  // meta.role is the explicit [role] attribute only; roleOf() is explicit || implicit.
-  if (meta.role) {
-    return `${meta.tagName}${cssAttr('role', meta.role)}`;
+  // The literal [role] attribute only — roleOf() also folds in implicit roles,
+  // which aren't present in the DOM to select on.
+  const explicitRole = el.getAttribute('role');
+  if (explicitRole) {
+    return `${meta.tagName}${cssAttr('role', explicitRole)}`;
   }
 
   const stableClasses = meta.classes.filter(isStableClass).slice(0, 2);

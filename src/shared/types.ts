@@ -5,8 +5,6 @@ export interface ElementMetadata {
   id: string | null;
   classes: string[];
   textContent: string;
-  ariaAttributes: Record<string, string>;
-  role: string | null;
   placeholder: string | null;
   title: string | null;
   alt: string | null;

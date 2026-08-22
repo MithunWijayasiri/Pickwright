@@ -91,6 +91,13 @@ Already ported: `isGuidLike`, `makeSelectorForId`, lower-is-better scores, lengt
 
 `ruby`/`summary` are not real ARIA roles (Chromium computes role `text` for both; `getByRole('ruby')`/`getByRole('summary')` match 0 elements) — removed from the implicit role map, CSS fallback applies.
 
+### #31 grouped scope — resolved / decided
+
+- `ElementMetadata.ariaAttributes` deleted (dead — written, never read).
+- `ElementMetadata.role` deleted — was a one-line copy of `el.getAttribute('role')`, only consumed in `buildBaseCssSelector` (`generate.ts`), which already has `el` in scope; inlined there. Removed the "two role concepts, one field name" trap (`meta.role` = explicit attribute only vs `roleOf()` = explicit || implicit).
+- `frameSelector` now computed inside `collectMetadata` (`inspect.ts`) instead of "set by caller" — deleted the two duplicate `meta.frameSelector = getFrameSelector(el)` lines in `picker.ts`.
+- `INTERACTIVE_SELECTOR` (`picker.ts`) and `isAngularDropdownTrigger` (`inspect.ts`) were reviewed and deliberately **not** merged into `roleOf()`: `INTERACTIVE_SELECTOR` intentionally includes bare `a`/`input`/`select` regardless of role (click-retargeting is broader on purpose), and `isAngularDropdownTrigger` mixes role + class name + tag name for a different purpose (suppressing picker activation on Angular Material dropdowns). Routing them through the locator engine's role concept would change picker/retargeting behavior with no engine-test coverage to catch regressions — not the same duplication as the role map.
+
 | # | Item | Worth | Notes |
 |---|---|---|---|
 | C2 | Full `getElementAccessibleName` | MED-HIGH, large | Real accname algorithm: `aria-labelledby` chains, `::before/::after` content, recursion, hidden handling. Current: `aria-label` → `aria-labelledby` → label → title → text, with title-before-text an intentional divergence. Name-from-content subset already ported. Mismatch → wrong `getByRole` name. |
