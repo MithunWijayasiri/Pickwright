@@ -8,6 +8,7 @@ declare global {
   interface Window {
     __pickwrightEngine: {
       locatorFor(selector: string): string;
+      cssEquivalentFor(selector: string): string | null;
     };
   }
 }
@@ -20,5 +21,11 @@ window.__pickwrightEngine = {
     const best = getLocator(el, collectMetadata(el)).best;
     if (!best) throw new Error(`No candidate returned for: ${selector}`);
     return best.value;
+  },
+  // CSS-shaped winners must resolve to exactly one element (resolve-to-one).
+  cssEquivalentFor(selector: string): string | null {
+    const el = document.querySelector(selector);
+    if (!el) throw new Error(`Fixture selector matched nothing: ${selector}`);
+    return getLocator(el, collectMetadata(el)).best.cssEquivalent;
   },
 };
