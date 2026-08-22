@@ -8,13 +8,14 @@
 | `npm run dev` | Dev build, watch mode |
 | `npm run test` | Playwright E2E, `--project=chromium` (runs `build` first) |
 | `npm run test:engine` | Locator engine unit tests, `--project=engine` (builds harness first) |
-| `npm run check` | `typecheck` + `lint` + `format:check` — same command CI's `Check` job runs |
+| `npm run check` | `typecheck` + `lint` + `format:check` + `test:scripts` — same command CI's `Check` job runs |
 | `npm run format` | Prettier write (`src/`, `tests/`, `playwright.config.ts`) |
 
 `check` is the pre-push gate. Non-obvious constraints behind it:
 
 - `typecheck` runs `tsc --noEmit` twice — root tsconfig (`src/**`) + `tsconfig.test.json` (`tests/**`, `playwright.config.ts`). Tests stay out of the root config: `ts-loader` builds its program from it and would pull `@playwright/test` node globals into the bundle typecheck.
 - `.prettierrc` needs `endOfLine: auto` — working copies are CRLF (`core.autocrlf=true`, no `.gitattributes`), so prettier's `lf` default fails every file on line endings alone.
+- `test:scripts` (`node --test scripts/**/*.test.js`) covers plain Node build/release scripts (e.g. `scripts/set-version.js`) — outside `src/` and `tests/`, so untouched by `typecheck`/`lint`/Playwright. Uses Node 20's built-in test runner, no Jest/Vitest dependency.
 
 Two suites, both real-browser:
 
