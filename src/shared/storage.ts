@@ -1,5 +1,7 @@
 // Chrome storage helpers for recent locator history
 
+import { LocatorReason, LocatorStrategy } from '../locator-engine/types';
+
 const STORAGE_KEY = 'pickwright_history';
 const MAX_HISTORY = 20;
 
@@ -7,12 +9,12 @@ export interface HistoryEntry {
   url: string;
   timestamp: number;
   locator: string;
-  score: number;
   tag: string;
   textSnippet: string;
-  // Absent on entries stored before alternatives/reasons were captured.
+  // Absent on entries stored before alternatives/reasons/strategy were captured.
+  strategy?: LocatorStrategy;
   alternatives?: string[];
-  reasons?: string[];
+  reasons?: LocatorReason[];
 }
 
 export async function getHistory(): Promise<HistoryEntry[]> {

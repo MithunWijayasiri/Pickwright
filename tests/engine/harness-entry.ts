@@ -26,6 +26,8 @@ window.__pickwrightEngine = {
   cssEquivalentFor(selector: string): string | null {
     const el = document.querySelector(selector);
     if (!el) throw new Error(`Fixture selector matched nothing: ${selector}`);
-    return getLocator(el, collectMetadata(el)).best.cssEquivalent;
+    const best = getLocator(el, collectMetadata(el)).best;
+    if (!best) throw new Error(`No candidate returned for: ${selector}`);
+    return best.cssEquivalent;
   },
 };

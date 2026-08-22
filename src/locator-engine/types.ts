@@ -19,7 +19,6 @@ export interface LocatorCandidate {
   strategy: LocatorStrategy;
   value: string;
   score: number;
-  reason: string;
   unique: boolean;
   /**
    * A CSS selector equivalent usable with querySelectorAll for uniqueness checks.
@@ -30,6 +29,6 @@ export interface LocatorCandidate {
 }
 
 export interface LocatorResult {
-  best: LocatorCandidate;
+  best: LocatorCandidate | undefined;
   alternatives: LocatorCandidate[];
 }
