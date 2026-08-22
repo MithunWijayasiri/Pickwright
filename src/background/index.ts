@@ -69,6 +69,15 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
     return;
   }
 
+  // Popup asks background to clear history so the write shares this
+  // context's writeQueue with addToHistory (see ClearHistoryMessage).
+  if (message.type === MESSAGE_TYPES.CLEAR_HISTORY) {
+    clearHistory()
+      .catch((error) => console.error('Failed to clear history', error))
+      .finally(() => sendResponse());
+    return true; // async sendResponse
+  }
+
   // Relay popup commands to the active tab's content script.
   if (COMMAND_TYPES.has(message.type)) {
     const fallback = COMMAND_FALLBACKS[message.type as CommandMessage['type']];

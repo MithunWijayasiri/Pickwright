@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
-import { MESSAGE_TYPES, Message, sendCommand } from '../shared/messaging';
-import {
-  getHistory,
-  clearHistory,
-  onHistoryChange,
-  HistoryEntry,
-  MAX_HISTORY,
-} from '../shared/storage';
+import { MESSAGE_TYPES, Message, sendCommand, requestClearHistory } from '../shared/messaging';
+import { getHistory, onHistoryChange, HistoryEntry, MAX_HISTORY } from '../shared/storage';
 import {
   getSettings,
   setSettings,
@@ -105,9 +99,10 @@ const App = () => {
       return;
     }
     // Turning history off wipes existing entries and hides the section.
-    // onHistoryChange picks up the resulting storage write.
+    // Routed through background (see ClearHistoryMessage) so the write shares
+    // its writeQueue with addToHistory; onHistoryChange picks up the result.
     if (patch.historyMode === 'off') {
-      clearHistory();
+      requestClearHistory();
     }
   };
 

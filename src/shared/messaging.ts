@@ -9,6 +9,7 @@ export const MESSAGE_TYPES = {
   MULTI_PICK_STOP: 'MULTI_PICK_STOP',
   PICKER_DEACTIVATED: 'PICKER_DEACTIVATED',
   ELEMENT_SELECTED: 'ELEMENT_SELECTED',
+  CLEAR_HISTORY: 'CLEAR_HISTORY',
 } as const;
 
 export interface TogglePickerMessage {
@@ -78,11 +79,32 @@ export interface ElementSelectedMessage {
 
 export type BroadcastMessage = PickerDeactivatedMessage | ElementSelectedMessage;
 
-export type Message = CommandMessage | BroadcastMessage;
+// Popup -> background, handled directly by background (no tab relay). History
+// mutations must all go through background so they share its writeQueue —
+// storage.ts's queue is module-local, and popup/background load separate
+// module instances, so a mutation issued from popup wouldn't otherwise
+// serialise against one issued from background.
+export interface ClearHistoryMessage {
+  type: typeof MESSAGE_TYPES.CLEAR_HISTORY;
+}
+
+export type Message = CommandMessage | BroadcastMessage | ClearHistoryMessage;
 
 /** Send a broadcast; the payload is checked against the Message union. */
 export function broadcast(message: BroadcastMessage): void {
   chrome.runtime.sendMessage(message);
+}
+
+/** Ask background to clear history; resolves once the write completes. */
+export function requestClearHistory(): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.CLEAR_HISTORY }, () => {
+      // Reading lastError silences "Unchecked runtime.lastError" when the
+      // background isn't reachable (e.g. extension context invalidated).
+      void chrome.runtime.lastError;
+      resolve();
+    });
+  });
 }
 
 /** Send a popup->content command and resolve its typed response. */

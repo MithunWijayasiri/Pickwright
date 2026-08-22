@@ -44,19 +44,20 @@ Entries defined in `webpack.config.js`; `src/manifest.json` + `popup.html` copie
 
 ### Message flow (non-obvious)
 
-Popup cannot message content script directly → two paths:
+Popup cannot message content script directly → three paths:
 
 1. **Popup → content (commands):** popup sends one of `CommandMessage` (`TOGGLE_PICKER` / `GET_PICKER_STATE` / `MULTI_PICK_START` / `MULTI_PICK_STOP`) via the typed `sendCommand` helper. **Background relays** it to the active tab's content script, returns response async (`return true`). Dispatch in background is by `message.type` (`COMMAND_TYPES.has(...)`), never by `sender.tab` truthiness — a genuine `default_popup` view has no tab, but Playwright can only drive it by opening `popup.html` as a real tab, which *does* carry `sender.tab`; type-based dispatch keeps both cases correct. Content's handler switch has a `never`-typed default, so an unhandled command is a compile error, not a silent drop.
 2. **Content → popup (results/state):** broadcasts (`ELEMENT_SELECTED`, `PICKER_DEACTIVATED`) go via the typed `broadcast` helper — **NOT** relayed; both background and popup receive them. `deactivatePicker()` is the single place that broadcasts `PICKER_DEACTIVATED`, so every off-path (Escape, multi-pick stop, single-pick auto-off, popup-initiated toggle-off) emits it — popup's listener resets `pickerActive`/`multiPickerActive`/`multiPickCount` from that one message instead of per-path handlers. On selection, content also broadcasts `ELEMENT_SELECTED`; background persists history from it.
+3. **Popup → background (history mutations):** `ClearHistoryMessage` (`CLEAR_HISTORY`), sent via `requestClearHistory`. Handled directly by background, not relayed to any tab. Exists so history mutations always run in background's JS context and serialize against each other through `storage.ts`'s module-local `writeQueue` — that queue is per-context, so a mutation issued from popup wouldn't otherwise serialize against one issued from background (e.g. popup's off-toggle clear racing a background write from an in-flight pick). Any future history-mutating popup action (e.g. delete-row) must route the same way, not call `storage.ts` directly.
 
-History written **in background** (`background/index.ts`), NOT popup/content: on `ELEMENT_SELECTED`, background builds `HistoryEntry` from `sender.tab?.url` + calls `addToHistory` — popup is usually closed on click, can't reliably write. Popup re-reads via `getHistory`. Content never touches `chrome.storage`. Message types, payload interfaces, response types, and the `sendCommand`/`broadcast` helpers live in `src/shared/messaging.ts` — direction and response shape are declared once there.
+History written **in background** (`background/index.ts`), NOT popup/content: on `ELEMENT_SELECTED`, background builds `HistoryEntry` from `sender.tab.url` (skips the write if absent — no tab, no history) + calls `addToHistory`, which no-ops when `historyMode` is `off` — popup is usually closed on click, can't reliably write. Popup re-reads via `getHistory` and subscribes to `onHistoryChange` (`chrome.storage.onChanged`) for live updates instead of polling. Content never touches `chrome.storage`. Message types, payload interfaces, response types, and the `sendCommand`/`broadcast`/`requestClearHistory` helpers live in `src/shared/messaging.ts` — direction and response shape are declared once there.
 
 E2E note: a popup opened via `extensionContext.newPage()` becomes the active tab, and the relay resolves its target via `chrome.tabs.query({active:true})` — `page.bringToFront()` on the content tab before sending a command keeps the relay pointed at the right tab (`tests/extension.spec.ts`, relay test).
 
 ### Settings & theme (split storage)
 
 - **Settings** (`src/shared/settings.ts`): `chrome.storage.local` key `pickwright_settings`, read by background + popup. `historyMode`: `keep` / `autoClear` (wipe on browser startup) / `off` (never record). `getSettings` merges over `DEFAULT_SETTINGS`.
-- **Background enforces `historyMode`:** `ELEMENT_SELECTED` skips `addToHistory` when `off`; `chrome.runtime.onStartup` calls `clearHistory` when `autoClear`.
+- **`historyMode` enforced in `storage.ts`:** `addToHistory` no-ops when `off`; `chrome.runtime.onStartup` (background) calls `clearHistory` when `autoClear`.
 - **Theme is popup-only** (`localStorage` key `pw-theme`, `dark` default) — NOT in `settings.ts` (`localStorage` unavailable in background worker). Applied via `data-theme` on `<html>`.
 - Popup `view` state: `main` / `settings`; settings uses generic `Segmented` radiogroup. Turning `historyMode` off also clears existing entries immediately.
 
