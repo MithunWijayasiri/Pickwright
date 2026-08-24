@@ -105,7 +105,7 @@ Deliberately skipped: `forTextExpect` mode (assertion generation, not picking), 
 
 `npm audit` reports 2 high-severity `image-size` advisories (ICNS/JXL/HEIF parser infinite loops, DoS), reached only via `web-ext lint` (`addons-linter` pins `image-size@2.0.2` exactly):
 
-```
+```text
 image-size  (2 high)
   addons-linter >=3.0.0
     web-ext >=6.1.0
