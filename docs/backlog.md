@@ -101,6 +101,22 @@ Sources (microsoft/playwright `main`): `packages/injected/src/selectorGenerator.
 
 Deliberately skipped: `forTextExpect` mode (assertion generation, not picking), ARIA state helpers (`getAriaChecked` etc. — assertions, not selection), and `locatorGenerators.ts` multi-language output (only relevant if Python/Java/C# output is ever offered; needs the token model first).
 
+## Accepted risk: `image-size` advisory (dev-only)
+
+`npm audit` reports 2 high-severity `image-size` advisories (ICNS/JXL/HEIF parser infinite loops, DoS), reached only via `web-ext lint` (`addons-linter` pins `image-size@2.0.2` exactly):
+
+```text
+image-size  (2 high)
+  addons-linter >=3.0.0
+    web-ext >=6.1.0
+```
+
+No patched `image-size` exists — `2.0.2` is latest, advisory range is `<=2.0.2`. `npm audit fix --force` offers `web-ext@5.5.0`, a five-major downgrade that breaks `web-ext lint` (`ci.yml`) and `web-ext sign` (`release.yml`). Declined.
+
+Dev-tree only, not in the shipped extension bundle — exposure is a developer/CI runner linting Pickwright's own extension assets, not page content or runtime code.
+
+Revisit when `addons-linter` unpins `image-size` or `image-size` ships a patched release. See #36.
+
 ## Firefox manifest
 
 `browser_specific_settings.gecko.data_collection_permissions` is missing. `web-ext lint` warns it is required for new Firefox extensions — a warning today (0 errors, does not gate CI), an AMO submission blocker later.

@@ -27,6 +27,9 @@ jobs:
       - run: npm ci
       # tsc --noEmit + eslint + prettier --check + scripts/ unit tests; same command as local `npm run check`.
       - run: npm run check
+      # Advisory only: image-size (unpatched, via addons-linter/web-ext) keeps this non-zero. See docs/backlog.md.
+      - run: npm audit --audit-level=high
+        continue-on-error: true
       # Firefox manifest transform + AMO validity — release signs from this build.
       - run: npm run build:firefox
       - run: npx web-ext lint --source-dir=dist-firefox
