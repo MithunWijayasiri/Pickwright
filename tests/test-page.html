@@ -242,6 +242,11 @@
     <iframe srcdoc="<button id='dup-frame-btn-1'>Dup Frame Button 1</button>"></iframe>
     <iframe srcdoc="<button id='dup-frame-btn-2'>Dup Frame Button 2</button>"></iframe>
 
+    <!-- 10. Nested iframe: an inner iframe built inside an outer one's document,
+         both same-origin — proves the picker binds listeners two levels deep and
+         emits a two-segment frameLocator chain. -->
+    <iframe id="nested-outer-iframe"></iframe>
+
     <script>
       // Initialize Shadow DOM with content
       const host = document.getElementById('shadow-host');
@@ -264,6 +269,19 @@
       iconShadow.innerHTML = `
       <span id="composed-icon" style="display: inline-block; width: 20px; height: 20px; background: #ccc;"></span>
     `;
+
+      // Build the nested iframe from script: two levels of srcdoc quoting in
+      // plain HTML is unreadable, DOM APIs sidestep it entirely.
+      const nestedOuter = document.getElementById('nested-outer-iframe');
+      nestedOuter.addEventListener('load', () => {
+        const innerDoc = nestedOuter.contentDocument;
+        if (innerDoc.getElementById('nested-inner-iframe')) return;
+        const inner = innerDoc.createElement('iframe');
+        inner.id = 'nested-inner-iframe';
+        inner.srcdoc = "<button id='nested-btn'>Nested Frame Button</button>";
+        innerDoc.body.appendChild(inner);
+      });
+      nestedOuter.srcdoc = '<!DOCTYPE html><html><body></body></html>';
     </script>
   </body>
 </html>

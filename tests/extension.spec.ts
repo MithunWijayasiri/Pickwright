@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures';
-import type { Page } from '@playwright/test';
+import type { FrameLocator, Page } from '@playwright/test';
 import { MESSAGE_TYPES } from '../src/shared/messaging';
 
 // The fixtures (extensionContext/serverUrl/extensionId) are worker-scoped, so a
@@ -38,12 +38,14 @@ test.describe('Pickwright Chrome Extension E2E', () => {
   async function expectLocatorOnHover(
     selector: string,
     expected: string,
-    opts?: { frame?: string },
+    opts?: { frames?: string[] },
   ): Promise<void> {
-    const target = opts?.frame
-      ? page.frameLocator(opts.frame).locator(selector)
-      : page.locator(selector);
-    await target.hover();
+    const target = (opts?.frames ?? []).reduce<Page | FrameLocator>(
+      (fl, frameSelector) => fl.frameLocator(frameSelector),
+      page,
+    );
+    const locator = target.locator(selector);
+    await locator.hover();
     await expect(page.locator('#pickwright-tooltip')).toHaveText(expected);
   }
 
@@ -67,7 +69,7 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     await expectLocatorOnHover(
       '#iframe-btn',
       "frameLocator('iframe#test-iframe').getByRole('button', { name: 'Click Frame Button' })",
-      { frame: '#test-iframe' },
+      { frames: ['#test-iframe'] },
     );
   });
 
@@ -78,7 +80,7 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     await expectLocatorOnHover(
       '#nl-frame-btn',
       `frameLocator('iframe[name="outer\\\\a frame"]').getByRole('button', { name: 'Newline Frame Button' })`,
-      { frame: 'iframe[name="outer\\a frame"]' },
+      { frames: ['iframe[name="outer\\a frame"]'] },
     );
   });
 
@@ -97,6 +99,14 @@ test.describe('Pickwright Chrome Extension E2E', () => {
     const resolved = page.frameLocator(match[1]).locator('#dup-frame-btn-2');
     await expect(resolved).toHaveCount(1);
     await expect(resolved).toHaveText('Dup Frame Button 2');
+  });
+
+  test('frameLocator chain composes one segment per nested same-origin iframe level', async () => {
+    await expectLocatorOnHover(
+      '#nested-btn',
+      "frameLocator('iframe#nested-outer-iframe').frameLocator('iframe#nested-inner-iframe').getByRole('button', { name: 'Nested Frame Button' })",
+      { frames: ['#nested-outer-iframe', '#nested-inner-iframe'] },
+    );
   });
 
   test('custom data-* CSS fallback when text exceeds the getByText limit', async () => {
