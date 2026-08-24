@@ -65,8 +65,8 @@ function offsetToTop(view: Window): { x: number; y: number } {
     const frame = win.frameElement as HTMLIFrameElement | null;
     if (!frame) break;
     const rect = frame.getBoundingClientRect();
-    x += rect.left;
-    y += rect.top;
+    x += rect.left + frame.clientLeft;
+    y += rect.top + frame.clientTop;
     if (win.parent === win) break;
     win = win.parent;
   }
@@ -314,8 +314,8 @@ function resolveAt(x: number, y: number): Element | null {
       const doc = iframe.contentDocument;
       if (!doc) break;
       const rect = iframe.getBoundingClientRect();
-      x -= rect.left;
-      y -= rect.top;
+      x -= rect.left + iframe.clientLeft;
+      y -= rect.top + iframe.clientTop;
       const nextEl = doc.elementFromPoint(x, y);
       // nextEl comes from the inner document, so it can never be the iframe
       // itself; the `tagName === 'IFRAME'` loop condition handles termination.
