@@ -17,7 +17,7 @@ const isHistoryMode = (value: unknown): value is HistoryMode =>
   value === 'keep' || value === 'autoClear' || value === 'off';
 
 export async function getSettings(): Promise<Settings> {
-  const result = await chrome.storage.local.get(SETTINGS_KEY);
+  const result = await chrome.storage.local.get<Record<string, Partial<Settings>>>(SETTINGS_KEY);
   const raw = result[SETTINGS_KEY] ?? {};
   return {
     ...DEFAULT_SETTINGS,
