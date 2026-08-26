@@ -5,5 +5,16 @@ updates:
     schedule:
       interval: weekly
     groups:
+      react:
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
       dev-dependencies:
         dependency-type: development
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
