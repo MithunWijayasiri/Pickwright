@@ -30,10 +30,7 @@ export interface MultiPickStopMessage {
 
 // Popup -> content, relayed by background to the active tab (see COMMAND_TYPES).
 export type CommandMessage =
-  | TogglePickerMessage
-  | GetPickerStateMessage
-  | MultiPickStartMessage
-  | MultiPickStopMessage;
+  TogglePickerMessage | GetPickerStateMessage | MultiPickStartMessage | MultiPickStopMessage;
 
 export interface CommandResponseMap {
   [MESSAGE_TYPES.TOGGLE_PICKER]: { active: boolean };
