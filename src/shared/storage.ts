@@ -21,7 +21,7 @@ export interface HistoryEntry {
 }
 
 export async function getHistory(): Promise<HistoryEntry[]> {
-  const result = await chrome.storage.local.get(STORAGE_KEY);
+  const result = await chrome.storage.local.get<Record<string, HistoryEntry[]>>(STORAGE_KEY);
   return result[STORAGE_KEY] ?? [];
 }
 
@@ -69,7 +69,7 @@ export function onHistoryChange(callback: (history: HistoryEntry[]) => void): ()
     if (areaName !== 'local') return;
     const change = changes[STORAGE_KEY];
     if (!change) return;
-    callback(change.newValue ?? []);
+    callback(Array.isArray(change.newValue) ? (change.newValue as HistoryEntry[]) : []);
   };
   chrome.storage.onChanged.addListener(listener);
   return () => chrome.storage.onChanged.removeListener(listener);
