@@ -1,6 +1,6 @@
 # Pickwright
 
-<p align="center"><img src="docs/pickwright-banner.png" alt="Pickwright banner" /></p>
+<p align="center"><img src="docs/assets/pickwright-banner.png" alt="Pickwright banner" /></p>
 
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/pickwright-playwright-loc/kgikopoehffaodbicnhajokkmhgjofjo"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Available%20on-Chrome%20Web%20Store-4285F4?logo=googlechrome&logoColor=white"></a>

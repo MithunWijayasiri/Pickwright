@@ -15,7 +15,7 @@ Add cases by copying 4 lines in the existing tables; no harness changes needed.
 
 ### Decision needed: does `SCORE.label` earn its place?
 
-`getByLabel` is near-unreachable. `getAccessibleName` consults `findAssociatedLabel` first, so a labeled element with a role wins at `roleWithName` (100) before `label` (120); and `countLabelMatches` only scans `input, textarea, select, [role]`, so a labeled element with no role never counts as unique. Reachable only when `aria-label` diverges from the `<label>` text *and* role+name is non-unique — what the spec fixture encodes.
+`getByLabel` is near-unreachable. `getAccessibleName` consults `findAssociatedLabel` first, so a labeled element with a role wins at `roleWithName` (100) before `label` (120); and `countLabelMatches` only scans `input, textarea, select, [role]`, so a labeled element outside those selectors never counts as unique. Reachable only when `aria-label` diverges from the `<label>` text *and* role+name is non-unique — what the spec fixture encodes.
 
 Matches Playwright (it won't resolve a labeled `<div>` either), so not a bug. Removing the strategy drops `countLabelMatches` too; keeping it costs one contrived fixture.
 
@@ -116,7 +116,3 @@ No patched `image-size` exists — `2.0.2` is latest, advisory range is `<=2.0.2
 Dev-tree only, not in the shipped extension bundle — exposure is a developer/CI runner linting Pickwright's own extension assets, not page content or runtime code.
 
 Revisit when `addons-linter` unpins `image-size` or `image-size` ships a patched release. See #36.
-
-## Firefox manifest
-
-`browser_specific_settings.gecko.data_collection_permissions` is missing. `web-ext lint` warns it is required for new Firefox extensions — a warning today (0 errors, does not gate CI), an AMO submission blocker later.
