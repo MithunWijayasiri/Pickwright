@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pickwright - Playwright Locator Picker",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Pick page elements as Playwright locators",
   "permissions": [
     "activeTab",
