@@ -17,7 +17,7 @@ Invariants for `src/locator-engine/`. Violating these is how the parity PR shipp
 - Emit order in `generate.ts` is irrelevant to ranking, except as a stable-sort tiebreak between equal scores.
 - Role `.nth(N)`: only when role alone matches >1 visible elements and index ≤ 5. `unique: true` by construction, and exempt from the role-only dedupe in `score.ts` — it is the recourse when role+name is not unique.
 - Name-from-content only for `NAME_FROM_CONTENT_ROLES` (Playwright's `allowsNameFromContent`).
-- `SCORE.label` is near-unreachable by design — `getAccessibleName` consumes the label first, and `countLabelMatches` only scans `input, textarea, select, [role]`. Matches Playwright; its contrived spec fixture is deliberate. Details + open decision: `docs/backlog.md`.
+- `SCORE.label` is near-unreachable by design — `getAccessibleName` consumes the label first, and `countLabelMatches` only scans `input, textarea, select, [role]`. Matches Playwright; its contrived spec fixture is deliberate. Details + open decision: `notes/backlog.md`.
 - Changing `SCORE` fails cases in `tests/engine/locator.spec.ts` by design. Decide per case whether the new winner is intended — never paste actual output back in to go green.
 
 ## Every candidate carries real uniqueness
