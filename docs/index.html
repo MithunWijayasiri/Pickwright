@@ -214,6 +214,20 @@ nav::after {
 }
 .nav-cta:hover { background: var(--accent); color: var(--bg); }
 
+/* Mobile menu button + panel (desktop: hidden, revealed at ≤700px) */
+.nav-menu-btn {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 44px; min-height: 44px;
+  font-size: 18px; line-height: 1;
+  color: var(--text); background: transparent;
+  border: 1px solid var(--border2); border-radius: 3px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.nav-menu-btn:hover { border-color: var(--accent); color: var(--accent); }
+.nav-panel { display: none; }
+
 ::selection { background: var(--accent); color: var(--bg); }
 
 /* ─── Hero ───────────────────────────────────────────────────────────────── */
@@ -752,7 +766,31 @@ footer {
   .install-inner { grid-template-columns: 1fr; }
   .install-left { border-right: none; border-bottom: 1px solid var(--border); }
   nav .nav-links { display: none; }
-  nav .nav-kofi { display: none; }
+  nav .nav-right > .nav-kofi { display: none; }
+  nav .nav-right > .nav-cta { display: none; }
+  nav .nav-menu-btn { display: inline-flex; }
+  nav .nav-panel:not([hidden]) { display: flex; }
+  .nav-panel {
+    position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column;
+    padding: 0.5rem 1.25rem 1.25rem;
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-panel-link {
+    display: flex; align-items: center;
+    min-height: 44px; padding: 10px 0;
+    font-family: var(--mono); font-size: 15px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-panel-link:hover { color: var(--text); }
+  .nav-panel-actions { display: flex; gap: 10px; padding-top: 1rem; }
+  .nav-panel-actions .nav-kofi, .nav-panel-actions .nav-cta {
+    flex: 1; justify-content: center; min-height: 44px;
+  }
   .hero { padding-top: 5rem; }
   .cta-strip { align-items: flex-start; }
 }
@@ -796,8 +834,31 @@ footer {
     </button>
     <a class="nav-kofi" href="https://ko-fi.com/mithunwijayasiri" target="_blank" rel="noopener"><span class="kofi-icon">☕</span>Ko-fi</a>
     <a class="nav-cta" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download</a>
+    <button class="nav-menu-btn" id="navMenuBtn" aria-expanded="false" aria-controls="navPanel" aria-label="Open menu">
+      <span id="navMenuIcon" aria-hidden="true">☰</span>
+    </button>
+  </div>
+  <div class="nav-panel" id="navPanel" hidden>
+    <a class="nav-panel-link" href="#picker">picker</a>
+    <a class="nav-panel-link" href="#features">features</a>
+    <a class="nav-panel-link" href="#strategies">locators</a>
+    <a class="nav-panel-link" href="#install">install</a>
+    <a class="nav-panel-link" href="#compare">compare</a>
+    <a class="nav-panel-link" href="https://github.com/MithunWijayasiri/Pickwright">github</a>
+    <div class="nav-panel-actions">
+      <a class="nav-kofi" href="https://ko-fi.com/mithunwijayasiri" target="_blank" rel="noopener"><span class="kofi-icon">☕</span>Ko-fi</a>
+      <a class="nav-cta" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download</a>
+    </div>
   </div>
 </nav>
+<noscript>
+  <style>
+    @media (max-width: 700px) {
+      nav .nav-menu-btn { display: none; }
+      nav .nav-panel, nav .nav-panel[hidden] { display: flex; position: static; border-bottom: none; padding: 0 1.25rem 1rem; }
+    }
+  </style>
+</noscript>
 
 <!-- Shared gradient for the Firefox mark, referenced by every store badge -->
 <svg width="0" height="0" aria-hidden="true" style="position:absolute">
@@ -1232,6 +1293,46 @@ applyTheme(html.getAttribute('data-theme') || 'dark');
 toggleBtn.addEventListener('click', () => {
   const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   applyTheme(next);
+});
+
+// ── Mobile nav menu ─────────────────────────────────────────────────────────
+const menuBtn  = document.getElementById('navMenuBtn');
+const menuIcon = document.getElementById('navMenuIcon');
+const navPanel = document.getElementById('navPanel');
+
+function setMenu(open) {
+  menuBtn.setAttribute('aria-expanded', String(open));
+  menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  menuIcon.textContent = open ? '✕' : '☰';
+  navPanel.hidden = !open;
+}
+
+menuBtn.addEventListener('click', () => {
+  setMenu(navPanel.hidden);
+});
+
+// Close after following a panel link
+navPanel.addEventListener('click', (e) => {
+  if (e.target.closest('a')) setMenu(false);
+});
+
+// Escape closes and returns focus to the button
+// Clicks outside the nav close an open panel
+// Returning to desktop layout resets the panel
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !navPanel.hidden) {
+    setMenu(false);
+    menuBtn.focus();
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!navPanel.hidden && !e.target.closest('#nav')) setMenu(false);
+});
+
+window.matchMedia('(min-width: 701px)').addEventListener('change', (e) => {
+  if (e.matches) setMenu(false);
 });
 
 // ── Scroll progress bar ───────────────────────────────────────────────────────
