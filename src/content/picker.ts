@@ -11,8 +11,11 @@ import {
 } from './overlay';
 import { collectMetadata, isAngularDropdownTrigger, drillIntoShadow } from './inspect';
 import { getLocator, highlightInline } from '../locator-engine';
+import { getSettings } from '../shared/settings';
 
 let pickerActive = false;
+let copyOnPick = false;
+let activationId = 0;
 let multiPickerActive = false;
 let lastHoveredElement: Element | null = null;
 let lastLocatorStr = '';
@@ -35,9 +38,16 @@ const SUPPRESSED_EVENTS = [
 function activatePicker(): void {
   if (pickerActive) return;
   pickerActive = true;
-  createOverlay();
-  document.documentElement.style.cursor = 'crosshair';
-  attachListeners();
+  const activation = ++activationId;
+  // Settings load before listeners attach, so no pick runs on a stale copyOnPick.
+  // A result from a superseded activation (deactivated or re-activated meanwhile) is dropped.
+  getSettings().then((s) => {
+    if (activation !== activationId || !pickerActive) return;
+    copyOnPick = s.copyOnPick;
+    createOverlay();
+    document.documentElement.style.cursor = 'crosshair';
+    attachListeners();
+  });
 }
 
 function deactivatePicker(): void {
@@ -150,8 +160,10 @@ function onClick(e: MouseEvent): void {
   // See the onMouseMove guard above: unreachable per the engine's uniqueness invariant.
   if (!best) return;
 
-  copyToClipboard(best.value);
-  showToast(best.value, isAngularDropdownTrigger(el));
+  if (copyOnPick) {
+    copyToClipboard(best.value);
+  }
+  showToast(best.value, isAngularDropdownTrigger(el), copyOnPick);
 
   broadcast({
     type: MESSAGE_TYPES.ELEMENT_SELECTED,
@@ -349,7 +361,7 @@ function copyToClipboard(text: string): void {
 
 // --- Toast ---
 
-function showToast(text: string, isDropdown: boolean): void {
+function showToast(text: string, isDropdown: boolean, copied: boolean): void {
   // Drop any toast still on screen so rapid picks don't stack duplicate IDs.
   document.getElementById(TOAST_ID)?.remove();
 
@@ -407,7 +419,7 @@ function showToast(text: string, isDropdown: boolean): void {
     letterSpacing: '0.05em',
     color: accentColor,
   });
-  statusRow.textContent = isDropdown ? '⚠ Warning' : '✓ Copied';
+  statusRow.textContent = isDropdown ? '⚠ Warning' : copied ? '✓ Copied' : '✓ Picked';
   innerContent.appendChild(statusRow);
 
   const codeRow = document.createElement('div');
