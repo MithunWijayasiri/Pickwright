@@ -24,8 +24,7 @@ export async function getSettings(): Promise<Settings> {
   return {
     ...DEFAULT_SETTINGS,
     historyMode: isHistoryMode(raw.historyMode) ? raw.historyMode : DEFAULT_SETTINGS.historyMode,
-    copyOnPick:
-      typeof raw.copyOnPick === 'boolean' ? raw.copyOnPick : DEFAULT_SETTINGS.copyOnPick,
+    copyOnPick: typeof raw.copyOnPick === 'boolean' ? raw.copyOnPick : DEFAULT_SETTINGS.copyOnPick,
   };
 }
 

@@ -11,10 +11,11 @@ import {
 } from './overlay';
 import { collectMetadata, isAngularDropdownTrigger, drillIntoShadow } from './inspect';
 import { getLocator, highlightInline } from '../locator-engine';
-import { DEFAULT_SETTINGS, getSettings } from '../shared/settings';
+import { getSettings } from '../shared/settings';
 
 let pickerActive = false;
-let copyOnPick = DEFAULT_SETTINGS.copyOnPick;
+let copyOnPick = false;
+let activationId = 0;
 let multiPickerActive = false;
 let lastHoveredElement: Element | null = null;
 let lastLocatorStr = '';
@@ -37,13 +38,16 @@ const SUPPRESSED_EVENTS = [
 function activatePicker(): void {
   if (pickerActive) return;
   pickerActive = true;
-  // Read per activation: settings can only change while the popup is open.
+  const activation = ++activationId;
+  // Settings load before listeners attach, so no pick runs on a stale copyOnPick.
+  // A result from a superseded activation (deactivated or re-activated meanwhile) is dropped.
   getSettings().then((s) => {
+    if (activation !== activationId || !pickerActive) return;
     copyOnPick = s.copyOnPick;
+    createOverlay();
+    document.documentElement.style.cursor = 'crosshair';
+    attachListeners();
   });
-  createOverlay();
-  document.documentElement.style.cursor = 'crosshair';
-  attachListeners();
 }
 
 function deactivatePicker(): void {
