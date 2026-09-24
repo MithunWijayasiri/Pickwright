@@ -238,14 +238,6 @@ const App = () => {
             </span>
             <span className="hd-ver">v{chrome.runtime.getManifest().version}</span>
             <div className="hd-actions">
-              <button
-                className="hd-btn"
-                onClick={() => setView('settings')}
-                title="Settings"
-                aria-label="Settings"
-              >
-                <SettingsIcon />
-              </button>
               <a
                 className="hd-gh"
                 href="https://github.com/MithunWijayasiri/Pickwright"
@@ -256,6 +248,14 @@ const App = () => {
               >
                 <GitHubIcon />
               </a>
+              <button
+                className="hd-btn"
+                onClick={() => setView('settings')}
+                title="Settings"
+                aria-label="Settings"
+              >
+                <SettingsIcon />
+              </button>
             </div>
           </>
         )}
