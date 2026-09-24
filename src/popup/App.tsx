@@ -27,6 +27,24 @@ type View = 'main' | 'settings';
 const getInitialTheme = (): Theme =>
   localStorage.getItem('pw-theme') === 'light' ? 'light' : 'dark';
 
+const IS_FIREFOX = chrome.runtime.getURL('').startsWith('moz-extension:');
+const REPO_URL = 'https://github.com/MithunWijayasiri/Pickwright';
+const STORE_URL = IS_FIREFOX
+  ? 'https://addons.mozilla.org/en-US/firefox/addon/pickwright/'
+  : 'https://chromewebstore.google.com/detail/pickwright-playwright-loc/kgikopoehffaodbicnhajokkmhgjofjo';
+
+// Firefox-only API, missing from @types/chrome; Chrome has no equivalent, so it opens the page directly.
+const openShortcutSettings = () => {
+  const commands = chrome.commands as typeof chrome.commands & {
+    openShortcutSettings?: () => Promise<void>;
+  };
+  if (commands.openShortcutSettings) {
+    commands.openShortcutSettings();
+  } else {
+    chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+  }
+};
+
 const Segmented = <T extends string>({
   value,
   options,
@@ -78,6 +96,7 @@ const App = () => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [view, setView] = useState<View>('main');
   const [settings, setSettingsState] = useState<Settings>(DEFAULT_SETTINGS);
+  const [shortcut, setShortcut] = useState('');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -110,6 +129,10 @@ const App = () => {
     getSettings()
       .then(setSettingsState)
       .catch(() => setSettingsState(DEFAULT_SETTINGS));
+    // Empty string when the user has unbound the shortcut.
+    chrome.commands.getAll((commands) => {
+      setShortcut(commands.find((c) => c.name === 'toggle-picker')?.shortcut ?? '');
+    });
     sendCommand(MESSAGE_TYPES.GET_PICKER_STATE).then((response) => {
       if (response?.active) {
         setPickerActive(true);
@@ -240,7 +263,7 @@ const App = () => {
             <div className="hd-actions">
               <a
                 className="hd-gh"
-                href="https://github.com/MithunWijayasiri/Pickwright"
+                href={REPO_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="View on GitHub"
@@ -264,37 +287,65 @@ const App = () => {
       <div className="body">
         {view === 'settings' ? (
           <div className="settings">
-            <Segmented<Theme>
-              value={theme}
-              options={[
-                { value: 'light', label: 'Light' },
-                { value: 'dark', label: 'Dark' },
-              ]}
-              onChange={applyTheme}
-              label="Theme"
-              desc="Switch between the light and dark color scheme."
-            />
-            <Segmented<HistoryMode>
-              value={settings.historyMode}
-              options={[
-                { value: 'keep', label: 'Keep' },
-                { value: 'autoClear', label: 'Auto-clear' },
-                { value: 'off', label: 'Off' },
-              ]}
-              onChange={(next) => updateSetting({ historyMode: next })}
-              label="History"
-              desc="Keep saves locators across restarts, Auto-clear wipes them on browser startup, Off stops recording."
-            />
-            <Segmented<'on' | 'off'>
-              value={settings.copyOnPick ? 'on' : 'off'}
-              options={[
-                { value: 'on', label: 'On' },
-                { value: 'off', label: 'Off' },
-              ]}
-              onChange={(next) => updateSetting({ copyOnPick: next === 'on' })}
-              label="Copy on pick"
-              desc="Copy the locator to the clipboard as soon as you click an element."
-            />
+            <div className="set-list">
+              <Segmented<Theme>
+                value={theme}
+                options={[
+                  { value: 'light', label: 'Light' },
+                  { value: 'dark', label: 'Dark' },
+                ]}
+                onChange={applyTheme}
+                label="Theme"
+                desc="Switch between the light and dark color scheme."
+              />
+              <Segmented<HistoryMode>
+                value={settings.historyMode}
+                options={[
+                  { value: 'keep', label: 'Keep' },
+                  { value: 'autoClear', label: 'Auto-clear' },
+                  { value: 'off', label: 'Off' },
+                ]}
+                onChange={(next) => updateSetting({ historyMode: next })}
+                label="History"
+                desc="Keep saves locators across restarts, Auto-clear wipes them on browser startup, Off stops recording."
+              />
+              <Segmented<'on' | 'off'>
+                value={settings.copyOnPick ? 'on' : 'off'}
+                options={[
+                  { value: 'on', label: 'On' },
+                  { value: 'off', label: 'Off' },
+                ]}
+                onChange={(next) => updateSetting({ copyOnPick: next === 'on' })}
+                label="Copy on pick"
+                desc="Copy the locator to the clipboard as soon as you click an element."
+              />
+              <div className="set-row">
+                <div className="set-text">
+                  <div className="set-label">Keyboard shortcut</div>
+                  <div className="set-desc">Toggle the picker without opening this popup.</div>
+                </div>
+                <div className="set-inline">
+                  <kbd className="set-kbd">{shortcut || 'Not set'}</kbd>
+                  <button type="button" className="set-link" onClick={openShortcutSettings}>
+                    Change
+                  </button>
+                </div>
+              </div>
+            </div>
+            <footer className="set-foot">
+              <a className="set-link" href={STORE_URL} target="_blank" rel="noopener noreferrer">
+                Rate Pickwright
+              </a>
+              <span className="set-foot-sep">·</span>
+              <a
+                className="set-link"
+                href={`${REPO_URL}/issues/new`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Report an issue
+              </a>
+            </footer>
           </div>
         ) : (
           <>
