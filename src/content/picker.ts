@@ -11,8 +11,10 @@ import {
 } from './overlay';
 import { collectMetadata, isAngularDropdownTrigger, drillIntoShadow } from './inspect';
 import { getLocator, highlightInline } from '../locator-engine';
+import { DEFAULT_SETTINGS, getSettings } from '../shared/settings';
 
 let pickerActive = false;
+let copyOnPick = DEFAULT_SETTINGS.copyOnPick;
 let multiPickerActive = false;
 let lastHoveredElement: Element | null = null;
 let lastLocatorStr = '';
@@ -35,6 +37,10 @@ const SUPPRESSED_EVENTS = [
 function activatePicker(): void {
   if (pickerActive) return;
   pickerActive = true;
+  // Read per activation: settings can only change while the popup is open.
+  getSettings().then((s) => {
+    copyOnPick = s.copyOnPick;
+  });
   createOverlay();
   document.documentElement.style.cursor = 'crosshair';
   attachListeners();
@@ -150,8 +156,10 @@ function onClick(e: MouseEvent): void {
   // See the onMouseMove guard above: unreachable per the engine's uniqueness invariant.
   if (!best) return;
 
-  copyToClipboard(best.value);
-  showToast(best.value, isAngularDropdownTrigger(el));
+  if (copyOnPick) {
+    copyToClipboard(best.value);
+  }
+  showToast(best.value, isAngularDropdownTrigger(el), copyOnPick);
 
   broadcast({
     type: MESSAGE_TYPES.ELEMENT_SELECTED,
@@ -349,7 +357,7 @@ function copyToClipboard(text: string): void {
 
 // --- Toast ---
 
-function showToast(text: string, isDropdown: boolean): void {
+function showToast(text: string, isDropdown: boolean, copied: boolean): void {
   // Drop any toast still on screen so rapid picks don't stack duplicate IDs.
   document.getElementById(TOAST_ID)?.remove();
 
@@ -407,7 +415,7 @@ function showToast(text: string, isDropdown: boolean): void {
     letterSpacing: '0.05em',
     color: accentColor,
   });
-  statusRow.textContent = isDropdown ? '⚠ Warning' : '✓ Copied';
+  statusRow.textContent = isDropdown ? '⚠ Warning' : copied ? '✓ Copied' : '✓ Picked';
   innerContent.appendChild(statusRow);
 
   const codeRow = document.createElement('div');

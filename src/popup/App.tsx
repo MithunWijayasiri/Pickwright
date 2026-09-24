@@ -285,6 +285,16 @@ const App = () => {
               label="History"
               desc="Keep saves locators across restarts, Auto-clear wipes them on browser startup, Off stops recording."
             />
+            <Segmented<'on' | 'off'>
+              value={settings.copyOnPick ? 'on' : 'off'}
+              options={[
+                { value: 'on', label: 'On' },
+                { value: 'off', label: 'Off' },
+              ]}
+              onChange={(next) => updateSetting({ copyOnPick: next === 'on' })}
+              label="Copy on pick"
+              desc="Copy the locator to the clipboard as soon as you click an element."
+            />
           </div>
         ) : (
           <>
