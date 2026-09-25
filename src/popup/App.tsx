@@ -135,6 +135,10 @@ const App = () => {
     // Routed through background (see ClearHistoryMessage) so the write shares
     // its writeQueue with addToHistory; onHistoryChange picks up the result.
     if (patch.historyMode === 'off') {
+      // Multi-pick needs history; stopping copies the session before the clear.
+      if (multiPickerActive) {
+        await stopMultiPick();
+      }
       requestClearHistory();
     }
   };
