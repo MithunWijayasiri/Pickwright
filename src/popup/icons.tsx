@@ -75,3 +75,9 @@ export const StackIcon = ({ className }: IconProps) => (
     <path d="M5 13.5V15a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.5" />
   </svg>
 );
+
+export const ChevronIcon = ({ className }: IconProps) => (
+  <svg {...base(className)}>
+    <path d="M6 4l4 4-4 4" />
+  </svg>
+);

@@ -7,7 +7,7 @@ import {
   MESSAGE_TYPES,
   Message,
 } from '../shared/messaging';
-import { addToHistory, clearHistory, HistoryEntry } from '../shared/storage';
+import { addToGroup, addToHistory, clearHistory, PickedLocator } from '../shared/storage';
 import { getSettings } from '../shared/settings';
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -52,8 +52,7 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
     const payload = message.payload;
     const url = sender.tab?.url;
     if (!url) return;
-    const entry: HistoryEntry = {
-      url,
+    const pick: PickedLocator = {
       timestamp: Date.now(),
       locator: payload.locator,
       strategy: payload.strategy,
@@ -62,8 +61,11 @@ chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) =>
       alternatives: payload.alternatives,
       reasons: payload.reasons,
     };
-    // addToHistory no-ops when historyMode is 'off'.
-    addToHistory(entry).catch((error) => {
+    // Both no-op when historyMode is 'off'.
+    const write = payload.sessionId
+      ? addToGroup(payload.sessionId, url, pick)
+      : addToHistory({ url, ...pick });
+    write.catch((error) => {
       console.error('Failed to persist element selection history', error);
     });
     return;

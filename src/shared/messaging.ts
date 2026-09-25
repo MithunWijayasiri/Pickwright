@@ -70,7 +70,8 @@ export interface ElementSelectedMessage {
     reasons: LocatorReason[];
     tag: string;
     textSnippet: string;
-    multiPick?: boolean;
+    // Set only during multi-pick; background groups picks by it.
+    sessionId?: string;
   };
 }
 

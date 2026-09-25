@@ -12,11 +12,14 @@ import {
 import { collectMetadata, isAngularDropdownTrigger, drillIntoShadow } from './inspect';
 import { getLocator, highlightInline } from '../locator-engine';
 import { getSettings } from '../shared/settings';
+import { MAX_GROUP_PICKS } from '../shared/storage';
 
 let pickerActive = false;
 let copyOnPick = false;
 let activationId = 0;
 let multiPickerActive = false;
+let multiPickSessionId = '';
+let multiPickCount = 0;
 let lastHoveredElement: Element | null = null;
 let lastLocatorStr = '';
 
@@ -174,11 +177,11 @@ function onClick(e: MouseEvent): void {
       reasons: best.reasons ?? [],
       tag: meta.tagName,
       textSnippet: meta.textContent.slice(0, 40),
-      multiPick: multiPickerActive,
+      sessionId: multiPickerActive ? multiPickSessionId : undefined,
     },
   });
 
-  if (!multiPickerActive) {
+  if (!multiPickerActive || ++multiPickCount >= MAX_GROUP_PICKS) {
     deactivatePicker();
   }
 }
@@ -502,6 +505,9 @@ chrome.runtime.onMessage.addListener((message: CommandMessage, _sender, sendResp
 
     case MESSAGE_TYPES.MULTI_PICK_START: {
       multiPickerActive = true;
+      // crypto.randomUUID is secure-context only; content runs on http pages too.
+      multiPickSessionId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      multiPickCount = 0;
       if (!pickerActive) {
         activatePicker();
       }

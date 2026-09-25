@@ -7,9 +7,9 @@ import { getSettings } from './settings';
 
 const STORAGE_KEY = 'pickwright_history';
 export const MAX_HISTORY = 20;
+export const MAX_GROUP_PICKS = 25;
 
-export interface HistoryEntry {
-  url: string;
+export interface PickedLocator {
   timestamp: number;
   locator: string;
   tag: string;
@@ -18,6 +18,24 @@ export interface HistoryEntry {
   strategy?: LocatorStrategy;
   alternatives?: string[];
   reasons?: LocatorReason[];
+}
+
+export interface SingleEntry extends PickedLocator {
+  url: string;
+}
+
+// One multi-pick session; timestamp is the first pick's.
+export interface GroupEntry {
+  url: string;
+  timestamp: number;
+  sessionId: string;
+  picks: PickedLocator[];
+}
+
+export type HistoryEntry = SingleEntry | GroupEntry;
+
+export function isGroupEntry(entry: HistoryEntry): entry is GroupEntry {
+  return 'picks' in entry;
 }
 
 export async function getHistory(): Promise<HistoryEntry[]> {
@@ -34,25 +52,42 @@ function enqueueWrite(write: () => Promise<void>): Promise<void> {
   return result;
 }
 
-// No-ops when historyMode is 'off' — the only place that invariant is enforced.
-export function addToHistory(entry: HistoryEntry): Promise<void> {
+// Prepends entry and trims to MAX_HISTORY.
+function writeToFront(entry: HistoryEntry, history: HistoryEntry[]): Promise<void> {
+  history.unshift(entry);
+  if (history.length > MAX_HISTORY) {
+    history.length = MAX_HISTORY;
+  }
+  return chrome.storage.local.set({ [STORAGE_KEY]: history });
+}
+
+// addToHistory/addToGroup no-op when historyMode is 'off' — the only place
+// that invariant is enforced.
+export function addToHistory(entry: SingleEntry): Promise<void> {
+  return enqueueWrite(async () => {
+    const { historyMode } = await getSettings();
+    if (historyMode === 'off') return;
+    await writeToFront(entry, await getHistory());
+  });
+}
+
+// Appends pick to the session's group (created on its first pick) and moves
+// the group to the front.
+export function addToGroup(sessionId: string, url: string, pick: PickedLocator): Promise<void> {
   return enqueueWrite(async () => {
     const { historyMode } = await getSettings();
     if (historyMode === 'off') return;
     const history = await getHistory();
-    history.unshift(entry);
-    if (history.length > MAX_HISTORY) {
-      history.length = MAX_HISTORY;
+    const idx = history.findIndex((e) => isGroupEntry(e) && e.sessionId === sessionId);
+    const group: GroupEntry =
+      idx === -1
+        ? { url, timestamp: pick.timestamp, sessionId, picks: [] }
+        : (history.splice(idx, 1)[0] as GroupEntry);
+    if (group.picks.length >= MAX_GROUP_PICKS) {
+      throw new Error(`Multi-pick session ${sessionId} exceeded ${MAX_GROUP_PICKS} picks`);
     }
-    await chrome.storage.local.set({ [STORAGE_KEY]: history });
-  });
-}
-
-export function removeFromHistory(timestamp: number): Promise<void> {
-  return enqueueWrite(async () => {
-    const history = await getHistory();
-    const filtered = history.filter((entry) => entry.timestamp !== timestamp);
-    await chrome.storage.local.set({ [STORAGE_KEY]: filtered });
+    group.picks.push(pick);
+    await writeToFront(group, history);
   });
 }
 
