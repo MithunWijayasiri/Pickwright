@@ -12,14 +12,15 @@ import {
 import { collectMetadata, isAngularDropdownTrigger, drillIntoShadow } from './inspect';
 import { getLocator, highlightInline } from '../locator-engine';
 import { getSettings } from '../shared/settings';
-import { MAX_GROUP_PICKS } from '../shared/storage';
+import { MAX_GROUP_PICKS, PickedLocator } from '../shared/storage';
+import { locatorNames, toLocatorList } from '../shared/page-object';
 
 let pickerActive = false;
 let copyOnPick = false;
 let activationId = 0;
 let multiPickerActive = false;
 let multiPickSessionId = '';
-let multiPickCount = 0;
+let sessionPicks: PickedLocator[] = [];
 let lastHoveredElement: Element | null = null;
 let lastLocatorStr = '';
 
@@ -163,10 +164,27 @@ function onClick(e: MouseEvent): void {
   // See the onMouseMove guard above: unreachable per the engine's uniqueness invariant.
   if (!best) return;
 
-  if (copyOnPick) {
-    copyToClipboard(best.value);
+  const isDropdown = isAngularDropdownTrigger(el);
+  const textSnippet = meta.textContent.slice(0, 40);
+  if (multiPickerActive) {
+    if (sessionPicks.some((p) => p.locator === best.value)) {
+      showToast(best.value, 'Already picked', false);
+      return;
+    }
+    sessionPicks.push({
+      timestamp: Date.now(),
+      locator: best.value,
+      strategy: best.strategy,
+      tag: meta.tagName,
+      textSnippet,
+    });
+    showToast(best.value, `✓ Picked ${sessionPicks.length}/${MAX_GROUP_PICKS}`, isDropdown);
+  } else {
+    if (copyOnPick) {
+      copyToClipboard(best.value);
+    }
+    showToast(best.value, copyOnPick ? '✓ Copied' : '✓ Picked', isDropdown);
   }
-  showToast(best.value, isAngularDropdownTrigger(el), copyOnPick);
 
   broadcast({
     type: MESSAGE_TYPES.ELEMENT_SELECTED,
@@ -176,21 +194,44 @@ function onClick(e: MouseEvent): void {
       alternatives: result.alternatives.map((a) => a.value),
       reasons: best.reasons ?? [],
       tag: meta.tagName,
-      textSnippet: meta.textContent.slice(0, 40),
+      textSnippet,
       sessionId: multiPickerActive ? multiPickSessionId : undefined,
     },
   });
 
-  if (!multiPickerActive || ++multiPickCount >= MAX_GROUP_PICKS) {
+  if (!multiPickerActive) {
     deactivatePicker();
+  } else if (sessionPicks.length >= MAX_GROUP_PICKS) {
+    stopPicking();
   }
+}
+
+function sessionCopyText(): string | undefined {
+  return copyOnPick && sessionPicks.length > 0 ? toLocatorList(sessionPicks) : undefined;
+}
+
+// Page-side stop (Escape, shortcut, pick cap): multi-pick copies the session
+// list here; a popup-side stop copies from the popup instead (MULTI_PICK_STOP).
+function stopPicking(): void {
+  if (multiPickerActive && sessionPicks.length > 0) {
+    const copyText = sessionCopyText();
+    if (copyText) copyToClipboard(copyText);
+    const count = `${sessionPicks.length} locator${sessionPicks.length === 1 ? '' : 's'}`;
+    const limit = sessionPicks.length >= MAX_GROUP_PICKS ? 'Limit reached · ' : '';
+    showToast(
+      locatorNames(sessionPicks).join(', '),
+      `${limit}${copyText ? '✓ Copied' : '✓ Saved'} ${count}`,
+      false,
+    );
+  }
+  deactivatePicker();
 }
 
 function onKeyDown(e: KeyboardEvent): void {
   if (e.key === 'Escape') {
     e.preventDefault();
     e.stopImmediatePropagation();
-    deactivatePicker();
+    stopPicking();
   }
 }
 
@@ -364,7 +405,7 @@ function copyToClipboard(text: string): void {
 
 // --- Toast ---
 
-function showToast(text: string, isDropdown: boolean, copied: boolean): void {
+function showToast(text: string, status: string, isDropdown: boolean): void {
   // Drop any toast still on screen so rapid picks don't stack duplicate IDs.
   document.getElementById(TOAST_ID)?.remove();
 
@@ -422,7 +463,7 @@ function showToast(text: string, isDropdown: boolean, copied: boolean): void {
     letterSpacing: '0.05em',
     color: accentColor,
   });
-  statusRow.textContent = isDropdown ? '⚠ Warning' : copied ? '✓ Copied' : '✓ Picked';
+  statusRow.textContent = isDropdown ? '⚠ Warning' : status;
   innerContent.appendChild(statusRow);
 
   const codeRow = document.createElement('div');
@@ -492,7 +533,7 @@ chrome.runtime.onMessage.addListener((message: CommandMessage, _sender, sendResp
   switch (message.type) {
     case MESSAGE_TYPES.TOGGLE_PICKER: {
       if (pickerActive) {
-        deactivatePicker();
+        stopPicking();
       } else {
         activatePicker();
       }
@@ -507,22 +548,25 @@ chrome.runtime.onMessage.addListener((message: CommandMessage, _sender, sendResp
       multiPickerActive = true;
       // crypto.randomUUID is secure-context only; content runs on http pages too.
       multiPickSessionId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      multiPickCount = 0;
+      sessionPicks = [];
       if (!pickerActive) {
         activatePicker();
       }
       const response: CommandResponseMap[typeof MESSAGE_TYPES.MULTI_PICK_START] = {
         active: pickerActive,
         multi: true,
+        sessionId: multiPickSessionId,
       };
       sendResponse(response);
       return;
     }
 
     case MESSAGE_TYPES.MULTI_PICK_STOP: {
+      const copyText = multiPickerActive ? sessionCopyText() : undefined;
       deactivatePicker();
       const response: CommandResponseMap[typeof MESSAGE_TYPES.MULTI_PICK_STOP] = {
         active: false,
+        copyText,
       };
       sendResponse(response);
       return;
@@ -532,6 +576,7 @@ chrome.runtime.onMessage.addListener((message: CommandMessage, _sender, sendResp
       const response: CommandResponseMap[typeof MESSAGE_TYPES.GET_PICKER_STATE] = {
         active: pickerActive,
         multi: multiPickerActive,
+        sessionId: multiPickerActive ? multiPickSessionId : undefined,
       };
       sendResponse(response);
       return;

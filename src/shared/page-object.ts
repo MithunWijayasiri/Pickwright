@@ -65,16 +65,20 @@ function baseName(pick: PickedLocator): string {
   return name || `${tag}Element`;
 }
 
-// `<locator>; // <name>` per pick, in pick order, names deduped.
-export function toLocatorList(picks: PickedLocator[]): string {
+// One name per pick, in pick order, deduped with a numeric suffix.
+export function locatorNames(picks: PickedLocator[]): string[] {
   const used = new Set<string>();
-  return picks
-    .map((pick) => {
-      const base = baseName(pick);
-      let name = base;
-      for (let n = 2; used.has(name); n++) name = `${base}${n}`;
-      used.add(name);
-      return `${pick.locator}; // ${name}`;
-    })
-    .join('\n');
+  return picks.map((pick) => {
+    const base = baseName(pick);
+    let name = base;
+    for (let n = 2; used.has(name); n++) name = `${base}${n}`;
+    used.add(name);
+    return name;
+  });
+}
+
+// `<locator>; // <name>` per pick.
+export function toLocatorList(picks: PickedLocator[]): string {
+  const names = locatorNames(picks);
+  return picks.map((pick, i) => `${pick.locator}; // ${names[i]}`).join('\n');
 }

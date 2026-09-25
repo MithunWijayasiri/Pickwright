@@ -8,8 +8,9 @@ import {
   GroupEntry,
   PickedLocator,
   MAX_HISTORY,
+  MAX_GROUP_PICKS,
 } from '../shared/storage';
-import { toLocatorList } from '../shared/page-object';
+import { locatorNames, toLocatorList } from '../shared/page-object';
 import {
   getSettings,
   setSettings,
@@ -93,7 +94,8 @@ const Segmented = <T extends string>({
 const App = () => {
   const [pickerActive, setPickerActive] = useState(false);
   const [multiPickerActive, setMultiPickerActive] = useState(false);
-  const [multiPickCount, setMultiPickCount] = useState(0);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [lastLocator, setLastLocator] = useState<string | null>(null);
   const [lastStrategy, setLastStrategy] = useState<LocatorStrategy | null>(null);
   const [lastTag, setLastTag] = useState<string>('');
@@ -150,6 +152,8 @@ const App = () => {
         setPickerActive(true);
         if (response.multi) {
           setMultiPickerActive(true);
+          setActiveSessionId(response.sessionId ?? null);
+          setExpandedGroup(response.sessionId ?? null);
         }
       }
     });
@@ -171,7 +175,7 @@ const App = () => {
       if (message.type === MESSAGE_TYPES.PICKER_DEACTIVATED) {
         setPickerActive(false);
         setMultiPickerActive(false);
-        setMultiPickCount(0);
+        setActiveSessionId(null);
       }
       if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
         setLastLocator(message.payload.locator);
@@ -179,9 +183,6 @@ const App = () => {
         setLastTag(message.payload.tag);
         setLastAlternatives(message.payload.alternatives);
         setLastReasons(message.payload.reasons ?? []);
-        if (message.payload.sessionId) {
-          setMultiPickCount((c) => c + 1);
-        }
         // History list itself updates via the onHistoryChange subscription below.
       }
     };
@@ -209,15 +210,31 @@ const App = () => {
       if (response) {
         setPickerActive(response.active);
         setMultiPickerActive(response.multi);
-        setMultiPickCount(0);
+        setActiveSessionId(response.sessionId ?? null);
+        // The session's group appears expanded on its first pick.
+        setExpandedGroup(response.sessionId ?? null);
         // Don't close popup — show stop button + count
       }
     });
   };
 
-  const stopMultiPick = () => {
-    sendCommand(MESSAGE_TYPES.MULTI_PICK_STOP);
+  const stopMultiPick = async () => {
+    const copyText = (await sendCommand(MESSAGE_TYPES.MULTI_PICK_STOP))?.copyText;
+    if (!copyText) return;
+    try {
+      await navigator.clipboard.writeText(copyText);
+    } catch {
+      // Clipboard may be unavailable; ignore.
+      return;
+    }
+    const count = copyText.split('\n').length;
+    setNotice(`Copied ${count} locator${count === 1 ? '' : 's'}`);
+    setTimeout(() => setNotice(null), 2500);
   };
+
+  const activePickCount =
+    history.find((e): e is GroupEntry => isGroupEntry(e) && e.sessionId === activeSessionId)?.picks
+      .length ?? 0;
 
   // Copy the locator shown in the result card. Uses lastLocator directly so it
   // stays correct during the ~200ms window before history catches up after a pick.
@@ -261,7 +278,7 @@ const App = () => {
     }
   };
 
-  const renderRow = (entry: PickedLocator, className = 'row') => {
+  const renderRow = (entry: PickedLocator, className = 'row', name?: string) => {
     const pill = entry.strategy ? pillFor(entry.strategy) : 'css';
     return (
       <div
@@ -284,7 +301,10 @@ const App = () => {
             className="row-locator"
             dangerouslySetInnerHTML={{ __html: highlight(entry.locator) }}
           />
-          <div className="row-tag">&lt;{entry.tag}&gt;</div>
+          <div className="row-tag">
+            &lt;{entry.tag}&gt;
+            {name && <span className="row-name">{` // ${name}`}</span>}
+          </div>
         </div>
         {copiedTs === entry.timestamp ? (
           <CheckIcon className="row-copy copied" />
@@ -297,6 +317,7 @@ const App = () => {
 
   const renderGroup = (group: GroupEntry) => {
     const expanded = expandedGroup === group.sessionId;
+    const names = locatorNames(group.picks);
     return (
       <div key={group.sessionId} className="group">
         <div className="group-head">
@@ -329,7 +350,7 @@ const App = () => {
             )}
           </button>
         </div>
-        {expanded && group.picks.map((pick) => renderRow(pick, 'row row-sub'))}
+        {expanded && group.picks.map((pick, i) => renderRow(pick, 'row row-sub', names[i]))}
       </div>
     );
   };
@@ -512,6 +533,12 @@ const App = () => {
               </div>
             )}
 
+            {!pickerActive && notice && (
+              <div className="banner" role="status">
+                <CheckIcon className="banner-icon" />
+                <div className="banner-title">{notice}</div>
+              </div>
+            )}
             {pickerActive && multiPickerActive && (
               <div className="banner">
                 <span className="banner-dot" />
@@ -540,7 +567,9 @@ const App = () => {
                 <button className="btn btn-stop btn-full" onClick={stopMultiPick}>
                   <StopIcon />
                   Stop picking
-                  {multiPickCount > 0 && <span className="btn-count">{multiPickCount}</span>}
+                  <span className="btn-count">
+                    {activePickCount}/{MAX_GROUP_PICKS}
+                  </span>
                 </button>
               ) : pickerActive && !multiPickerActive ? (
                 <button className="btn btn-stop btn-full" onClick={togglePicker}>
