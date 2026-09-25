@@ -478,6 +478,13 @@ body {
   animation: pw-pulse 1.4s ease infinite;
 }
 
+.banner-icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  color: var(--accent);
+}
+
 @keyframes pw-pulse {
   0% {
     box-shadow: 0 0 0 0 var(--accent-glow);
@@ -643,6 +650,66 @@ body {
 .row-copy.copied {
   opacity: 1;
   color: var(--accent);
+}
+
+/* ---------- Multi-pick group rows ---------- */
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px 5px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.group-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0 2px 14px;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.group-toggle:hover .group-title {
+  color: var(--accent);
+}
+
+.pill-group {
+  color: var(--accent);
+  border-color: var(--accent);
+  margin-top: 0;
+}
+
+.group-title {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-body);
+}
+
+.group-chevron {
+  width: 12px;
+  height: 12px;
+  color: var(--text-faint);
+  transition: transform 150ms ease;
+}
+
+.group-chevron.open {
+  transform: rotate(90deg);
+}
+
+.row-sub {
+  padding-left: 28px;
+}
+
+.row-name {
+  color: var(--text-muted);
 }
 
 /* ---------- Settings view ---------- */

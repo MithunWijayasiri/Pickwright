@@ -34,9 +34,11 @@ export type CommandMessage =
 
 export interface CommandResponseMap {
   [MESSAGE_TYPES.TOGGLE_PICKER]: { active: boolean };
-  [MESSAGE_TYPES.GET_PICKER_STATE]: { active: boolean; multi: boolean };
-  [MESSAGE_TYPES.MULTI_PICK_START]: { active: boolean; multi: boolean };
-  [MESSAGE_TYPES.MULTI_PICK_STOP]: { active: boolean };
+  // sessionId: set while multi-pick is active.
+  [MESSAGE_TYPES.GET_PICKER_STATE]: { active: boolean; multi: boolean; sessionId?: string };
+  [MESSAGE_TYPES.MULTI_PICK_START]: { active: boolean; multi: boolean; sessionId?: string };
+  // copyText: the session's locator list for popup to copy; absent when copyOnPick is off or nothing was picked.
+  [MESSAGE_TYPES.MULTI_PICK_STOP]: { active: boolean; copyText?: string };
 }
 
 // Response the background sends when relaying to the content script fails
@@ -70,7 +72,8 @@ export interface ElementSelectedMessage {
     reasons: LocatorReason[];
     tag: string;
     textSnippet: string;
-    multiPick?: boolean;
+    // Set only during multi-pick; background groups picks by it.
+    sessionId?: string;
   };
 }
 

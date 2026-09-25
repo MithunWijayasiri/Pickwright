@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
 import { MESSAGE_TYPES, Message, sendCommand, requestClearHistory } from '../shared/messaging';
-import { getHistory, onHistoryChange, HistoryEntry, MAX_HISTORY } from '../shared/storage';
+import {
+  getHistory,
+  onHistoryChange,
+  isGroupEntry,
+  HistoryEntry,
+  GroupEntry,
+  PickedLocator,
+  MAX_HISTORY,
+  MAX_GROUP_PICKS,
+} from '../shared/storage';
+import { locatorNames, toLocatorList } from '../shared/page-object';
 import {
   getSettings,
   setSettings,
@@ -19,6 +29,7 @@ import {
   SettingsIcon,
   BackIcon,
   StackIcon,
+  ChevronIcon,
 } from './icons';
 
 type Theme = 'dark' | 'light';
@@ -83,7 +94,8 @@ const Segmented = <T extends string>({
 const App = () => {
   const [pickerActive, setPickerActive] = useState(false);
   const [multiPickerActive, setMultiPickerActive] = useState(false);
-  const [multiPickCount, setMultiPickCount] = useState(0);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [lastLocator, setLastLocator] = useState<string | null>(null);
   const [lastStrategy, setLastStrategy] = useState<LocatorStrategy | null>(null);
   const [lastTag, setLastTag] = useState<string>('');
@@ -92,6 +104,8 @@ const App = () => {
   const [copiedAltIdx, setCopiedAltIdx] = useState<number | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [copiedTs, setCopiedTs] = useState<number | null>(null);
+  const [copiedGroup, setCopiedGroup] = useState<string | null>(null);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const [copiedLocator, setCopiedLocator] = useState(false);
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [view, setView] = useState<View>('main');
@@ -121,6 +135,10 @@ const App = () => {
     // Routed through background (see ClearHistoryMessage) so the write shares
     // its writeQueue with addToHistory; onHistoryChange picks up the result.
     if (patch.historyMode === 'off') {
+      // Multi-pick needs history; stopping copies the session before the clear.
+      if (multiPickerActive) {
+        await stopMultiPick();
+      }
       requestClearHistory();
     }
   };
@@ -138,6 +156,8 @@ const App = () => {
         setPickerActive(true);
         if (response.multi) {
           setMultiPickerActive(true);
+          setActiveSessionId(response.sessionId ?? null);
+          setExpandedGroup(response.sessionId ?? null);
         }
       }
     });
@@ -145,12 +165,13 @@ const App = () => {
     // usually closed when the pick happens, so this rebuilds the result state).
     getHistory().then((h) => {
       setHistory(h);
-      if (h[0]) {
-        setLastLocator(h[0].locator);
-        setLastStrategy(h[0].strategy ?? 'locator');
-        setLastTag(h[0].tag);
-        setLastAlternatives(h[0].alternatives ?? []);
-        setLastReasons(h[0].reasons ?? []);
+      const last = h[0] && (isGroupEntry(h[0]) ? h[0].picks[h[0].picks.length - 1] : h[0]);
+      if (last) {
+        setLastLocator(last.locator);
+        setLastStrategy(last.strategy ?? 'locator');
+        setLastTag(last.tag);
+        setLastAlternatives(last.alternatives ?? []);
+        setLastReasons(last.reasons ?? []);
       }
     });
 
@@ -158,7 +179,7 @@ const App = () => {
       if (message.type === MESSAGE_TYPES.PICKER_DEACTIVATED) {
         setPickerActive(false);
         setMultiPickerActive(false);
-        setMultiPickCount(0);
+        setActiveSessionId(null);
       }
       if (message.type === MESSAGE_TYPES.ELEMENT_SELECTED) {
         setLastLocator(message.payload.locator);
@@ -166,9 +187,6 @@ const App = () => {
         setLastTag(message.payload.tag);
         setLastAlternatives(message.payload.alternatives);
         setLastReasons(message.payload.reasons ?? []);
-        if (message.payload.multiPick) {
-          setMultiPickCount((c) => c + 1);
-        }
         // History list itself updates via the onHistoryChange subscription below.
       }
     };
@@ -196,15 +214,31 @@ const App = () => {
       if (response) {
         setPickerActive(response.active);
         setMultiPickerActive(response.multi);
-        setMultiPickCount(0);
+        setActiveSessionId(response.sessionId ?? null);
+        // The session's group appears expanded on its first pick.
+        setExpandedGroup(response.sessionId ?? null);
         // Don't close popup — show stop button + count
       }
     });
   };
 
-  const stopMultiPick = () => {
-    sendCommand(MESSAGE_TYPES.MULTI_PICK_STOP);
+  const stopMultiPick = async () => {
+    const copyText = (await sendCommand(MESSAGE_TYPES.MULTI_PICK_STOP))?.copyText;
+    if (!copyText) return;
+    try {
+      await navigator.clipboard.writeText(copyText);
+    } catch {
+      // Clipboard may be unavailable; ignore.
+      return;
+    }
+    const count = copyText.split('\n').length;
+    setNotice(`Copied ${count} locator${count === 1 ? '' : 's'}`);
+    setTimeout(() => setNotice(null), 2500);
   };
+
+  const activePickCount =
+    history.find((e): e is GroupEntry => isGroupEntry(e) && e.sessionId === activeSessionId)?.picks
+      .length ?? 0;
 
   // Copy the locator shown in the result card. Uses lastLocator directly so it
   // stays correct during the ~200ms window before history catches up after a pick.
@@ -228,7 +262,7 @@ const App = () => {
     }
   };
 
-  const copyRow = async (entry: HistoryEntry) => {
+  const copyRow = async (entry: PickedLocator) => {
     try {
       await navigator.clipboard.writeText(entry.locator);
       setCopiedTs(entry.timestamp);
@@ -236,6 +270,93 @@ const App = () => {
     } catch {
       // Clipboard may be unavailable; ignore.
     }
+  };
+
+  const copyGroup = async (group: GroupEntry) => {
+    try {
+      await navigator.clipboard.writeText(toLocatorList(group.picks));
+      setCopiedGroup(group.sessionId);
+      setTimeout(() => setCopiedGroup((cur) => (cur === group.sessionId ? null : cur)), 1000);
+    } catch {
+      // Clipboard may be unavailable; ignore.
+    }
+  };
+
+  const renderRow = (entry: PickedLocator, className = 'row', name?: string) => {
+    const pill = entry.strategy ? pillFor(entry.strategy) : 'css';
+    return (
+      <div
+        key={entry.timestamp}
+        className={className}
+        role="button"
+        tabIndex={0}
+        onClick={() => copyRow(entry)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            // Space would scroll the popup.
+            e.preventDefault();
+            copyRow(entry);
+          }
+        }}
+      >
+        <span className={`pill pill-${pill}`}>{pill}</span>
+        <div className="row-main">
+          <div
+            className="row-locator"
+            dangerouslySetInnerHTML={{ __html: highlight(entry.locator) }}
+          />
+          <div className="row-tag">
+            &lt;{entry.tag}&gt;
+            {name && <span className="row-name">{` // ${name}`}</span>}
+          </div>
+        </div>
+        {copiedTs === entry.timestamp ? (
+          <CheckIcon className="row-copy copied" />
+        ) : (
+          <CopyIcon className="row-copy" />
+        )}
+      </div>
+    );
+  };
+
+  const renderGroup = (group: GroupEntry) => {
+    const expanded = expandedGroup === group.sessionId;
+    const names = locatorNames(group.picks);
+    return (
+      <div key={group.sessionId} className="group">
+        <div className="group-head">
+          <button
+            type="button"
+            className="group-toggle"
+            aria-expanded={expanded}
+            onClick={() => setExpandedGroup(expanded ? null : group.sessionId)}
+          >
+            <span className="pill pill-group">group</span>
+            <span className="group-title">{group.picks.length} locators</span>
+            <ChevronIcon className={`group-chevron${expanded ? ' open' : ''}`} />
+          </button>
+          <button
+            type="button"
+            className="btn-copy-result"
+            onClick={() => copyGroup(group)}
+            title="Copy all locators"
+          >
+            {copiedGroup === group.sessionId ? (
+              <>
+                <CheckIcon />
+                Copied
+              </>
+            ) : (
+              <>
+                <CopyIcon />
+                Copy all
+              </>
+            )}
+          </button>
+        </div>
+        {expanded && group.picks.map((pick, i) => renderRow(pick, 'row row-sub', names[i]))}
+      </div>
+    );
   };
 
   return (
@@ -416,6 +537,12 @@ const App = () => {
               </div>
             )}
 
+            {!pickerActive && notice && (
+              <div className="banner" role="status">
+                <CheckIcon className="banner-icon" />
+                <div className="banner-title">{notice}</div>
+              </div>
+            )}
             {pickerActive && multiPickerActive && (
               <div className="banner">
                 <span className="banner-dot" />
@@ -444,7 +571,9 @@ const App = () => {
                 <button className="btn btn-stop btn-full" onClick={stopMultiPick}>
                   <StopIcon />
                   Stop picking
-                  {multiPickCount > 0 && <span className="btn-count">{multiPickCount}</span>}
+                  <span className="btn-count">
+                    {activePickCount}/{MAX_GROUP_PICKS}
+                  </span>
                 </button>
               ) : pickerActive && !multiPickerActive ? (
                 <button className="btn btn-stop btn-full" onClick={togglePicker}>
@@ -484,40 +613,9 @@ const App = () => {
                     </span>
                   </div>
                   <div className="history-list">
-                    {history.map((entry) => {
-                      const pill = entry.strategy ? pillFor(entry.strategy) : 'css';
-                      const isCopied = copiedTs === entry.timestamp;
-                      return (
-                        <div
-                          key={entry.timestamp}
-                          className="row"
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => copyRow(entry)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              // Space would scroll the popup.
-                              e.preventDefault();
-                              copyRow(entry);
-                            }
-                          }}
-                        >
-                          <span className={`pill pill-${pill}`}>{pill}</span>
-                          <div className="row-main">
-                            <div
-                              className="row-locator"
-                              dangerouslySetInnerHTML={{ __html: highlight(entry.locator) }}
-                            />
-                            <div className="row-tag">&lt;{entry.tag}&gt;</div>
-                          </div>
-                          {isCopied ? (
-                            <CheckIcon className="row-copy copied" />
-                          ) : (
-                            <CopyIcon className="row-copy" />
-                          )}
-                        </div>
-                      );
-                    })}
+                    {history.map((entry) =>
+                      isGroupEntry(entry) ? renderGroup(entry) : renderRow(entry),
+                    )}
                   </div>
                 </div>
               ) : (
