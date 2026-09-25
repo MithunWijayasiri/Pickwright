@@ -4,8 +4,8 @@ import { MESSAGE_TYPES } from '../src/shared/messaging';
 
 // The fixtures (extensionContext/serverUrl/extensionId) are worker-scoped, so a
 // single browser is shared across this file. Each test gets a fresh page with
-// the picker freshly activated; only the select/history test actually picks an
-// element, so history stays empty for the hover-only cases regardless of order.
+// the picker freshly activated; only the select/history and multi-pick tests
+// actually pick, so history stays empty for the hover-only cases regardless of order.
 test.describe('Pickwright Chrome Extension E2E', () => {
   let page: Page;
 
@@ -284,6 +284,58 @@ test.describe('Pickwright Chrome Extension E2E', () => {
       await popupPage.getByRole('button', { name: 'Stop picking' }).click();
       await expect(page.locator('#pickwright-highlight')).toBeHidden();
       await expect(popupPage.getByRole('button', { name: 'Pick element' })).toBeVisible();
+    } finally {
+      await popupPage.close();
+    }
+  });
+
+  test('multi-pick saves one group and copies it as a named locator list', async ({
+    extensionContext,
+    extensionId,
+  }) => {
+    const popupPage = await extensionContext.newPage();
+    try {
+      await page.bringToFront();
+      await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+      await popupPage.getByRole('button', { name: 'Stop picking' }).click();
+      await expect(popupPage.getByRole('button', { name: 'Pick element' })).toBeVisible();
+
+      await page.bringToFront();
+      await popupPage.getByRole('button', { name: 'Pick multiple' }).click();
+      await expect(page.locator('#pickwright-highlight')).toBeAttached();
+
+      // #email-field twice: duplicate names get a numeric suffix.
+      await page.locator('#testid-button').click();
+      await page.locator('#email-field').click();
+      await page.locator('#email-field').click();
+      await page.frameLocator('#test-iframe').locator('#iframe-btn').click();
+
+      const group = popupPage.locator('.group');
+      await expect(group).toHaveCount(1);
+      await expect(group.locator('.group-title')).toHaveText('4 locators');
+
+      await group.getByRole('button', { name: '4 locators' }).click();
+      await expect(group.locator('.row')).toHaveCount(4);
+
+      await group.getByRole('button', { name: 'Copy all' }).click();
+      await expect
+        // Windows clipboard stores \n as \r\n.
+        .poll(() =>
+          popupPage.evaluate(async () =>
+            (await navigator.clipboard.readText()).replace(/\r\n/g, '\n'),
+          ),
+        )
+        .toBe(
+          [
+            "getByTestId('submit-btn'); // submitBtn",
+            "getByRole('textbox', { name: 'Email Address' }); // emailAddressInput",
+            "getByRole('textbox', { name: 'Email Address' }); // emailAddressInput2",
+            "frameLocator('iframe#test-iframe').getByRole('button', { name: 'Click Frame Button' }); // clickFrameButton",
+          ].join('\n'),
+        );
+
+      await popupPage.getByRole('button', { name: 'Stop picking' }).click();
+      await expect(page.locator('#pickwright-highlight')).toBeHidden();
     } finally {
       await popupPage.close();
     }
