@@ -1,0 +1,64 @@
+name: Wrong locator
+description: Pickwright gave a locator that is wrong or not the one you need.
+title: "[Locator]: "
+labels: ["bug", "locator"]
+body:
+  - type: checkboxes
+    id: latest
+    attributes:
+      label: Version check
+      description: This may already be fixed. See the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
+      options:
+        - label: I'm using the latest version of Pickwright
+          required: true
+  - type: textarea
+    id: generated
+    attributes:
+      label: What Pickwright gave
+      placeholder: "locator('.css-x9f2a')"
+      render: ts
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      placeholder: "getByRole('button', { name: 'Save' })"
+      render: ts
+    validations:
+      required: true
+  - type: textarea
+    id: html
+    attributes:
+      label: HTML of the element
+      description: In DevTools, right-click the element's parent → Copy → Copy outerHTML. Remove anything private.
+      render: html
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Page URL (if public)
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Chrome
+        - Firefox
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Pickwright version
+      description: Shown on your browser's extensions page.
+      placeholder: "1.2.0"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: e.g. element is inside an iframe or shadow DOM, or was picked in multi-pick.
