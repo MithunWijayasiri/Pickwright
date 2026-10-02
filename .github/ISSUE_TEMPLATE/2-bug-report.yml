@@ -1,0 +1,58 @@
+name: Bug report
+description: Something in the extension doesn't work (picker, popup, history, copy, settings).
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: checkboxes
+    id: latest
+    attributes:
+      label: Version check
+      description: This may already be fixed. See the [latest release](https://github.com/MithunWijayasiri/Pickwright/releases/latest).
+      options:
+        - label: I'm using the latest version of Pickwright
+          required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Page URL (if public)
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Chrome
+        - Firefox
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Pickwright version
+      description: Shown on your browser's extensions page.
+      placeholder: "1.2.0"
+    validations:
+      required: true
