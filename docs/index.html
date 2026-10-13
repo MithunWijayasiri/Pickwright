@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Click any element, get the best Playwright locator. Role, testId, label, or CSS — scored, ranked, and ready to paste.">
+<meta name="description" content="Click any element, get the best Playwright locator. Role, testId, label or CSS, scored and ready to paste.">
 <title>Pickwright · Playwright Locator Picker</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <meta property="og:type" content="website">
@@ -883,7 +883,7 @@ footer {
       <span class="dim">locator.</span>
     </h1>
     <div class="hero-row">
-      <p class="hero-sub">Click any element. Get the Playwright locator — testId, role, label, or CSS — scored and ready to paste.</p>
+      <p class="hero-sub">Click any element. Get the Playwright locator (testId, role, label or CSS), scored and ready to paste.</p>
       <div class="hero-btns">
         <div class="badge-row">
           <a class="badge" href="https://chromewebstore.google.com/detail/pickwright-playwright-loc/kgikopoehffaodbicnhajokkmhgjofjo" target="_blank" rel="noopener">
@@ -940,7 +940,7 @@ footer {
 <section class="picker-section" id="picker">
   <div class="sec-header reveal">
     <h2>Try it here.<br>Click anything.</h2>
-    <p>This is the real thing, running in the page. Pick a field below — the popup, the ranking table further down, and the spec file all update from that one click.</p>
+    <p>Pick a field below. The popup, the ranking table further down and the spec file all update from that click.</p>
   </div>
 
   <div class="picker-demo">
@@ -1016,7 +1016,7 @@ footer {
     <div class="live-spec-text">
       <div class="live-spec-kicker">// live output</div>
       <div class="live-spec-title">Every pick lands in your spec file.</div>
-      <p>Pick, copy, paste. The extension writes the locator the way you would — the code on the right is generated from the elements you clicked above.</p>
+      <p>Pick, copy, paste. The code on the right comes from the elements you clicked above.</p>
       <div class="live-spec-count" id="specCount"></div>
     </div>
     <div class="code-block">
@@ -1040,25 +1040,25 @@ footer {
 <section class="feat-section" id="features">
   <div class="sec-header reveal">
     <h2>What it does.</h2>
-    <p>Surfaces the Playwright locator the framework actually recommends — not just whatever CSS the browser can trace.</p>
+    <p>Finds the locator Playwright recommends, and uses CSS only as a fallback.</p>
   </div>
   <div class="feat-rows">
     <div class="feat-row reveal-left stagger-1">
       <span class="fr-num">01</span>
       <span class="fr-tag">click-to-pick</span>
-      <span class="fr-desc">Hover any element to highlight it. Click to generate all locator strategies at once — best ranked first, alternatives listed below. <code style="font-family:var(--mono);color:var(--accent)">Alt+Shift+L</code> arms the picker without opening the popup.</span>
+      <span class="fr-desc">Hover any element to highlight it. Click to generate every locator strategy at once, best first, with alternatives below. <code style="font-family:var(--mono);color:var(--accent)">Alt+Shift+L</code> arms the picker without opening the popup.</span>
       <span class="fr-badge">core</span>
     </div>
     <div class="feat-row reveal-left stagger-2">
       <span class="fr-num">02</span>
       <span class="fr-tag">13 strategies</span>
-      <span class="fr-desc">getByTestId, getByRole, getByLabel, getByPlaceholder, getByAltText, getByText, getByTitle, and CSS tiers — all scored and ranked per Playwright's own preference order.</span>
+      <span class="fr-desc">getByTestId, getByRole, getByLabel, getByPlaceholder, getByAltText, getByText, getByTitle, and CSS tiers, ranked in Playwright's own preference order.</span>
       <span class="fr-badge">locators</span>
     </div>
     <div class="feat-row reveal-left stagger-3">
       <span class="fr-num">03</span>
       <span class="fr-tag">multi-pick</span>
-      <span class="fr-desc">Stay armed across clicks and collect a whole form in one pass, with a live count as you go. Every pick lands in history, ready to copy.</span>
+      <span class="fr-desc">Stay armed across clicks and collect a whole form in one pass. The session is saved as one history entry and copied as one list when you stop.</span>
       <span class="fr-badge">workflow</span>
     </div>
     <div class="feat-row reveal-left stagger-4">
@@ -1070,7 +1070,7 @@ footer {
     <div class="feat-row reveal-left stagger-5">
       <span class="fr-num">05</span>
       <span class="fr-tag">shadow DOM</span>
-      <span class="fr-desc">Drills through open shadow roots to find the real element under your cursor. No manual shadow selector crafting needed.</span>
+      <span class="fr-desc">Finds the element under your cursor inside open shadow roots.</span>
       <span class="fr-badge">DOM</span>
     </div>
     <div class="feat-row reveal-left stagger-6">
@@ -1094,7 +1094,7 @@ footer {
     <div class="feat-row reveal-left stagger-9">
       <span class="fr-num">09</span>
       <span class="fr-tag">Chrome + Firefox</span>
-      <span class="fr-desc">One extension, two browsers. Same picking experience and locator quality on Chrome, Edge and Firefox 140+.</span>
+      <span class="fr-desc">The same picker and locators on Chrome, Edge and Firefox 140+.</span>
       <span class="fr-badge">cross-browser</span>
     </div>
   </div>
@@ -1104,7 +1104,7 @@ footer {
 <section class="strat-section" id="strategies">
   <div class="sec-header reveal">
     <h2>Playwright's ranking.<br>Strictly.</h2>
-    <p>Live scoring for whatever you picked above. Tiers that can't describe the element are struck out; the highest-ranked survivor wins. <a href="https://github.com/MithunWijayasiri/Pickwright#generated-locator-priority" style="color:var(--accent)">See the full table</a>.</p>
+    <p>Live scoring for whatever you picked above. Tiers that can't describe the element are struck out; the highest-ranked survivor wins. <a href="https://github.com/MithunWijayasiri/Pickwright/blob/master/docs/build-from-source.md#generated-locator-priority" style="color:var(--accent)">See the full table</a>.</p>
   </div>
 
   <div class="sb-status">
@@ -1116,7 +1116,7 @@ footer {
   <div class="sb-row sb-row-fallback">
     <span class="sb-n">+5</span>
     <span class="sb-name">lower tiers</span>
-    <span class="sb-value">other test-ID attributes, formcontrolname, stable #id, role without a name, and nth-child path chains — only when nothing above exists</span>
+    <span class="sb-value">other test-ID attributes, formcontrolname, stable #id, role without a name, and nth-child path chains, used only when nothing above exists</span>
     <span></span>
   </div>
 </section>
@@ -1186,7 +1186,7 @@ footer {
 <section class="compare-section" id="compare">
   <div class="sec-header reveal">
     <h2>Why not just<br>DevTools?</h2>
-    <p>DevTools' "copy → copy selector" hands you a brittle <code style="font-family:var(--mono);color:var(--accent)">nth-child</code> path. Pickwright gives you the locator Playwright would actually recommend — role, label, or testId first.</p>
+    <p>DevTools' "copy → copy selector" hands you a brittle <code style="font-family:var(--mono);color:var(--accent)">nth-child</code> path. Pickwright gives you the locator Playwright recommends, with role, label or testId first.</p>
   </div>
   <div class="compare-table">
     <div class="c-row c-head reveal">
@@ -1201,7 +1201,7 @@ footer {
       <div class="c-feat">locator quality</div>
       <div class="c-cols">
         <span class="c-cell">brittle nth-child chain</span>
-        <span class="c-cell">stales on rebuild</span>
+        <span class="c-cell">breaks on rebuild</span>
         <span class="c-cell cur">role / testId / label first</span>
       </div>
     </div>
@@ -1243,7 +1243,7 @@ footer {
 <!-- ── CTA ────────────────────────────────────────────────────────────────────── -->
 <div class="cta-strip reveal">
   <h2>Start picking locators<br>in under a minute.</h2>
-  <p style="font-size:17px;color:var(--muted);font-weight:400;max-width:520px;line-height:1.7">Free, open source, MIT licensed. No account, no API key, no project setup required, and no telemetry — nothing you pick leaves your browser.</p>
+  <p style="font-size:17px;color:var(--muted);font-weight:400;max-width:520px;line-height:1.7">Free, open source, MIT licensed. No account, no setup and no telemetry. Nothing you pick leaves your browser.</p>
   <div class="cta-btns">
     <a class="btn-border" href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download from GitHub</a>
     <a class="btn-border" href="https://github.com/MithunWijayasiri/Pickwright">View source on GitHub →</a>
