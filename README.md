@@ -16,7 +16,7 @@ Click an element on any page and get a Playwright locator, copied and ready to p
 - Skips auto-generated IDs and framework class names such as Angular's `mat-` and `cdk-`.
 - Works inside open shadow roots and same-origin iframes, adding the `frameLocator()` chain for you.
 - Multi-pick collects several elements in one session and copies them as one list.
-- Keeps your last 20 picks, stored only in your browser.
+- Keeps your last 20 history entries, stored only in your browser.
 
 ## Install
 
@@ -50,7 +50,7 @@ To build it yourself, see [Build from source](docs/build-from-source.md).
 3. Hover to highlight an element, then click it. Pickwright copies the best locator.
 4. Reopen the popup to see alternatives and history.
 
-**Pick multiple** keeps the picker on across clicks. Press **Stop picking** or `Esc` to finish, and Pickwright copies all picks as one list.
+**Pick multiple** keeps the picker on across clicks. Press **Stop picking** or `Esc` to finish, and Pickwright copies all picks as one list. Multi-pick needs history turned on.
 
 To open a dropdown or menu while picking, hold `Shift` and click. The page receives that click, and you can then pick inside the menu.
 
@@ -62,7 +62,7 @@ In settings you can turn off copy on pick, switch between light and dark themes,
 
 - **The picker doesn't start.** Reload the extension and refresh the page. Browser pages such as `chrome://` and the Chrome Web Store don't allow extensions.
 - **The wrong element is picked.** Pickwright can't reach inside closed shadow roots or cross-origin iframes.
-- **Nothing is copied.** Check the page console for Content Security Policy errors.
+- **Nothing is copied.** Check that **Copy on pick** is on in settings. If it is, check the page console for Content Security Policy errors.
 
 ## Contributing
 
