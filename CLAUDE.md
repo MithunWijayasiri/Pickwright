@@ -37,7 +37,7 @@ CI (`.github/workflows/ci.yml`, PRs to `master`): `Check` job (`npm run check` �
 
 ### Site (`sites/`)
 
-Astro marketing site, separate project (own `package.json`), untouched by root `check`/CI. `docs/` = markdown only. Details: `.claude/rules/site.md` (loads when editing `sites/`). Its demo copies the strategy order and popup labels/limits; changing those → update `sites/src/data/demo.ts`.
+Astro marketing site, separate project (own `package.json`), untouched by root `check`/CI. `docs/` = markdown only. Details: `.claude/rules/site.md` (loads when editing `sites/`). Its demo copies the strategy order; changing it → update `sites/src/data/demo.ts`.
 
 ### Cross-browser build
 

@@ -1,18 +1,7 @@
----
-import pkg from '../../../package.json';
----
-
 <div class="demo" id="demo">
   <div class="demo-bar">
     <span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span>
     <span class="demo-address">app.example.com/login</span>
-    <span class="demo-ext" role="img" aria-label="Pickwright icon, picker on">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
-        <circle cx="8" cy="8" r="4.5"></circle>
-        <path d="M8 1v3M8 12v3M1 8h3M12 8h3"></path>
-      </svg>
-      <span class="demo-ext-dot"></span>
-    </span>
   </div>
 
   <div class="demo-page" id="demo-page">
@@ -37,57 +26,15 @@ import pkg from '../../../package.json';
     <div class="demo-hl" id="demo-hl" aria-hidden="true">
       <span class="demo-tip" id="demo-tip"><span class="demo-tip-tag" id="demo-tip-tag"></span><span class="demo-tip-loc" id="demo-tip-loc"></span></span>
     </div>
-    <div class="demo-toast" id="demo-toast" role="status"></div>
   </div>
 
-  <aside class="pp" aria-label="Pickwright popup">
-    <header class="pp-head">
-      <span class="pp-brand">pick<em>wright</em></span>
-      <span class="pp-ver">v{pkg.version}</span>
-    </header>
-
-    <div class="pp-body">
-      <div class="pp-result" aria-live="polite">
-        <div class="pp-meta">
-          <span class="pp-pill" id="pp-pill"></span>
-          <span class="pp-tag" id="pp-tag"></span>
-        </div>
-        <p class="pp-loc"><span class="pp-m" id="pp-method"></span><span class="pp-a" id="pp-args"></span></p>
-        <p class="pp-alt-label">Alternatives</p>
-        <ul class="pp-alts" id="pp-alts"></ul>
-        <div class="pp-foot">
-          <span class="pp-last">last picked</span>
-          <button class="pp-copy" id="pp-copy" type="button">Copy</button>
-        </div>
-      </div>
-
-      <div class="pp-banner" id="pp-multi" hidden>
-        <span class="pp-bdot"></span>
-        <div>
-          <p class="pp-bt">Multi-pick active</p>
-          <p class="pp-bh">Click elements to collect locators. Press Stop when done.</p>
-        </div>
-      </div>
-      <p class="pp-banner pp-notice" id="pp-notice" role="status"></p>
-
-      <button class="btn btn-line pp-action" id="pp-action" type="button">
-        <svg id="pp-action-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true">
-          <path d="M8 2 14 5 8 8 2 5z"></path>
-          <path d="M2 8l6 3 6-3M2 11l6 3 6-3"></path>
-        </svg>
-        <span id="pp-action-label">Pick multiple</span>
-        <span class="pp-count" id="pp-action-count" hidden></span>
-      </button>
-
-      <div class="pp-history">
-        <div class="pp-hist-head">
-          <span>History</span>
-          <span class="pp-hist-count" id="pp-hist-count"></span>
-        </div>
-        <ul class="pp-hist-list" id="pp-hist" role="list"></ul>
-      </div>
+  <div class="demo-out">
+    <div class="demo-out-text" aria-live="polite">
+      <p class="demo-out-meta"><span class="demo-pill" id="demo-pill"></span><span id="demo-tag"></span></p>
+      <code class="demo-out-loc"><span class="demo-m" id="demo-method"></span><span class="demo-a" id="demo-args"></span></code>
     </div>
-  </aside>
+    <button class="demo-copy" id="demo-copy" type="button">Copy</button>
+  </div>
 </div>
 
 <script>
@@ -111,7 +58,7 @@ import pkg from '../../../package.json';
     align-items: center;
     gap: 8px;
     height: 44px;
-    padding: 0 12px;
+    padding: 0 14px;
     border-bottom: 1px solid var(--border);
   }
 
@@ -127,7 +74,7 @@ import pkg from '../../../package.json';
     flex: 1;
     min-width: 0;
     max-width: 340px;
-    margin-left: 8px;
+    margin-left: 10px;
     padding: 4px 14px;
     background: var(--bg);
     border-radius: 999px;
@@ -140,33 +87,12 @@ import pkg from '../../../package.json';
     text-overflow: ellipsis;
   }
 
-  .demo-ext {
-    position: relative;
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    margin-left: auto;
-    background: var(--bg);
-    border: 1px solid var(--border2);
-    border-radius: 6px;
-  }
-
-  .demo-ext-dot {
-    position: absolute;
-    top: 3px;
-    right: 3px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--accent);
-  }
-
   /* Page under test */
   .demo-page {
     position: relative;
-    padding: 1.5rem;
+    display: grid;
+    place-items: center;
+    padding: clamp(2rem, 7cqw, 3.5rem) 1.5rem;
     background: var(--bg);
     cursor: crosshair;
   }
@@ -178,7 +104,7 @@ import pkg from '../../../package.json';
   .demo-form {
     display: flex;
     flex-direction: column;
-    width: min(264px, 100%);
+    width: min(300px, 100%);
   }
 
   .demo-title {
@@ -204,6 +130,10 @@ import pkg from '../../../package.json';
   .pk {
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
+    transition:
+      border-color 0.15s,
+      background-color 0.15s,
+      color 0.15s;
   }
 
   .pk-title {
@@ -337,86 +267,33 @@ import pkg from '../../../package.json';
     color: var(--accent);
   }
 
-  .demo-toast {
-    position: absolute;
-    z-index: 4;
-    left: 50%;
-    bottom: 16px;
-    transform: translateX(-50%);
-    padding: 5px 12px;
-    background: var(--bg3);
-    border: 1px solid var(--border2);
-    border-radius: 999px;
-    font-family: var(--mono);
-    font-size: 12.5px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-  }
-
-  .demo-toast[data-on] {
-    opacity: 1;
-  }
-
-  /* Popup */
-  .pp {
+  /* Picked locator */
+  .demo-out {
     display: flex;
-    flex-direction: column;
-    width: 100%;
-    background: var(--bg2);
+    align-items: center;
+    gap: 1rem;
+    padding: 14px 16px;
     border-top: 1px solid var(--border2);
   }
 
-  .pp-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 44px;
-    padding: 0 14px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .pp-brand {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 800;
-  }
-
-  .pp-brand em {
-    color: var(--accent);
-    font-style: normal;
-  }
-
-  .pp-ver {
-    padding: 1px 6px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: var(--muted);
-  }
-
-  .pp-body {
-    display: flex;
+  .demo-out-text {
     flex: 1;
-    flex-direction: column;
-    gap: 12px;
-    min-height: 0;
-    padding: 14px;
+    min-width: 0;
   }
 
-  .pp-meta {
+  .demo-out-meta {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
   }
 
-  .pp-pill {
+  .demo-pill {
     padding: 1px 7px;
     background: var(--accent-lo);
     border-radius: 3px;
-    font-family: var(--mono);
     font-size: 11.5px;
     font-weight: 700;
     line-height: 1.6;
@@ -424,274 +301,38 @@ import pkg from '../../../package.json';
     white-space: nowrap;
   }
 
-  .pp-tag {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .pp-loc {
-    margin-top: 10px;
+  .demo-out-loc {
+    display: block;
+    margin-top: 6px;
     font-family: var(--mono);
     font-size: 14.5px;
     font-weight: 700;
     line-height: 1.5;
-    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
-  .pp-m {
+  .demo-m {
     color: var(--code-fn);
   }
 
-  .pp-a {
+  .demo-a {
     color: var(--accent);
   }
 
-  .pp-alt-label {
-    margin-top: 12px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .pp-alts {
-    margin-top: 2px;
-    list-style: none;
-  }
-
-  .pp-alts li {
-    font-family: var(--mono);
-    font-size: 12.5px;
-    line-height: 1.6;
-    color: var(--muted);
-    word-break: break-word;
-  }
-
-  .pp-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-  }
-
-  .pp-last {
-    font-size: 12px;
-    color: var(--dim);
-  }
-
-  .pp-copy,
-  .pp-copyall {
-    padding: 4px 12px;
+  .demo-copy {
+    flex: none;
+    min-width: 5.5rem;
+    padding: 7px 14px;
     border: 1px solid var(--accent);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--accent);
     transition: background-color 0.15s;
   }
 
-  .pp-copy:hover,
-  .pp-copyall:hover {
+  .demo-copy:hover {
     background: var(--accent-lo);
-  }
-
-  .pp-banner {
-    display: flex;
-    gap: 10px;
-    padding: 10px 12px;
-    background: var(--accent-lo);
-    border-radius: var(--radius);
-  }
-
-  .pp-banner[hidden],
-  .pp-notice:empty {
-    display: none;
-  }
-
-  .pp-notice {
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  .pp-bdot {
-    flex: none;
-    width: 8px;
-    height: 8px;
-    margin-top: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-  }
-
-  .pp-bt {
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.5;
-  }
-
-  .pp-bh {
-    font-size: 12.5px;
-    line-height: 1.4;
-    color: var(--muted);
-  }
-
-  .pp-action {
-    width: 100%;
-    min-height: 38px;
-    font-size: 13px;
-  }
-
-  .pp-count {
-    padding: 0 7px;
-    background: var(--accent-lo);
-    border-radius: 3px;
-    font-size: 11.5px;
-    color: var(--accent);
-  }
-
-  .pp-count[hidden],
-  .pp-action svg[hidden] {
-    display: none;
-  }
-
-  .pp-history {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .pp-hist-head {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .pp-hist-count {
-    color: var(--dim);
-  }
-
-  .pp-hist-list {
-    min-height: 0;
-    list-style: none;
-    overflow-y: auto;
-  }
-
-  .pp-hist-list > li {
-    padding: 7px 0;
-    border-top: 1px solid var(--border);
-  }
-
-  .pp-hist-list :focus-visible {
-    outline-offset: -2px;
-  }
-
-  .pp-single {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .pp-single-text {
-    min-width: 0;
-  }
-
-  .pp-single-loc,
-  .pp-pick-loc {
-    font-family: var(--mono);
-    font-size: 12.5px;
-    line-height: 1.5;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .pp-single-tag {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: var(--dim);
-  }
-
-  .pp-group-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .pp-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    text-align: left;
-    font-size: 12.5px;
-    color: var(--muted);
-  }
-
-  .pp-chev {
-    flex: none;
-    transition: transform 0.15s;
-  }
-
-  .pp-toggle[aria-expanded='true'] .pp-chev {
-    transform: rotate(180deg);
-  }
-
-  .pp-copyall {
-    flex: none;
-    padding: 2px 8px;
-    font-size: 11.5px;
-  }
-
-  .pp-picks {
-    margin: 6px 0 0 6px;
-    list-style: none;
-  }
-
-  .pp-picks li {
-    padding: 3px 0 3px 10px;
-    border-left: 2px solid var(--border2);
-  }
-
-  .pp-pick-name {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: var(--code-cm);
-  }
-
-  .pp-empty {
-    font-size: 12.5px;
-    color: var(--dim);
-  }
-
-  /* Wide frame: the popup hangs under the toolbar icon, over the page's right side. */
-  @container (min-width: 600px) {
-    .demo-page {
-      min-height: 560px;
-    }
-
-    .demo-toast {
-      left: calc(1.5rem + 132px);
-    }
-
-    .pp {
-      position: absolute;
-      z-index: 3;
-      top: 52px;
-      right: 12px;
-      max-height: calc(100% - 64px);
-      width: 300px;
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
   }
 </style>

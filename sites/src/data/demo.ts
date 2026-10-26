@@ -34,9 +34,8 @@ type TierValue = string | { value: string; matches: number };
 export interface DemoElement {
   label: string;
   tag: string;
-  name: string;
-  // {loc} is replaced with the winning locator.
-  spec: string;
+  // What a test does with it: a visibility check, or a call chained onto the locator.
+  action: 'expect' | `.${string}`;
   tiers: Partial<Record<number, TierValue>>;
 }
 
@@ -44,8 +43,7 @@ export const ELEMENTS = {
   heading: {
     label: 'Sign in heading',
     tag: 'h1',
-    name: 'signInHeading',
-    spec: 'await expect(page.{loc}).toBeVisible();',
+    action: 'expect',
     tiers: {
       3: "getByRole('heading', { name: 'Sign in' })",
       7: { value: "getByText('Sign in')", matches: 2 },
@@ -57,8 +55,7 @@ export const ELEMENTS = {
   email: {
     label: 'Email field',
     tag: 'input',
-    name: 'emailInput',
-    spec: "await page.{loc}.fill('ada@example.com');",
+    action: ".fill('ada@example.com')",
     tiers: {
       3: "getByRole('textbox', { name: 'Email' })",
       4: "getByLabel('Email')",
@@ -72,8 +69,7 @@ export const ELEMENTS = {
   password: {
     label: 'Password field',
     tag: 'input',
-    name: 'passwordInput',
-    spec: "await page.{loc}.fill('hunter2');",
+    action: ".fill('hunter2')",
     tiers: {
       4: "getByLabel('Password')",
       10: "locator('#password')",
@@ -84,8 +80,7 @@ export const ELEMENTS = {
   signin: {
     label: 'Sign in button',
     tag: 'button',
-    name: 'signInButton',
-    spec: 'await page.{loc}.click();',
+    action: '.click()',
     tiers: {
       3: "getByRole('button', { name: 'Sign in' })",
       7: { value: "getByText('Sign in')", matches: 2 },
@@ -97,8 +92,7 @@ export const ELEMENTS = {
   sso: {
     label: 'SSO button',
     tag: 'button',
-    name: 'ssoBtn',
-    spec: 'await page.{loc}.click();',
+    action: '.click()',
     tiers: {
       1: "getByTestId('sso-btn')",
       3: "getByRole('button', { name: 'Continue with SSO' })",
@@ -111,8 +105,7 @@ export const ELEMENTS = {
   forgot: {
     label: 'Forgot password link',
     tag: 'a',
-    name: 'forgotYourPasswordLink',
-    spec: 'await page.{loc}.click();',
+    action: '.click()',
     tiers: {
       3: "getByRole('link', { name: 'Forgot your password?' })",
       7: "getByText('Forgot your password?')",
@@ -129,32 +122,12 @@ export function getElement(key: string): DemoElement {
   return el;
 }
 
-interface UniqueLocator {
-  tier: Tier;
-  locator: string;
-}
-
-function uniqueLocators(el: DemoElement): UniqueLocator[] {
-  return TIERS.flatMap((tier) => {
+export function winnerOf(el: DemoElement): { tier: Tier; locator: string } {
+  for (const tier of TIERS) {
     const v = el.tiers[tier.rank];
-    return typeof v === 'string' ? [{ tier, locator: v }] : [];
-  });
-}
-
-export function winnerOf(el: DemoElement): UniqueLocator {
-  const [winner] = uniqueLocators(el);
-  if (!winner) throw new Error(`No unique locator for ${el.label}`);
-  return winner;
-}
-
-export function alternativesOf(el: DemoElement): string[] {
-  return uniqueLocators(el)
-    .slice(1, 3)
-    .map((u) => u.locator);
-}
-
-export function specLineOf(el: DemoElement): string {
-  return el.spec.replace('{loc}', winnerOf(el).locator);
+    if (typeof v === 'string') return { tier, locator: v };
+  }
+  throw new Error(`No unique locator for ${el.label}`);
 }
 
 export interface GroupResult {

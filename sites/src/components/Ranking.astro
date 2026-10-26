@@ -1,10 +1,10 @@
 ---
-import { ELEMENTS, getElement, rankGroups, specLineOf } from '../data/demo';
+import { getElement, rankGroups } from '../data/demo';
 import { buildSpec } from '../scripts/spec';
 
 const initial = getElement('signin');
 const rows = rankGroups(initial);
-const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
+const initialSpec = buildSpec('signin');
 ---
 
 <section id="ranking" class="section">
@@ -38,8 +38,8 @@ const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
     </div>
 
     <div class="side">
-      <h3>Your spec, so far</h3>
-      <p class="small">Each pick lands here, ready to paste.</p>
+      <h3>In your test</h3>
+      <p class="small">Lines marked + use the locator you picked.</p>
       <div class="code">
         <div class="code-head"><span>login.spec.ts</span><span>TypeScript</span></div>
         <div class="code-body" id="spec-code" set:html={initialSpec} />
@@ -62,7 +62,7 @@ const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
 
   @media (min-width: 1024px) {
     .layout {
-      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 
     .side {
@@ -82,8 +82,8 @@ const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
 
   .row {
     display: grid;
-    grid-template-columns: 1.5rem minmax(9rem, 11rem) minmax(0, 1fr) auto;
-    gap: 1rem;
+    grid-template-columns: 1.5rem 10rem minmax(0, 1fr) auto;
+    gap: 0.75rem;
     align-items: center;
     padding: 1.1rem 0.75rem;
     border-bottom: 1px solid var(--border);
@@ -105,7 +105,7 @@ const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
     min-width: 0;
     font-size: 13px;
     color: var(--muted);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .st {
@@ -141,6 +141,23 @@ const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
 
   .side .code {
     margin-top: 1rem;
+  }
+
+  /* Injected via innerHTML, so these selectors must reach past Astro's scoping. */
+  .side :global(.spec-plus) {
+    color: var(--accent);
+    font-weight: 700;
+    user-select: none;
+  }
+
+  .side :global(.spec-add) {
+    display: block;
+    width: max-content;
+    min-width: calc(100% + 2.5rem);
+    margin: 0 -1.25rem;
+    padding: 0 1.25rem;
+    background: var(--accent-lo);
+    box-shadow: inset 2px 0 0 var(--accent);
   }
 
   @media (max-width: 640px) {
