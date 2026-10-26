@@ -1,0 +1,338 @@
+<div class="demo" id="demo">
+  <div class="demo-bar">
+    <span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span>
+    <span class="demo-address">app.example.com/login</span>
+  </div>
+
+  <div class="demo-page" id="demo-page">
+    <div class="demo-form">
+      <h3 class="demo-title"><span class="pk pk-title" data-key="heading" role="button" tabindex="0">Sign in</span></h3>
+      <p class="demo-sub">Use your work account.</p>
+
+      <span class="demo-label">Email</span>
+      <button class="pk pk-field" data-key="email" type="button" aria-label="Email field">ada@example.com</button>
+
+      <span class="demo-label">Password</span>
+      <button class="pk pk-field pk-muted" data-key="password" type="button" aria-label="Password field">••••••••••</button>
+
+      <button class="pk pk-btn pk-solid" data-key="signin" type="button">Sign in</button>
+      <button class="pk pk-btn pk-outline" data-key="sso" type="button">Continue with SSO</button>
+
+      <div class="demo-forgot">
+        <button class="pk pk-link" data-key="forgot" type="button">Forgot your password?</button>
+      </div>
+    </div>
+
+    <div class="demo-hl" id="demo-hl" aria-hidden="true">
+      <span class="demo-tip" id="demo-tip"><span class="demo-tip-tag" id="demo-tip-tag"></span><span class="demo-tip-loc" id="demo-tip-loc"></span></span>
+    </div>
+  </div>
+
+  <div class="demo-out">
+    <div class="demo-out-text" aria-live="polite">
+      <p class="demo-out-meta"><span class="demo-pill" id="demo-pill"></span><span id="demo-tag"></span></p>
+      <code class="demo-out-loc"><span class="demo-m" id="demo-method"></span><span class="demo-a" id="demo-args"></span></code>
+    </div>
+    <button class="demo-copy" id="demo-copy" type="button">Copy</button>
+  </div>
+</div>
+
+<script>
+  import '../scripts/demo';
+</script>
+
+<style is:global>
+  .demo {
+    position: relative;
+    container-type: inline-size;
+    overflow: hidden;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+  }
+
+  /* Browser toolbar */
+  .demo-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .demo-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border2);
+  }
+
+  .demo-address {
+    flex: 1;
+    min-width: 0;
+    max-width: 340px;
+    margin-left: 10px;
+    padding: 4px 14px;
+    background: var(--bg);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Page under test */
+  .demo-page {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding: clamp(2rem, 7cqw, 3.5rem) 1.5rem;
+    background: var(--bg);
+    cursor: crosshair;
+  }
+
+  .demo-page * {
+    cursor: crosshair;
+  }
+
+  .demo-form {
+    display: flex;
+    flex-direction: column;
+    width: min(300px, 100%);
+  }
+
+  .demo-title {
+    margin-bottom: 4px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.3;
+  }
+
+  .demo-sub {
+    margin-bottom: 1.5rem;
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .demo-label {
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .pk {
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    transition:
+      border-color 0.15s,
+      background-color 0.15s,
+      color 0.15s;
+  }
+
+  .pk-title {
+    display: inline-block;
+    margin: -3px -7px;
+    padding: 2px 6px;
+  }
+
+  .pk-field,
+  .pk-btn {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+
+  .pk-field {
+    margin-bottom: 1rem;
+    border-color: var(--border2);
+    background: var(--bg2);
+    text-align: left;
+    color: var(--code-text);
+  }
+
+  .pk-muted {
+    margin-bottom: 1.5rem;
+    color: var(--muted);
+  }
+
+  .pk-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pk-solid {
+    margin-bottom: 10px;
+    border-color: var(--text);
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  .pk-outline {
+    border-color: var(--border2);
+    background: var(--bg2);
+    color: var(--code-text);
+  }
+
+  .demo-forgot {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .pk-link {
+    padding: 6px 8px;
+    font-size: 14px;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  .pk.picked {
+    border-color: var(--accent);
+    background: var(--accent-lo);
+  }
+
+  .pk-solid.picked {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  /* Hover and keyboard-focus highlight */
+  .demo-hl {
+    position: absolute;
+    z-index: 2;
+    border-radius: 3px;
+    outline: 2px solid var(--accent);
+    background: var(--accent-lo);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      top 0.12s,
+      left 0.12s,
+      width 0.12s,
+      height 0.12s,
+      opacity 0.1s;
+  }
+
+  .demo-hl[data-on] {
+    opacity: 1;
+  }
+
+  .demo-tip {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 6px);
+    max-width: 80cqw;
+    padding: 3px 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+
+  .demo-tip[data-below] {
+    bottom: auto;
+    top: calc(100% + 6px);
+  }
+
+  .demo-tip[data-end] {
+    left: auto;
+    right: 0;
+  }
+
+  .demo-tip-tag {
+    margin-right: 0.8em;
+    color: var(--code-kw);
+  }
+
+  .demo-tip-loc {
+    color: var(--accent);
+  }
+
+  /* Picked locator */
+  .demo-out {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 14px 16px;
+    border-top: 1px solid var(--border2);
+  }
+
+  .demo-out-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .demo-out-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .demo-pill {
+    padding: 1px 7px;
+    background: var(--accent-lo);
+    border-radius: 3px;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.6;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .demo-out-loc {
+    display: block;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 14.5px;
+    font-weight: 700;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .demo-m {
+    color: var(--code-fn);
+  }
+
+  .demo-a {
+    color: var(--accent);
+  }
+
+  .demo-copy {
+    flex: none;
+    min-width: 5.5rem;
+    padding: 7px 14px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    transition: background-color 0.15s;
+  }
+
+  .demo-copy:hover {
+    background: var(--accent-lo);
+  }
+</style>

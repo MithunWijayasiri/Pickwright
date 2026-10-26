@@ -1,0 +1,48 @@
+---
+import '@fontsource-variable/jetbrains-mono';
+import '@fontsource-variable/geist';
+import '../styles/global.css';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const SITE = 'https://mithunwijayasiri.github.io/Pickwright/';
+const OG_IMAGE = `${SITE}assets/og.png`;
+const TITLE = 'Pickwright - Playwright Locator Picker';
+const DESCRIPTION =
+  'Click any element, get the best Playwright locator. Role, testId, label or CSS, scored and ready to paste.';
+const SHARE_DESCRIPTION = 'Click any element. Get the Playwright locator, ready to paste.';
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('pw-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+    <title>{TITLE}</title>
+    <meta name="description" content={DESCRIPTION} />
+    <link rel="icon" type="image/svg+xml" href={`${base}/assets/favicon.svg`} />
+    <link rel="canonical" href={SITE} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={SITE} />
+    <meta property="og:title" content={TITLE} />
+    <meta property="og:description" content={SHARE_DESCRIPTION} />
+    <meta property="og:image" content={OG_IMAGE} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="2000" />
+    <meta property="og:image:height" content="1050" />
+    <meta property="og:image:alt" content={TITLE} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={TITLE} />
+    <meta name="twitter:description" content={SHARE_DESCRIPTION} />
+    <meta name="twitter:image" content={OG_IMAGE} />
+    <meta name="twitter:image:alt" content={TITLE} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

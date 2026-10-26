@@ -1,0 +1,158 @@
+export interface Tier {
+  rank: number;
+  pill: string;
+}
+
+// Pickwright's real strategy order; lower rank wins.
+export const TIERS: Tier[] = [
+  { rank: 1, pill: 'getByTestId' },
+  { rank: 2, pill: 'test-id' },
+  { rank: 3, pill: 'getByRole' },
+  { rank: 4, pill: 'getByLabel' },
+  { rank: 5, pill: 'getByPlaceholder' },
+  { rank: 6, pill: 'getByAltText' },
+  { rank: 7, pill: 'getByText' },
+  { rank: 8, pill: 'getByTitle' },
+  { rank: 9, pill: 'formcontrolname' },
+  { rank: 10, pill: 'css id' },
+  { rank: 11, pill: 'getByRole' },
+  { rank: 12, pill: 'css' },
+  { rank: 13, pill: 'css path' },
+];
+
+// The ranking section shows the tiers folded into these consecutive groups.
+export const GROUPS = [
+  { name: 'Test IDs', ranks: [1, 2] },
+  { name: 'What users see', ranks: [3, 4, 5, 6, 7, 8] },
+  { name: 'IDs and attributes', ranks: [9, 10] },
+  { name: 'Page structure', ranks: [11, 12, 13] },
+];
+
+// A string is a unique locator; an object exists but matches several elements.
+type TierValue = string | { value: string; matches: number };
+
+export interface DemoElement {
+  label: string;
+  tag: string;
+  // What a test does with it: a visibility check, or a call chained onto the locator.
+  action: 'expect' | `.${string}`;
+  tiers: Partial<Record<number, TierValue>>;
+}
+
+export const ELEMENTS = {
+  heading: {
+    label: 'Sign in heading',
+    tag: 'h1',
+    action: 'expect',
+    tiers: {
+      3: "getByRole('heading', { name: 'Sign in' })",
+      7: { value: "getByText('Sign in')", matches: 2 },
+      11: "getByRole('heading')",
+      12: "locator('h1')",
+      13: "locator('form > h1')",
+    },
+  },
+  email: {
+    label: 'Email field',
+    tag: 'input',
+    action: ".fill('ada@example.com')",
+    tiers: {
+      3: "getByRole('textbox', { name: 'Email' })",
+      4: "getByLabel('Email')",
+      5: "getByPlaceholder('you@company.com')",
+      10: "locator('#email')",
+      11: "getByRole('textbox')",
+      12: 'locator(\'input[name="email"]\')',
+      13: "locator('form > div:nth-child(2) > input')",
+    },
+  },
+  password: {
+    label: 'Password field',
+    tag: 'input',
+    action: ".fill('hunter2')",
+    tiers: {
+      4: "getByLabel('Password')",
+      10: "locator('#password')",
+      12: 'locator(\'input[type="password"]\')',
+      13: "locator('form > div:nth-child(3) > input')",
+    },
+  },
+  signin: {
+    label: 'Sign in button',
+    tag: 'button',
+    action: '.click()',
+    tiers: {
+      3: "getByRole('button', { name: 'Sign in' })",
+      7: { value: "getByText('Sign in')", matches: 2 },
+      11: { value: "getByRole('button')", matches: 2 },
+      12: 'locator(\'button[type="submit"]\')',
+      13: "locator('form > button:nth-child(4)')",
+    },
+  },
+  sso: {
+    label: 'SSO button',
+    tag: 'button',
+    action: '.click()',
+    tiers: {
+      1: "getByTestId('sso-btn')",
+      3: "getByRole('button', { name: 'Continue with SSO' })",
+      7: "getByText('Continue with SSO')",
+      11: { value: "getByRole('button')", matches: 2 },
+      12: 'locator(\'button[type="button"]\')',
+      13: "locator('form > button:nth-child(5)')",
+    },
+  },
+  forgot: {
+    label: 'Forgot password link',
+    tag: 'a',
+    action: '.click()',
+    tiers: {
+      3: "getByRole('link', { name: 'Forgot your password?' })",
+      7: "getByText('Forgot your password?')",
+      11: "getByRole('link')",
+      12: 'locator(\'a[href="/reset"]\')',
+      13: "locator('form > a')",
+    },
+  },
+} satisfies Record<string, DemoElement>;
+
+export function getElement(key: string): DemoElement {
+  const el = (ELEMENTS as Record<string, DemoElement>)[key];
+  if (!el) throw new Error(`Unknown demo element: ${key}`);
+  return el;
+}
+
+export function winnerOf(el: DemoElement): { tier: Tier; locator: string } {
+  for (const tier of TIERS) {
+    const v = el.tiers[tier.rank];
+    if (typeof v === 'string') return { tier, locator: v };
+  }
+  throw new Error(`No unique locator for ${el.label}`);
+}
+
+export interface GroupResult {
+  name: string;
+  state: 'winner' | 'unique' | 'multi' | 'absent';
+  value: string;
+  status: string;
+}
+
+// Each group shows its best value: the winner, else its first unique, else its first multi-match.
+export function rankGroups(el: DemoElement): GroupResult[] {
+  const winner = winnerOf(el);
+  return GROUPS.map(({ name, ranks }) => {
+    if (ranks.includes(winner.tier.rank)) {
+      return { name, state: 'winner', value: winner.locator, status: 'used' };
+    }
+    const values = ranks.flatMap((r) => el.tiers[r] ?? []);
+    const unique = values.find((v) => typeof v === 'string');
+    if (unique !== undefined) {
+      return { name, state: 'unique', value: unique, status: 'also unique' };
+    }
+    const multi = values.find((v) => typeof v !== 'string');
+    if (multi !== undefined) {
+      return { name, state: 'multi', value: multi.value, status: `matches ${multi.matches}` };
+    }
+    return { name, state: 'absent', value: 'nothing to use', status: '' };
+  });
+}

@@ -1,0 +1,107 @@
+---
+import { highlight } from '../scripts/spec';
+
+// Each code sample is real Pickwright output for the feature.
+const shown = [
+  {
+    title: 'Iframes at any depth',
+    body: 'Adds the frameLocator chain for you.',
+    code: "frameLocator('#checkout').getByRole('button', { name: 'Pay' })",
+  },
+  {
+    title: 'Pick a whole form',
+    body: 'Collect several elements in one go, then Copy all gives you a named list.',
+    code: ["getByLabel('Email'); // emailInput", "getByLabel('Password'); // passwordInput", "getByRole('button', { name: 'Sign in' }); // signInButton"].join('\n'),
+  },
+  {
+    title: 'Ignores framework noise',
+    body: 'Skips generated ids and classes like mat- and ng-reflect-, and uses formcontrolname instead.',
+    code: ['<input id="mat-input-3" formcontrolname="email">', '', 'locator(\'[formcontrolname="email"]\')'].join('\n'),
+  },
+];
+
+const more = ['Shadow DOM', 'Shift+click opens dropdowns', 'Alt+Shift+L starts picking', 'History stays on your machine', 'Chrome, Edge and Firefox 140+'];
+---
+
+<section id="features" class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Built for the apps you actually test.</h2>
+    </div>
+
+    <ul class="rows" role="list">
+      {
+        shown.map((f) => (
+          <li class="row">
+            <div class="text">
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
+            </div>
+            <div class="code">
+              <div class="code-body" set:html={highlight(f.code)} />
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+
+    <ul class="more" role="list" aria-label="Also included">
+      {more.map((m) => <li>{m}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .rows {
+    list-style: none;
+  }
+
+  .row {
+    display: grid;
+    gap: 1rem 2.5rem;
+    align-items: center;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border2);
+  }
+
+  @media (min-width: 860px) {
+    .row {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    }
+  }
+
+  .text,
+  .code {
+    min-width: 0;
+  }
+
+  h3 {
+    color: var(--text);
+  }
+
+  p {
+    margin-top: 0.4rem;
+    max-width: 38ch;
+    font-size: 15.5px;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  .more {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border2);
+    list-style: none;
+  }
+
+  .more li {
+    padding: 6px 12px;
+    border: 1px solid var(--border2);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+</style>

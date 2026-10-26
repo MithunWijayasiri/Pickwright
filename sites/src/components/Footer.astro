@@ -1,0 +1,77 @@
+---
+const REPO = 'https://github.com/MithunWijayasiri/Pickwright';
+const links = [
+  { href: REPO, label: 'GitHub' },
+  { href: `${REPO}/blob/master/docs/PRIVACY.md`, label: 'Privacy' },
+  { href: 'https://ko-fi.com/mithunwijayasiri', label: 'Support' },
+];
+---
+
+<footer>
+  <div class="wrap bar">
+    <span class="brand">pick<em>wright</em></span>
+    <ul role="list">
+      {
+        links.map((l) => (
+          <li>
+            <a href={l.href} target="_blank" rel="noopener">
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <span class="note">MIT license</span>
+  </div>
+</footer>
+
+<style>
+  footer {
+    padding: 2.5rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .brand {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--muted);
+  }
+
+  .brand em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+    list-style: none;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--dim);
+  }
+
+  a {
+    transition: color 0.15s;
+  }
+
+  a:hover {
+    color: var(--muted);
+  }
+
+  .note {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--dim);
+  }
+</style>
