@@ -1,9 +1,9 @@
 ---
-import { ELEMENTS, getElement, rankTiers, specLineOf } from '../data/demo';
+import { ELEMENTS, getElement, rankGroups, specLineOf } from '../data/demo';
 import { buildSpec } from '../scripts/spec';
 
 const initial = getElement('signin');
-const rows = rankTiers(initial);
+const rows = rankGroups(initial);
 const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
 ---
 
@@ -13,8 +13,8 @@ const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
       <div class="section-head">
         <h2>How it chose that locator.</h2>
         <p>
-          Pickwright tries 13 strategies in Playwright's preference order and keeps the first one that matches exactly one element. This is the
-          run for the element you picked above: <strong id="rank-label">{initial.label}</strong>.
+          Pickwright tries these kinds of locator in Playwright's order of preference and keeps the first one that matches exactly one
+          element. This is the run for the element you picked above: <strong id="rank-label">{initial.label}</strong>.
           <a href="https://github.com/MithunWijayasiri/Pickwright/blob/master/docs/build-from-source.md#generated-locator-priority" target="_blank" rel="noopener">
             See the full priority table
           </a>.
@@ -23,10 +23,10 @@ const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
 
       <ol id="rank-list">
         {
-          rows.map((r) => (
+          rows.map((r, i) => (
             <li class="row" data-state={r.state}>
-              <span class="rk">{String(r.tier.rank).padStart(2, '0')}</span>
-              <span class="nm">{r.tier.name}</span>
+              <span class="rk">{i + 1}</span>
+              <span class="nm">{r.name}</span>
               <span class="val" title={r.value}>
                 {r.value}
               </span>
@@ -82,10 +82,10 @@ const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
 
   .row {
     display: grid;
-    grid-template-columns: 2.5rem minmax(9rem, 11rem) minmax(0, 1fr) auto;
+    grid-template-columns: 1.5rem minmax(9rem, 11rem) minmax(0, 1fr) auto;
     gap: 1rem;
     align-items: center;
-    padding: 0.8rem 0.75rem;
+    padding: 1.1rem 0.75rem;
     border-bottom: 1px solid var(--border);
     font-family: var(--mono);
   }

@@ -26,4 +26,5 @@ Marketing site for the extension. Changing structure, build, deploy or the desig
 ## Demo
 
 - `src/data/demo.ts` mirrors the engine's strategy order (`SCORE` in `src/locator-engine/playwright-port.ts`) and the popup's labels/limits (`MAX_HISTORY`, `MAX_GROUP_PICKS`, group "Copy all" format from `src/shared/page-object.ts`). Changing those in the extension → update the demo.
+- Ranking section shows `TIERS` folded into `GROUPS` (consecutive rank ranges), never all 13. New tier → add its rank to a group.
 - Winner = lowest rank with a unique value. Demo locators have no `page.` prefix, same as the extension.

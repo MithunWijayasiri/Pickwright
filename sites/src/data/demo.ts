@@ -1,24 +1,31 @@
 export interface Tier {
   rank: number;
-  name: string;
   pill: string;
 }
 
 // Pickwright's real strategy order; lower rank wins.
 export const TIERS: Tier[] = [
-  { rank: 1, name: 'getByTestId', pill: 'getByTestId' },
-  { rank: 2, name: 'test-ID attribute', pill: 'test-id' },
-  { rank: 3, name: 'getByRole + name', pill: 'getByRole' },
-  { rank: 4, name: 'getByLabel', pill: 'getByLabel' },
-  { rank: 5, name: 'getByPlaceholder', pill: 'getByPlaceholder' },
-  { rank: 6, name: 'getByAltText', pill: 'getByAltText' },
-  { rank: 7, name: 'getByText', pill: 'getByText' },
-  { rank: 8, name: 'getByTitle', pill: 'getByTitle' },
-  { rank: 9, name: 'formcontrolname', pill: 'formcontrolname' },
-  { rank: 10, name: 'CSS #id', pill: 'css id' },
-  { rank: 11, name: 'getByRole (no name)', pill: 'getByRole' },
-  { rank: 12, name: 'CSS tag / attribute', pill: 'css' },
-  { rank: 13, name: 'CSS path', pill: 'css path' },
+  { rank: 1, pill: 'getByTestId' },
+  { rank: 2, pill: 'test-id' },
+  { rank: 3, pill: 'getByRole' },
+  { rank: 4, pill: 'getByLabel' },
+  { rank: 5, pill: 'getByPlaceholder' },
+  { rank: 6, pill: 'getByAltText' },
+  { rank: 7, pill: 'getByText' },
+  { rank: 8, pill: 'getByTitle' },
+  { rank: 9, pill: 'formcontrolname' },
+  { rank: 10, pill: 'css id' },
+  { rank: 11, pill: 'getByRole' },
+  { rank: 12, pill: 'css' },
+  { rank: 13, pill: 'css path' },
+];
+
+// The ranking section shows the tiers folded into these consecutive groups.
+export const GROUPS = [
+  { name: 'Test IDs', ranks: [1, 2] },
+  { name: 'What users see', ranks: [3, 4, 5, 6, 7, 8] },
+  { name: 'IDs and attributes', ranks: [9, 10] },
+  { name: 'Page structure', ranks: [11, 12, 13] },
 ];
 
 // A string is a unique locator; an object exists but matches several elements.
@@ -150,25 +157,29 @@ export function specLineOf(el: DemoElement): string {
   return el.spec.replace('{loc}', winnerOf(el).locator);
 }
 
-export interface TierResult {
-  tier: Tier;
+export interface GroupResult {
+  name: string;
   state: 'winner' | 'unique' | 'multi' | 'absent';
   value: string;
   status: string;
 }
 
-export function rankTiers(el: DemoElement): TierResult[] {
+// Each group shows its best value: the winner, else its first unique, else its first multi-match.
+export function rankGroups(el: DemoElement): GroupResult[] {
   const winner = winnerOf(el);
-  return TIERS.map((tier) => {
-    const v = el.tiers[tier.rank];
-    if (v === undefined) {
-      return { tier, state: 'absent', value: 'nothing to use', status: '' };
+  return GROUPS.map(({ name, ranks }) => {
+    if (ranks.includes(winner.tier.rank)) {
+      return { name, state: 'winner', value: winner.locator, status: 'used' };
     }
-    if (typeof v !== 'string') {
-      return { tier, state: 'multi', value: v.value, status: `matches ${v.matches}` };
+    const values = ranks.flatMap((r) => el.tiers[r] ?? []);
+    const unique = values.find((v) => typeof v === 'string');
+    if (unique !== undefined) {
+      return { name, state: 'unique', value: unique, status: 'also unique' };
     }
-    return tier.rank === winner.tier.rank
-      ? { tier, state: 'winner', value: v, status: 'used' }
-      : { tier, state: 'unique', value: v, status: 'also unique' };
+    const multi = values.find((v) => typeof v !== 'string');
+    if (multi !== undefined) {
+      return { name, state: 'multi', value: multi.value, status: `matches ${multi.matches}` };
+    }
+    return { name, state: 'absent', value: 'nothing to use', status: '' };
   });
 }

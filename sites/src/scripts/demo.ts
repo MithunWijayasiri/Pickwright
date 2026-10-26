@@ -1,4 +1,4 @@
-import { alternativesOf, getElement, rankTiers, specLineOf, winnerOf } from '../data/demo';
+import { alternativesOf, getElement, rankGroups, specLineOf, winnerOf } from '../data/demo';
 import { buildSpec } from './spec';
 
 const MAX_HISTORY = 20;
@@ -234,9 +234,9 @@ function render() {
 
   // Ranking
   rankLabel.textContent = el.label;
-  rankTiers(el).forEach((r, i) => {
+  rankGroups(el).forEach((r, i) => {
     const row = rankRows[i];
-    if (!row) throw new Error('Ranking rows do not match the tiers');
+    if (!row) throw new Error('Ranking rows do not match the groups');
     row.dataset.state = r.state;
     const val = must<HTMLElement>('.val', row);
     val.textContent = r.value;
