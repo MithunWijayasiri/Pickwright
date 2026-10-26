@@ -1,0 +1,284 @@
+---
+const REPO = 'https://github.com/MithunWijayasiri/Pickwright';
+const links = [
+  { href: '#ranking', label: 'How it chooses' },
+  { href: '#features', label: 'Features' },
+  { href: '#compare', label: 'Compare' },
+  { href: '#install', label: 'Install' },
+  { href: REPO, label: 'GitHub' },
+];
+---
+
+<header class="nav" id="nav">
+  <div class="wrap bar">
+    <a class="brand" href="#top">pick<em>wright</em></a>
+
+    <div class="menu" id="nav-menu">
+      <ul class="links" role="list">
+        {
+          links.map((l) => (
+            <li>
+              <a href={l.href}>{l.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="actions">
+        <a class="btn kofi" href="https://ko-fi.com/mithunwijayasiri" target="_blank" rel="noopener">Ko-fi</a>
+        <a class="btn btn-accent cta" href="#install">Add to browser</a>
+      </div>
+    </div>
+
+    <button class="icon-btn theme" id="theme-toggle" type="button" aria-label="Switch to light theme">
+      <svg class="sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+      </svg>
+      <svg class="moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+      </svg>
+    </button>
+
+    <button class="icon-btn menu-btn" id="nav-menu-btn" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+      <svg class="i-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16"></path>
+      </svg>
+      <svg class="i-close" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18"></path>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<script>
+  const root = document.documentElement;
+  const nav = document.querySelector<HTMLElement>('#nav');
+  const themeBtn = document.querySelector<HTMLButtonElement>('#theme-toggle');
+  const menuBtn = document.querySelector<HTMLButtonElement>('#nav-menu-btn');
+  const menu = document.querySelector<HTMLElement>('#nav-menu');
+  if (!nav || !themeBtn || !menuBtn || !menu) throw new Error('Nav markup is missing');
+
+  function syncThemeLabel() {
+    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+    themeBtn!.setAttribute('aria-label', `Switch to ${next} theme`);
+  }
+
+  syncThemeLabel();
+  themeBtn.addEventListener('click', () => {
+    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem('pw-theme', next);
+    } catch {}
+    syncThemeLabel();
+  });
+
+  function setMenu(open: boolean) {
+    menu!.classList.toggle('open', open);
+    menuBtn!.setAttribute('aria-expanded', String(open));
+    menuBtn!.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+
+  menuBtn.addEventListener('click', () => setMenu(!menu.classList.contains('open')));
+
+  menu.addEventListener('click', (e) => {
+    if ((e.target as Element).closest('a')) setMenu(false);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menu.classList.contains('open')) {
+      setMenu(false);
+      menuBtn.focus();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!nav.contains(e.target as Node)) setMenu(false);
+  });
+
+  window.matchMedia('(min-width: 861px)').addEventListener('change', (e) => {
+    if (e.matches) setMenu(false);
+  });
+</script>
+
+<style>
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    height: var(--nav-h);
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 100%;
+  }
+
+  .brand {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .brand em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  /* Desktop: the menu wrapper disappears so links and actions sit in the bar. */
+  .menu,
+  .actions {
+    display: contents;
+  }
+
+  .links {
+    order: 1;
+    display: flex;
+    gap: 1.75rem;
+    list-style: none;
+    margin: 0 auto 0 calc(2.5rem - 10px);
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .links a {
+    transition: color 0.15s;
+  }
+
+  .links a:hover {
+    color: var(--text);
+  }
+
+  .theme {
+    order: 2;
+  }
+
+  .kofi {
+    order: 3;
+    border: 1px solid var(--kofi);
+    color: var(--kofi);
+  }
+
+  .kofi:hover {
+    background: var(--kofi);
+    color: #fff;
+  }
+
+  .cta {
+    order: 4;
+  }
+
+  .kofi,
+  .cta {
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    transition:
+      color 0.15s,
+      border-color 0.15s;
+  }
+
+  .icon-btn:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  .moon,
+  .i-close,
+  .menu-btn {
+    display: none;
+  }
+
+  :global([data-theme='light']) .sun {
+    display: none;
+  }
+
+  :global([data-theme='light']) .moon {
+    display: block;
+  }
+
+  @media (max-width: 860px) {
+    .brand {
+      margin-right: auto;
+    }
+
+    .menu-btn {
+      display: inline-flex;
+      order: 5;
+    }
+
+    .menu-btn[aria-expanded='true'] .i-open {
+      display: none;
+    }
+
+    .menu-btn[aria-expanded='true'] .i-close {
+      display: block;
+    }
+
+    .menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      display: none;
+      flex-direction: column;
+      padding: 0.5rem var(--gutter) 1.25rem;
+      background: var(--nav-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .menu.open {
+      display: flex;
+    }
+
+    .links {
+      order: 0;
+      flex-direction: column;
+      gap: 0;
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .links a {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      padding-top: 1rem;
+    }
+
+    .kofi,
+    .cta {
+      order: 0;
+      flex: 1;
+      min-height: 44px;
+    }
+  }
+</style>

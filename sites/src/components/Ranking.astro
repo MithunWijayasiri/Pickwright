@@ -1,0 +1,162 @@
+---
+import { ELEMENTS, getElement, rankTiers, specLineOf } from '../data/demo';
+import { buildSpec } from '../scripts/spec';
+
+const initial = getElement('signin');
+const rows = rankTiers(initial);
+const initialSpec = buildSpec([specLineOf(ELEMENTS.signin)]);
+---
+
+<section id="ranking" class="section">
+  <div class="wrap layout">
+    <div class="list-col">
+      <div class="section-head">
+        <h2>How it chose that locator.</h2>
+        <p>
+          Pickwright tries 13 strategies in Playwright's preference order and keeps the first one that matches exactly one element. This is the
+          run for the element you picked above: <strong id="rank-label">{initial.label}</strong>.
+          <a href="https://github.com/MithunWijayasiri/Pickwright/blob/master/docs/build-from-source.md#generated-locator-priority" target="_blank" rel="noopener">
+            See the full priority table
+          </a>.
+        </p>
+      </div>
+
+      <ol id="rank-list">
+        {
+          rows.map((r) => (
+            <li class="row" data-state={r.state}>
+              <span class="rk">{String(r.tier.rank).padStart(2, '0')}</span>
+              <span class="nm">{r.tier.name}</span>
+              <span class="val" title={r.value}>
+                {r.value}
+              </span>
+              <span class="st">{r.status}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <div class="side">
+      <h3>Your spec, so far</h3>
+      <p class="small">Each pick lands here, ready to paste.</p>
+      <div class="code">
+        <div class="code-head"><span>login.spec.ts</span><span>TypeScript</span></div>
+        <div class="code-body" id="spec-code" set:html={initialSpec} />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .layout {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+
+  .list-col,
+  .side {
+    min-width: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .layout {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    }
+
+    .side {
+      position: sticky;
+      top: calc(var(--nav-h) + 24px);
+    }
+  }
+
+  .section-head strong {
+    color: var(--text);
+  }
+
+  ol {
+    list-style: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(9rem, 11rem) minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.8rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+  }
+
+  .rk {
+    font-size: 12.5px;
+    color: var(--dim);
+  }
+
+  .nm {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .val {
+    min-width: 0;
+    font-size: 13px;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .st {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .row[data-state='winner'] {
+    background: var(--accent-lo);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+
+  .row[data-state='winner'] .nm {
+    color: var(--text);
+  }
+
+  .row[data-state='winner'] .val,
+  .row[data-state='winner'] .st {
+    color: var(--accent);
+  }
+
+  .row[data-state='multi'] .st,
+  .row[data-state='absent'] .st,
+  .row[data-state='absent'] .nm,
+  .row[data-state='absent'] .val {
+    color: var(--dim);
+  }
+
+  .side h3 {
+    font-size: var(--fs-base);
+    font-weight: 800;
+  }
+
+  .side .code {
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    .row {
+      grid-template-columns: 2rem 1fr;
+      gap: 0.2rem 0.75rem;
+    }
+
+    .val {
+      grid-column: 2;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .st {
+      grid-column: 2;
+    }
+  }
+</style>

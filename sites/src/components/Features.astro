@@ -1,0 +1,97 @@
+---
+const items = [
+  {
+    title: 'Click to pick',
+    body: 'Hover to highlight, click to get every strategy at once with the best one first. <code>Alt+Shift+L</code> starts picking without opening the popup.',
+  },
+  {
+    title: '13 strategies',
+    body: "getByTestId, getByRole, getByLabel, getByPlaceholder, getByAltText, getByText and getByTitle, then CSS, in Playwright's own order.",
+  },
+  {
+    title: 'Pick multiple',
+    body: 'Stay in pick mode across clicks and collect a whole form in one pass. The session is saved as one history group, and Copy all gives you a named list.',
+  },
+  {
+    title: 'Dropdowns and menus',
+    body: 'Hold <code>Shift</code> and click to let the page open its own dropdowns while picking stays on, then pick inside them.',
+  },
+  {
+    title: 'Shadow DOM',
+    body: 'Finds the element under your cursor inside open shadow roots.',
+  },
+  {
+    title: 'Iframes',
+    body: 'Detects same-origin iframes at any depth and adds the <code>frameLocator()</code> chain for you.',
+  },
+  {
+    title: 'Angular-aware',
+    body: 'Ignores generated <code>mat-</code>, <code>cdk-</code> and <code>ng-reflect-*</code> noise and prefers <code>formcontrolname</code>, which survives production builds.',
+  },
+  {
+    title: 'Private history',
+    body: 'Your last 20 picks stay on your machine with the page they came from. Keep them, clear them when the browser starts, or turn history off.',
+  },
+  {
+    title: 'Chrome and Firefox',
+    body: 'The same picker and locators on Chrome, Edge and Firefox 140+.',
+  },
+];
+---
+
+<section id="features" class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Built for the apps you actually test.</h2>
+      <p>Finds the locator Playwright recommends and falls back to CSS only when it has to.</p>
+    </div>
+
+    <ul class="grid" role="list">
+      {
+        items.map((item) => (
+          <li>
+            <h3>{item.title}</h3>
+            <p set:html={item.body} />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .grid {
+    display: grid;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  @media (min-width: 600px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  li {
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--border2);
+  }
+
+  h3 {
+    color: var(--text);
+  }
+
+  p {
+    margin-top: 0.5rem;
+    max-width: 42ch;
+    font-size: 15.5px;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+</style>

@@ -1,0 +1,190 @@
+---
+import { highlight } from '../scripts/spec';
+
+const rows = [
+  {
+    aspect: 'Breaks when',
+    devtools: 'the page layout or nesting changes',
+    pickwright: "the element's role, label or test ID changes",
+  },
+  {
+    aspect: 'Framework noise',
+    devtools: 'copies generated ids and classes',
+    pickwright: 'skips Angular <code>mat-</code>, <code>cdk-</code> and <code>ng-reflect-*</code> noise',
+  },
+  {
+    aspect: 'Iframes and shadow DOM',
+    devtools: 'you write <code>frameLocator()</code> yourself',
+    pickwright: 'adds the <code>frameLocator()</code> chain and reads open shadow roots',
+  },
+  {
+    aspect: 'Several elements',
+    devtools: 'one copy at a time',
+    pickwright: 'Pick multiple collects a named list',
+  },
+  {
+    aspect: 'History',
+    devtools: 'none',
+    pickwright: 'your last 20 picks, with the page they came from',
+  },
+];
+---
+
+<section id="compare" class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Why not copy the selector from DevTools?</h2>
+      <p>DevTools copies a path through the DOM. It works until the layout changes. Pickwright gives you the locator Playwright recommends.</p>
+    </div>
+
+    <div class="pair">
+      <figure class="devtools">
+        <figcaption class="small">DevTools: Copy selector</figcaption>
+        <div class="code"><div class="code-body">{'#root > div > main > form > button:nth-child(4)'}</div></div>
+      </figure>
+      <figure class="pickwright">
+        <figcaption class="small">Pickwright</figcaption>
+        <div class="code"><div class="code-body" set:html={highlight("getByRole('button', { name: 'Sign in' })")} /></div>
+      </figure>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th scope="col"><span class="sr-only">Aspect</span></th>
+          <th scope="col">DevTools</th>
+          <th scope="col" class="pw">Pickwright</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rows.map((r) => (
+            <tr>
+              <th scope="row">{r.aspect}</th>
+              <td data-label="DevTools" set:html={r.devtools} />
+              <td data-label="Pickwright" class="pw" set:html={r.pickwright} />
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<style>
+  .pair {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  @media (min-width: 760px) {
+    .pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  figure {
+    min-width: 0;
+  }
+
+  figcaption {
+    margin-bottom: 0.5rem;
+  }
+
+  .devtools .code-body {
+    color: var(--muted);
+  }
+
+  .pickwright .code {
+    border-color: var(--accent);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  thead th {
+    padding: 0 1rem 0.75rem 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  thead th.pw {
+    color: var(--accent);
+  }
+
+  tbody tr {
+    border-top: 1px solid var(--border);
+  }
+
+  tbody tr:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody th,
+  td {
+    padding: 1rem 1rem 1rem 0;
+    vertical-align: top;
+  }
+
+  tbody th {
+    width: 22%;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  td {
+    font-size: 15.5px;
+    color: var(--muted);
+  }
+
+  td.pw {
+    color: var(--text);
+  }
+
+  @media (max-width: 640px) {
+    table,
+    tbody,
+    tr,
+    th,
+    td {
+      display: block;
+    }
+
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    tbody th {
+      width: auto;
+      padding: 1rem 0 0.25rem;
+    }
+
+    td {
+      padding: 0.25rem 0;
+    }
+
+    tbody tr {
+      padding-bottom: 0.75rem;
+    }
+
+    td::before {
+      content: attr(data-label);
+      display: block;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--dim);
+    }
+  }
+</style>

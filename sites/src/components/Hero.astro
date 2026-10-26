@@ -1,0 +1,84 @@
+---
+import StoreBadges from './StoreBadges.astro';
+import Demo from './Demo.astro';
+---
+
+<section id="top" class="hero">
+  <div class="wrap grid">
+    <div class="copy">
+      <h1 class="rise" style="--i: 0">Pick the right locator.</h1>
+      <p class="lede rise" style="--i: 1">
+        Click any element on a page and get the Playwright locator to paste. Test IDs, roles, labels and text come first; CSS only when
+        nothing better exists.
+      </p>
+      <div class="store rise" style="--i: 2">
+        <StoreBadges id="hero" />
+      </div>
+      <p class="small note rise" style="--i: 3">
+        Free and open source under MIT. Works in Chrome, Edge and Firefox 140+.
+        <a href="https://github.com/MithunWijayasiri/Pickwright/releases" target="_blank" rel="noopener">Download a build from GitHub Releases</a>
+      </p>
+    </div>
+    <div class="demo-col rise" style="--i: 4">
+      <Demo />
+      <p class="small caption">This is a working demo. Click anything in the page, or try Pick multiple.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: calc(var(--nav-h) + clamp(3rem, 7vw, 6rem));
+    padding-bottom: var(--section-y);
+  }
+
+  .grid {
+    display: grid;
+    gap: clamp(2.5rem, 5vw, 4.5rem);
+    align-items: center;
+  }
+
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    }
+  }
+
+  h1 {
+    max-width: 10ch;
+  }
+
+  .lede {
+    margin-top: 1.5rem;
+  }
+
+  .store {
+    margin-top: 2rem;
+  }
+
+  .note {
+    margin-top: 1.25rem;
+    max-width: 44ch;
+  }
+
+  .note a {
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    transition: color 0.15s;
+  }
+
+  .note a:hover {
+    color: var(--text);
+  }
+
+  .caption {
+    margin-top: 1rem;
+  }
+
+  .demo-col,
+  .copy {
+    min-width: 0;
+  }
+</style>

@@ -1,0 +1,697 @@
+---
+import pkg from '../../../package.json';
+---
+
+<div class="demo" id="demo">
+  <div class="demo-bar">
+    <span class="demo-dot"></span><span class="demo-dot"></span><span class="demo-dot"></span>
+    <span class="demo-address">app.example.com/login</span>
+    <span class="demo-ext" role="img" aria-label="Pickwright icon, picker on">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
+        <circle cx="8" cy="8" r="4.5"></circle>
+        <path d="M8 1v3M8 12v3M1 8h3M12 8h3"></path>
+      </svg>
+      <span class="demo-ext-dot"></span>
+    </span>
+  </div>
+
+  <div class="demo-page" id="demo-page">
+    <div class="demo-form">
+      <h3 class="demo-title"><span class="pk pk-title" data-key="heading" role="button" tabindex="0">Sign in</span></h3>
+      <p class="demo-sub">Use your work account.</p>
+
+      <span class="demo-label">Email</span>
+      <button class="pk pk-field" data-key="email" type="button">ada@example.com</button>
+
+      <span class="demo-label">Password</span>
+      <button class="pk pk-field pk-muted" data-key="password" type="button">••••••••••</button>
+
+      <button class="pk pk-btn pk-solid" data-key="signin" type="button">Sign in</button>
+      <button class="pk pk-btn pk-outline" data-key="sso" type="button">Continue with SSO</button>
+
+      <div class="demo-forgot">
+        <button class="pk pk-link" data-key="forgot" type="button">Forgot your password?</button>
+      </div>
+    </div>
+
+    <div class="demo-hl" id="demo-hl" aria-hidden="true">
+      <span class="demo-tip" id="demo-tip"><span class="demo-tip-tag" id="demo-tip-tag"></span><span class="demo-tip-loc" id="demo-tip-loc"></span></span>
+    </div>
+    <div class="demo-toast" id="demo-toast" role="status"></div>
+  </div>
+
+  <aside class="pp" aria-label="Pickwright popup">
+    <header class="pp-head">
+      <span class="pp-brand">pick<em>wright</em></span>
+      <span class="pp-ver">v{pkg.version}</span>
+    </header>
+
+    <div class="pp-body">
+      <div class="pp-result" aria-live="polite">
+        <div class="pp-meta">
+          <span class="pp-pill" id="pp-pill"></span>
+          <span class="pp-tag" id="pp-tag"></span>
+        </div>
+        <p class="pp-loc"><span class="pp-m" id="pp-method"></span><span class="pp-a" id="pp-args"></span></p>
+        <p class="pp-alt-label">Alternatives</p>
+        <ul class="pp-alts" id="pp-alts"></ul>
+        <div class="pp-foot">
+          <span class="pp-last">last picked</span>
+          <button class="pp-copy" id="pp-copy" type="button">Copy</button>
+        </div>
+      </div>
+
+      <div class="pp-banner" id="pp-multi" hidden>
+        <span class="pp-bdot"></span>
+        <div>
+          <p class="pp-bt">Multi-pick active</p>
+          <p class="pp-bh">Click elements to collect locators. Press Stop when done.</p>
+        </div>
+      </div>
+      <p class="pp-banner pp-notice" id="pp-notice" role="status"></p>
+
+      <button class="btn btn-line pp-action" id="pp-action" type="button">
+        <svg id="pp-action-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 2 14 5 8 8 2 5z"></path>
+          <path d="M2 8l6 3 6-3M2 11l6 3 6-3"></path>
+        </svg>
+        <span id="pp-action-label">Pick multiple</span>
+        <span class="pp-count" id="pp-action-count" hidden></span>
+      </button>
+
+      <div class="pp-history">
+        <div class="pp-hist-head">
+          <span>History</span>
+          <span class="pp-hist-count" id="pp-hist-count"></span>
+        </div>
+        <ul class="pp-hist-list" id="pp-hist" role="list"></ul>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+  import '../scripts/demo';
+</script>
+
+<style is:global>
+  .demo {
+    position: relative;
+    container-type: inline-size;
+    overflow: hidden;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+  }
+
+  /* Browser toolbar */
+  .demo-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .demo-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border2);
+  }
+
+  .demo-address {
+    flex: 1;
+    min-width: 0;
+    max-width: 340px;
+    margin-left: 8px;
+    padding: 4px 14px;
+    background: var(--bg);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .demo-ext {
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-left: auto;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+  }
+
+  .demo-ext-dot {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* Page under test */
+  .demo-page {
+    position: relative;
+    padding: 1.5rem;
+    background: var(--bg);
+    cursor: crosshair;
+  }
+
+  .demo-page * {
+    cursor: crosshair;
+  }
+
+  .demo-form {
+    display: flex;
+    flex-direction: column;
+    width: min(264px, 100%);
+  }
+
+  .demo-title {
+    margin-bottom: 4px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.3;
+  }
+
+  .demo-sub {
+    margin-bottom: 1.5rem;
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .demo-label {
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .pk {
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+  }
+
+  .pk-title {
+    display: inline-block;
+    margin: -3px -7px;
+    padding: 2px 6px;
+  }
+
+  .pk-field,
+  .pk-btn {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+
+  .pk-field {
+    margin-bottom: 1rem;
+    border-color: var(--border2);
+    background: var(--bg2);
+    text-align: left;
+    color: var(--code-text);
+  }
+
+  .pk-muted {
+    margin-bottom: 1.5rem;
+    color: var(--muted);
+  }
+
+  .pk-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pk-solid {
+    margin-bottom: 10px;
+    border-color: var(--text);
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  .pk-outline {
+    border-color: var(--border2);
+    background: var(--bg2);
+    color: var(--code-text);
+  }
+
+  .demo-forgot {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .pk-link {
+    padding: 6px 8px;
+    font-size: 14px;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  .pk.picked {
+    border-color: var(--accent);
+    background: var(--accent-lo);
+  }
+
+  .pk-solid.picked {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  /* Hover and keyboard-focus highlight */
+  .demo-hl {
+    position: absolute;
+    z-index: 2;
+    border-radius: 3px;
+    outline: 2px solid var(--accent);
+    background: var(--accent-lo);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      top 0.12s,
+      left 0.12s,
+      width 0.12s,
+      height 0.12s,
+      opacity 0.1s;
+  }
+
+  .demo-hl[data-on] {
+    opacity: 1;
+  }
+
+  .demo-tip {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 6px);
+    max-width: 80cqw;
+    padding: 3px 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+
+  .demo-tip[data-below] {
+    bottom: auto;
+    top: calc(100% + 6px);
+  }
+
+  .demo-tip[data-end] {
+    left: auto;
+    right: 0;
+  }
+
+  .demo-tip-tag {
+    margin-right: 0.8em;
+    color: var(--code-kw);
+  }
+
+  .demo-tip-loc {
+    color: var(--accent);
+  }
+
+  .demo-toast {
+    position: absolute;
+    z-index: 4;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    padding: 5px 12px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .demo-toast[data-on] {
+    opacity: 1;
+  }
+
+  /* Popup */
+  .pp {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: var(--bg2);
+    border-top: 1px solid var(--border2);
+  }
+
+  .pp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pp-brand {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .pp-brand em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  .pp-ver {
+    padding: 1px 6px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  .pp-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .pp-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pp-pill {
+    padding: 1px 7px;
+    background: var(--accent-lo);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.6;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .pp-tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .pp-loc {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 14.5px;
+    font-weight: 700;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .pp-m {
+    color: var(--code-fn);
+  }
+
+  .pp-a {
+    color: var(--accent);
+  }
+
+  .pp-alt-label {
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .pp-alts {
+    margin-top: 2px;
+    list-style: none;
+  }
+
+  .pp-alts li {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+    word-break: break-word;
+  }
+
+  .pp-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .pp-last {
+    font-size: 12px;
+    color: var(--dim);
+  }
+
+  .pp-copy,
+  .pp-copyall {
+    padding: 4px 12px;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    transition: background-color 0.15s;
+  }
+
+  .pp-copy:hover,
+  .pp-copyall:hover {
+    background: var(--accent-lo);
+  }
+
+  .pp-banner {
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--accent-lo);
+    border-radius: var(--radius);
+  }
+
+  .pp-banner[hidden],
+  .pp-notice:empty {
+    display: none;
+  }
+
+  .pp-notice {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .pp-bdot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .pp-bt {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .pp-bh {
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--muted);
+  }
+
+  .pp-action {
+    width: 100%;
+    min-height: 38px;
+    font-size: 13px;
+  }
+
+  .pp-count {
+    padding: 0 7px;
+    background: var(--accent-lo);
+    border-radius: 3px;
+    font-size: 11.5px;
+    color: var(--accent);
+  }
+
+  .pp-count[hidden],
+  .pp-action svg[hidden] {
+    display: none;
+  }
+
+  .pp-history {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .pp-hist-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .pp-hist-count {
+    color: var(--dim);
+  }
+
+  .pp-hist-list {
+    min-height: 0;
+    list-style: none;
+    overflow-y: auto;
+  }
+
+  .pp-hist-list > li {
+    padding: 7px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .pp-hist-list :focus-visible {
+    outline-offset: -2px;
+  }
+
+  .pp-single {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .pp-single-text {
+    min-width: 0;
+  }
+
+  .pp-single-loc,
+  .pp-pick-loc {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pp-single-tag {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--dim);
+  }
+
+  .pp-group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .pp-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    text-align: left;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .pp-chev {
+    flex: none;
+    transition: transform 0.15s;
+  }
+
+  .pp-toggle[aria-expanded='true'] .pp-chev {
+    transform: rotate(180deg);
+  }
+
+  .pp-copyall {
+    flex: none;
+    padding: 2px 8px;
+    font-size: 11.5px;
+  }
+
+  .pp-picks {
+    margin: 6px 0 0 6px;
+    list-style: none;
+  }
+
+  .pp-picks li {
+    padding: 3px 0 3px 10px;
+    border-left: 2px solid var(--border2);
+  }
+
+  .pp-pick-name {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--code-cm);
+  }
+
+  .pp-empty {
+    font-size: 12.5px;
+    color: var(--dim);
+  }
+
+  /* Wide frame: the popup hangs under the toolbar icon, over the page's right side. */
+  @container (min-width: 600px) {
+    .demo-page {
+      min-height: 560px;
+    }
+
+    .demo-toast {
+      left: calc(1.5rem + 132px);
+    }
+
+    .pp {
+      position: absolute;
+      z-index: 3;
+      top: 52px;
+      right: 12px;
+      max-height: calc(100% - 64px);
+      width: 300px;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+  }
+</style>

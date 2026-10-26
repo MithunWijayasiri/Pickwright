@@ -1,0 +1,330 @@
+/* Tokens: keep in sync with the extension popup identity (mono + green accent). */
+:root {
+  --mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --sans: 'Geist Variable', system-ui, sans-serif;
+
+  --wrap: 1160px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --nav-h: 64px;
+  --section-y: clamp(4rem, 9vw, 7.5rem);
+
+  /* Type scale, 17px base, ~1.25 ratio */
+  --fs-xs: 13px;
+  --fs-sm: 15px;
+  --fs-base: 17px;
+  --fs-md: 21px;
+  --fs-lg: 27px;
+  --fs-h2: clamp(1.75rem, 1.2rem + 1.8vw, 2.4rem);
+  --fs-h1: clamp(2.75rem, 1.6rem + 4vw, 4.75rem);
+
+  --radius-sm: 3px;
+  --radius: 6px;
+  --radius-lg: 10px;
+}
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0e0e0e;
+  --bg2: #141414;
+  --bg3: #1a1a1a;
+  --text: #f2f2f0;
+  --muted: #a3a39a;
+  --dim: #6f6f69;
+  --border: rgba(255, 255, 255, 0.08);
+  --border2: rgba(255, 255, 255, 0.14);
+  --accent: #00d062;
+  --accent-lo: rgba(0, 208, 98, 0.09);
+  --on-accent: #0e0e0e;
+  --nav-bg: rgba(14, 14, 14, 0.88);
+  --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  --kofi: #ff5e5b;
+  --code-bg: #141414;
+  --code-head-bg: rgba(0, 0, 0, 0.25);
+  --code-text: #d0d0da;
+  --code-cm: #8a8a9e;
+  --code-kw: #79b8ff;
+  --code-fn: #b392f0;
+  --code-s: #00d062;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f5f4f0;
+  --bg2: #eceae5;
+  --bg3: #e4e2dc;
+  --text: #111110;
+  --muted: #57534b;
+  --dim: #8a867e;
+  --border: rgba(0, 0, 0, 0.09);
+  --border2: rgba(0, 0, 0, 0.16);
+  --accent: #007a3d;
+  --accent-lo: rgba(0, 122, 61, 0.08);
+  --on-accent: #ffffff;
+  --nav-bg: rgba(245, 244, 240, 0.9);
+  --shadow: 0 24px 60px -24px rgba(40, 36, 28, 0.35);
+  --kofi: #d93b38;
+  --code-bg: #fbfaf8;
+  --code-head-bg: rgba(0, 0, 0, 0.035);
+  --code-text: #33322d;
+  --code-cm: #6b675e;
+  --code-kw: #0550ae;
+  --code-fn: #8250df;
+  --code-s: #007a3d;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 16px);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: var(--fs-base);
+  line-height: 1.65;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  color: var(--accent);
+}
+
+img,
+svg {
+  display: block;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Layout */
+.wrap {
+  width: 100%;
+  max-width: calc(var(--wrap) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding-block: var(--section-y);
+  border-top: 1px solid var(--border);
+}
+
+.section-head {
+  max-width: 62ch;
+  margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+/* Type */
+h1,
+h2,
+h3 {
+  font-family: var(--mono);
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--fs-h1);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+h2 {
+  font-size: var(--fs-h2);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  margin-bottom: 1rem;
+}
+
+h3 {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+}
+
+.lede {
+  font-size: var(--fs-md);
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 34ch;
+  text-wrap: pretty;
+}
+
+.section-head p,
+.prose {
+  color: var(--muted);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.prose a,
+.section-head a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.small {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--radius-sm);
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn-accent:hover {
+  background: color-mix(in srgb, var(--accent) 86%, var(--text));
+}
+
+.btn-line {
+  border: 1px solid var(--border2);
+  color: var(--text);
+}
+
+.btn-line:hover {
+  border-color: var(--accent);
+}
+
+/* Code block */
+.code {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-head-bg);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.code-body {
+  padding: 1.1rem 1.25rem;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--code-text);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.code-body .kw {
+  color: var(--code-kw);
+}
+.code-body .fn {
+  color: var(--code-fn);
+}
+.code-body .s {
+  color: var(--code-s);
+}
+.code-body .cm {
+  color: var(--code-cm);
+}
+
+/* One orchestrated load sequence for the hero; nothing else animates on its own. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

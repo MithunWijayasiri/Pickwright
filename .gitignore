@@ -9,3 +9,6 @@ test-results/
 playwright-report/
 .chrome-profile-test-*
 
+
+# Astro generated types
+.astro/

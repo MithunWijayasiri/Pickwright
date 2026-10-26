@@ -1,0 +1,92 @@
+---
+import StoreBadges from './StoreBadges.astro';
+
+const RELEASES = 'https://github.com/MithunWijayasiri/Pickwright/releases';
+---
+
+<section id="install" class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Set up in under a minute.</h2>
+      <p>Free, open source and MIT licensed. No account, no setup and no telemetry. Nothing you pick leaves your browser.</p>
+    </div>
+
+    <ol class="steps">
+      <li>
+        <span class="n">1</span>
+        <h3>Add it to your browser</h3>
+        <p class="prose">
+          Install from the
+          <a href="https://chromewebstore.google.com/detail/pickwright-playwright-loc/kgikopoehffaodbicnhajokkmhgjofjo" target="_blank" rel="noopener">
+            Chrome Web Store
+          </a>
+          or
+          <a href="https://addons.mozilla.org/en-US/firefox/addon/pickwright/" target="_blank" rel="noopener">Firefox Add-ons</a>.
+        </p>
+      </li>
+      <li>
+        <span class="n">2</span>
+        <h3>Open your app</h3>
+        <p class="prose">Go to the page under test and click the Pickwright icon in the toolbar, or press <code>Alt+Shift+L</code>.</p>
+      </li>
+      <li>
+        <span class="n">3</span>
+        <h3>Click, copy, paste</h3>
+        <p class="prose">Hover to highlight, click to pick, and paste the locator into your test.</p>
+      </li>
+    </ol>
+
+    <div class="more">
+      <StoreBadges id="install" />
+      <p class="small prose">
+        Prefer to load it yourself? Get a build from <a href={RELEASES} target="_blank" rel="noopener">GitHub Releases</a>. On Chrome or Edge,
+        unzip <code>pickwright-chrome-*.zip</code> and load the folder unpacked. On Firefox 140+, install the signed <code>.xpi</code>.
+      </p>
+      <a class="btn btn-line" href="https://github.com/MithunWijayasiri/Pickwright" target="_blank" rel="noopener">View source on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .steps {
+    display: grid;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  @media (min-width: 860px) {
+    .steps {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .n {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-bottom: 0.9rem;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+  }
+
+  h3 {
+    color: var(--text);
+  }
+
+  .steps p {
+    margin-top: 0.4rem;
+    font-size: 15.5px;
+  }
+
+  .more {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-top: 2.5rem;
+  }
+</style>
