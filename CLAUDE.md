@@ -10,6 +10,11 @@
 | `npm run test:engine` | Locator engine unit tests, `--project=engine` (builds harness first) |
 | `npm run check` | `typecheck` + `lint` + `format:check` + `test:scripts` — same command CI's `Check` job runs |
 | `npm run format` | Prettier write (`src/`, `tests/`, `playwright.config.ts`) |
+| `cd sites && npm ci` | Install site deps (once) |
+| `cd sites && npm run dev` | Site dev server, live reload → `http://localhost:4321` |
+| `cd sites && npm run build` | Site production build → `sites/dist/` (Vercel/root base) |
+| `cd sites && MSYS_NO_PATHCONV=1 SITE_BASE=/Pickwright npm run build` | Site build as GitHub Pages serves it (Git Bash needs `MSYS_NO_PATHCONV`) |
+| `cd sites && npm run preview` | Serve the last site build locally |
 
 `check` is the pre-push gate. Non-obvious constraints behind it:
 
@@ -29,6 +34,10 @@ Picker UX still needs a manual check (reload at `chrome://extensions`, pick on a
 Manifest V3 extension, **Chrome + Firefox** from one codebase. Locator logic = plain DOM, no Playwright dep — only emits Playwright-syntax strings.
 
 CI (`.github/workflows/ci.yml`, PRs to `master`): `Check` job (`npm run check` → `build:firefox` → `web-ext lint`, warnings don't gate) + `E2E Tests` job (engine units, then E2E).
+
+### Site (`sites/`)
+
+Astro marketing site, separate project (own `package.json`), untouched by root `check`/CI. `docs/` = markdown only. Details: `.claude/rules/site.md` (loads when editing `sites/`). Its demo copies the strategy order and popup labels/limits; changing those → update `sites/src/data/demo.ts`.
 
 ### Cross-browser build
 
