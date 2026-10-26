@@ -129,8 +129,8 @@ page.addEventListener('keydown', (e) => {
   pick(key);
 });
 
-copyBtn.addEventListener('click', () => {
-  navigator.clipboard?.writeText(winnerOf(getElement(state.selected)).locator).catch(() => {});
+copyBtn.addEventListener('click', async () => {
+  await navigator.clipboard.writeText(winnerOf(getElement(state.selected)).locator);
   state.copied = true;
   clearTimeout(copiedTimer);
   copiedTimer = window.setTimeout(() => {
