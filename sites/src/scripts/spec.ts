@@ -4,12 +4,18 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-const TOKEN = /('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|\b(await|async|import|from)\b|([A-Za-z_]\w*)(?=\()/g;
+const TOKEN = /('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|(\/\/[^\n]*)|\b(await|async|import|from)\b|([A-Za-z_]\w*)(?=\()/g;
 
-/** Wraps strings, keywords and call names in the `.s`, `.kw` and `.fn` spans. */
+/** Wraps strings, comments, keywords and call names in the `.s`, `.cm`, `.kw` and `.fn` spans. */
 export function highlight(code: string): string {
-  return escapeHtml(code).replace(TOKEN, (_m, str, kw, fn) =>
-    str ? `<span class="s">${str}</span>` : kw ? `<span class="kw">${kw}</span>` : `<span class="fn">${fn}</span>`,
+  return escapeHtml(code).replace(TOKEN, (_m, str, cm, kw, fn) =>
+    str
+      ? `<span class="s">${str}</span>`
+      : cm
+        ? `<span class="cm">${cm}</span>`
+        : kw
+          ? `<span class="kw">${kw}</span>`
+          : `<span class="fn">${fn}</span>`,
   );
 }
 
